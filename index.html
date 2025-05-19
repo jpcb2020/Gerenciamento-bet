@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciamento de Apostas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -239,6 +240,24 @@
     <!-- Overlay para o fundo escuro -->
     <div id="modalOverlay" class="modal-overlay"></div>
     
+    <!-- Modal de confirmação -->
+    <div id="confirmModal" class="modal confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirmação</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" id="confirmCancel">Cancelar</button>
+                    <button type="button" class="btn-primary" id="confirmOk">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

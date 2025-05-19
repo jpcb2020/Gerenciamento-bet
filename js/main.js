@@ -34,6 +34,123 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Toast Notification System
+    const toast = {
+        success: function(message, duration = 3000) {
+            this._show(message, 'success', duration);
+        },
+        error: function(message, duration = 4000) {
+            this._show(message, 'error', duration);
+        },
+        info: function(message, duration = 3000) {
+            this._show(message, 'info', duration);
+        },
+        warning: function(message, duration = 3500) {
+            this._show(message, 'warning', duration);
+        },
+        _show: function(message, type, duration) {
+            // Icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = '<i class="fas fa-check-circle"></i>';
+                    break;
+                case 'error':
+                    icon = '<i class="fas fa-exclamation-circle"></i>';
+                    break;
+                case 'info':
+                    icon = '<i class="fas fa-info-circle"></i>';
+                    break;
+                case 'warning':
+                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    break;
+            }
+            
+            // Position based on screen size
+            const position = window.innerWidth <= 768 ? "center" : "right";
+            
+            Toastify({
+                text: message,
+                duration: duration,
+                gravity: "top",
+                position: position,
+                className: `custom-toast toast-${type}`,
+                stopOnFocus: true,
+                onClick: function(){},
+                escapeMarkup: false,
+                close: true,
+                avatar: null, 
+                offset: {
+                    x: 15,
+                    y: 15
+                },
+                style: {
+                    display: "flex",
+                    alignItems: "center"
+                },
+                node: null,
+                selector: null,
+                // Custom html template for the toast
+                prependHTML: `<div class="toast-icon">${icon}</div>`
+            }).showToast();
+        }
+    };
+    
+    // Confirmation Modal System
+    const confirmModal = {
+        modal: document.getElementById('confirmModal'),
+        titleEl: document.getElementById('confirmTitle'),
+        messageEl: document.getElementById('confirmMessage'),
+        cancelBtn: document.getElementById('confirmCancel'),
+        okBtn: document.getElementById('confirmOk'),
+        overlay: document.getElementById('modalOverlay'),
+        closeBtn: document.querySelector('#confirmModal .close-modal'),
+        callback: null,
+        
+        // Show confirmation modal
+        show: function(message, callback, title = 'Confirmação') {
+            this.titleEl.textContent = title;
+            this.messageEl.textContent = message;
+            this.callback = callback;
+            
+            this.modal.classList.add('active');
+            this.overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        },
+        
+        // Hide confirmation modal
+        hide: function() {
+            this.modal.classList.remove('active');
+            this.overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        },
+        
+        // Initialize event listeners
+        init: function() {
+            this.cancelBtn.addEventListener('click', () => {
+                this.hide();
+            });
+            
+            this.okBtn.addEventListener('click', () => {
+                if (typeof this.callback === 'function') {
+                    this.callback(true);
+                }
+                this.hide();
+            });
+            
+            this.closeBtn.addEventListener('click', () => {
+                this.hide();
+            });
+            
+            this.overlay.addEventListener('click', () => {
+                this.hide();
+            });
+        }
+    };
+    
+    // Initialize confirmation modal
+    confirmModal.init();
+    
     // Format currency
     function formatCurrency(value) {
         return new Intl.NumberFormat('pt-BR', {
@@ -51,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Error handling
     function handleError(error) {
         console.error('Error:', error);
-        alert('Ocorreu um erro ao carregar os dados. Por favor, tente novamente.');
+        toast.error('Ocorreu um erro ao carregar os dados. Por favor, tente novamente.');
     }
     
     // Load dashboard summary
@@ -296,27 +413,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 const transacaoId = this.getAttribute('data-id');
                 
-                const confirmDelete = confirm(`Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.`);
-                
-                if (confirmDelete) {
-                    try {
-                        const response = await fetch(`${API_TRANSACOES}/${transacaoId}`, {
-                            method: 'DELETE'
-                        });
-                        
-                        if (response.ok) {
-                            alert('Transação excluída com sucesso!');
-                            // Recarregar dados
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            throw new Error('Erro ao excluir transação');
+                confirmModal.show('Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.', async (confirmed) => {
+                    if (confirmed) {
+                        try {
+                            const response = await fetch(`${API_TRANSACOES}/${transacaoId}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                toast.success('Transação excluída com sucesso!');
+                                // Recarregar dados
+                                loadDashboardSummary();
+                                loadBettingHouses();
+                                loadRecentTransactions();
+                            } else {
+                                throw new Error('Erro ao excluir transação');
+                            }
+                        } catch (error) {
+                            handleError(error);
                         }
-                    } catch (error) {
-                        handleError(error);
                     }
-                }
+                }, 'Excluir Transação');
                 
                 // Fechar o menu
                 document.getElementById(`menu-${transacaoId}`).classList.remove('active');
@@ -352,38 +469,92 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 const casaId = this.getAttribute('data-id');
                 const casaNome = this.getAttribute('data-nome');
-                const valor = prompt(`Valor do depósito para ${casaNome}:`);
                 
-                if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
-                    try {
-                        const response = await fetch(API_TRANSACOES, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                casa_id: casaId,
-                                tipo: 'deposito',
-                                valor: parseFloat(valor),
-                                descricao: `Depósito para ${casaNome}`
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            alert('Depósito realizado com sucesso!');
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            throw new Error('Erro ao realizar depósito');
+                // Create a custom input modal instead of prompt
+                const depositModal = document.createElement('div');
+                depositModal.className = 'modal';
+                depositModal.id = 'depositModal';
+                
+                depositModal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Depósito para ${casaNome}</h2>
+                            <span class="close-modal">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="depositForm">
+                                <div class="form-group">
+                                    <label for="depositValue">Valor do Depósito</label>
+                                    <input type="number" id="depositValue" name="depositValue" placeholder="0.00" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn-outline" id="cancelDeposit">Cancelar</button>
+                                    <button type="submit" class="btn-primary">Confirmar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(depositModal);
+                
+                const modal = document.getElementById('depositModal');
+                const closeBtn = modal.querySelector('.close-modal');
+                const cancelBtn = document.getElementById('cancelDeposit');
+                const form = document.getElementById('depositForm');
+                
+                // Show modal
+                openModal(modal);
+                
+                // Close events
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    closeAllModals();
+                });
+                
+                cancelBtn.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    closeAllModals();
+                });
+                
+                // Form submission
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const valor = document.getElementById('depositValue').value;
+                    
+                    if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
+                        try {
+                            const response = await fetch(API_TRANSACOES, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    casa_id: casaId,
+                                    tipo: 'deposito',
+                                    valor: parseFloat(valor),
+                                    descricao: `Depósito para ${casaNome}`
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                toast.success('Depósito realizado com sucesso!');
+                                // Reload data
+                                loadDashboardSummary();
+                                loadBettingHouses();
+                                loadRecentTransactions();
+                                document.body.removeChild(modal);
+                                closeAllModals();
+                            } else {
+                                throw new Error('Erro ao realizar depósito');
+                            }
+                        } catch (error) {
+                            handleError(error);
                         }
-                    } catch (error) {
-                        handleError(error);
+                    } else {
+                        toast.error('Por favor, insira um valor válido.');
                     }
-                } else if (valor !== null) {
-                    alert('Por favor, insira um valor válido.');
-                }
+                });
             });
         });
         
@@ -394,30 +565,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 const casaId = this.getAttribute('data-id');
                 const casaNome = this.getAttribute('data-nome');
                 
-                const confirmDelete = confirm(`Tem certeza que deseja excluir a casa ${casaNome}? Esta ação não pode ser desfeita.`);
-                
-                if (confirmDelete) {
-                    try {
-                        const response = await fetch(`${API_CASAS}/${casaId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
+                confirmModal.show(`Tem certeza que deseja excluir a casa ${casaNome}? Esta ação não pode ser desfeita.`, async (confirmed) => {
+                    if (confirmed) {
+                        try {
+                            const response = await fetch(`${API_CASAS}/${casaId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (response.ok) {
+                                toast.success(`Casa ${casaNome} excluída com sucesso!`);
+                                // Reload data
+                                loadDashboardSummary();
+                                loadBettingHouses();
+                                loadRecentTransactions();
+                            } else {
+                                throw new Error('Erro ao excluir casa de apostas');
                             }
-                        });
-                        
-                        if (response.ok) {
-                            alert(`Casa ${casaNome} excluída com sucesso!`);
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            throw new Error('Erro ao excluir casa de apostas');
+                        } catch (error) {
+                            handleError(error);
                         }
-                    } catch (error) {
-                        handleError(error);
                     }
-                }
+                }, 'Excluir Casa de Aposta');
             });
         });
         
@@ -427,38 +598,92 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 const casaId = this.getAttribute('data-id');
                 const casaNome = this.getAttribute('data-nome');
-                const valor = prompt(`Valor do saque de ${casaNome}:`);
                 
-                if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
-                    try {
-                        const response = await fetch(API_TRANSACOES, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                casa_id: casaId,
-                                tipo: 'saque',
-                                valor: parseFloat(valor),
-                                descricao: `Saque de ${casaNome}`
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            alert('Saque realizado com sucesso!');
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            throw new Error('Erro ao realizar saque');
+                // Create a custom input modal instead of prompt
+                const withdrawModal = document.createElement('div');
+                withdrawModal.className = 'modal';
+                withdrawModal.id = 'withdrawModal';
+                
+                withdrawModal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Saque de ${casaNome}</h2>
+                            <span class="close-modal">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="withdrawForm">
+                                <div class="form-group">
+                                    <label for="withdrawValue">Valor do Saque</label>
+                                    <input type="number" id="withdrawValue" name="withdrawValue" placeholder="0.00" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn-outline" id="cancelWithdraw">Cancelar</button>
+                                    <button type="submit" class="btn-primary">Confirmar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(withdrawModal);
+                
+                const modal = document.getElementById('withdrawModal');
+                const closeBtn = modal.querySelector('.close-modal');
+                const cancelBtn = document.getElementById('cancelWithdraw');
+                const form = document.getElementById('withdrawForm');
+                
+                // Show modal
+                openModal(modal);
+                
+                // Close events
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    closeAllModals();
+                });
+                
+                cancelBtn.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    closeAllModals();
+                });
+                
+                // Form submission
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const valor = document.getElementById('withdrawValue').value;
+                    
+                    if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
+                        try {
+                            const response = await fetch(API_TRANSACOES, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    casa_id: casaId,
+                                    tipo: 'saque',
+                                    valor: parseFloat(valor),
+                                    descricao: `Saque de ${casaNome}`
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                toast.success('Saque realizado com sucesso!');
+                                // Reload data
+                                loadDashboardSummary();
+                                loadBettingHouses();
+                                loadRecentTransactions();
+                                document.body.removeChild(modal);
+                                closeAllModals();
+                            } else {
+                                throw new Error('Erro ao realizar saque');
+                            }
+                        } catch (error) {
+                            handleError(error);
                         }
-                    } catch (error) {
-                        handleError(error);
+                    } else {
+                        toast.error('Por favor, insira um valor válido.');
                     }
-                } else if (valor !== null) {
-                    alert('Por favor, insira um valor válido.');
-                }
+                });
             });
         });
         
@@ -488,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const casaId = this.getAttribute('data-id');
-                alert(`Mais opções para casa ID: ${casaId}`);
+                toast.info(`Mais opções para casa ID: ${casaId}`);
             });
         });
         
@@ -497,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.addEventListener('click', function(e) {
                 if (!e.target.closest('button')) {
                     const casaId = this.getAttribute('data-id');
-                    alert(`Detalhes da casa ID: ${casaId}`);
+                    toast.info(`Detalhes da casa ID: ${casaId}`);
                 }
             });
         });
@@ -577,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const initialBalance = parseFloat(document.getElementById('initialBalance').value) || 0;
             
             if (!houseName) {
-                alert('O nome da casa de apostas é obrigatório!');
+                toast.error('O nome da casa de apostas é obrigatório!');
                 return;
             }
             
@@ -599,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeAllModals();
                     
                     // Show success message
-                    alert('Casa de apostas adicionada com sucesso!');
+                    toast.success('Casa de apostas adicionada com sucesso!');
                     
                     // Reload data
                     loadDashboardSummary();
@@ -624,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const balanceNote = document.getElementById('balanceNote').value.trim();
             
             if (isNaN(newBalance) || newBalance < 0) {
-                alert('Por favor, insira um valor de saldo válido!');
+                toast.error('Por favor, insira um valor de saldo válido!');
                 return;
             }
             
@@ -661,7 +886,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeAllModals();
                     
                     // Mostrar mensagem de sucesso
-                    alert(`Saldo de ${casaNome} atualizado com sucesso!`);
+                    toast.success(`Saldo de ${casaNome} atualizado com sucesso!`);
                     
                     // Recarregar dados
                     loadDashboardSummary();

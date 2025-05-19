@@ -855,3 +855,96 @@ table td {
         font-weight: 600;
     }
 }
+
+/* Toast Notifications Custom Styles */
+.custom-toast {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    padding: 12px 20px !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.toast-success {
+    background: linear-gradient(135deg, var(--green-color), #27ae60) !important;
+}
+
+.toast-error {
+    background: linear-gradient(135deg, var(--red-color), #c0392b) !important;
+}
+
+.toast-info {
+    background: linear-gradient(135deg, var(--blue-color), #2980b9) !important;
+}
+
+.toast-warning {
+    background: linear-gradient(135deg, var(--orange-color), #d35400) !important;
+}
+
+.custom-toast .toast-close {
+    opacity: 0.7;
+    padding: 0 8px;
+}
+
+.custom-toast .toast-close:hover {
+    opacity: 1;
+}
+
+.custom-toast .toast-icon {
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+}
+
+/* Confirmation Modal Custom Styles */
+.confirmation-modal .modal-content {
+    max-width: 400px;
+}
+
+.confirmation-modal .modal-body {
+    text-align: center;
+    padding: 25px 20px;
+}
+
+.confirmation-modal #confirmMessage {
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.confirmation-modal .form-actions {
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.confirmation-modal .btn-primary {
+    background-color: var(--red-color);
+}
+
+.confirmation-modal .btn-primary:hover {
+    background-color: #c0392b;
+}
+
+/* Animation for toast */
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
