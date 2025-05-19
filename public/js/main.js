@@ -101,10 +101,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     }
 
+    // Make showToast available globally
+    window.showToast = showToast;
+
     // --- Confirmation Modal Function ---
     function showConfirmModal(message, title = 'Confirmação') {
         return new Promise((resolve) => {
-            confirmModalMessageEl.textContent = message;
+            // Use innerHTML ao invés de textContent para permitir formatação HTML
+            confirmModalMessageEl.innerHTML = message;
             confirmModalOverlay.classList.add('active');
             confirmModalElement.classList.add('active');
 
@@ -135,6 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // });
         });
     }
+
+    // Make showConfirmModal available globally
+    window.showConfirmModal = showConfirmModal;
 
     // API URLs
     const API_BASE_URL = 'http://localhost:3000/api';

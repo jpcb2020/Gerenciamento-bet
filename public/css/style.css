@@ -393,35 +393,36 @@ button {
 }
 
 .btn-icon {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-size: 0.9rem;
+    background-color: rgba(108, 92, 231, 0.1);
+    color: var(--primary-color);
     transition: var(--transition);
+    margin: 0 5px;
 }
 
 .btn-icon:hover {
-    background-color: var(--primary-light);
-    color: white;
+    background-color: rgba(108, 92, 231, 0.2);
+    transform: translateY(-2px);
 }
 
 .btn-danger-icon {
+    background-color: rgba(231, 76, 60, 0.1);
     color: var(--red-color);
 }
 
 .btn-danger-icon:hover {
-    background-color: var(--red-color);
-    color: white;
+    background-color: rgba(231, 76, 60, 0.2);
 }
 
 /* Betting Houses */
 .betting-houses {
     padding: 0 20px;
+    margin-bottom: 30px;
 }
 
 .betting-house-card {
@@ -726,10 +727,6 @@ table td {
 /* Transaction Menu Styles */
 .actions-cell {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 }
 
 .transaction-menu {
@@ -929,7 +926,7 @@ table td {
 }
 
 .actions-cell .btn-icon { /* Ensure .btn-icon from global is sufficient or add specifics */
-    margin-right: 0; /* Remove margin-right since we're using gap */
+    margin-right: 5px;
     padding: 6px 8px;
 }
 .actions-cell .btn-icon i {
@@ -1291,9 +1288,18 @@ table td {
 .confirm-modal-message {
     font-size: 0.95rem;
     color: var(--text-light);
-    line-height: 1.5;
+    line-height: 1.6;
     margin-bottom: 25px;
     margin-top: 0;
+    text-align: center;
+    display: inline-block;
+    width: 100%;
+}
+
+/* Estilos para destacar elementos no modal de confirmação */
+.confirm-modal-message strong {
+    color: var(--text-color);
+    font-weight: 700;
 }
 
 .confirm-modal-actions {
@@ -1883,5 +1889,92 @@ table td {
     
     .panel-value {
         font-size: 20px;
+    }
+}
+
+/* General Button Styles */
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 5px;
+    transition: var(--transition);
+    border: 1px solid transparent; /* Base border */
+    cursor: pointer;
+    line-height: normal; /* Garante alinhamento vertical do texto */
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-light); 
+    border-color: var(--primary-light);
+    color: white; /* Manter cor do texto no hover */
+}
+
+.btn-danger {
+    background-color: var(--red-color);
+    color: white;
+    border-color: var(--red-color);
+}
+
+.btn-danger:hover {
+    background-color: #c0392b; /* Darken red */
+    border-color: #c0392b;
+    color: white; /* Manter cor do texto no hover */
+}
+
+/* Botão com ícone - estilo moderno */
+.btn-with-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;  /* Reduzido de 8px para 6px */
+    padding: 8px 12px;  /* Reduzido de 10px 16px para 8px 12px */
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    letter-spacing: 0.2px;  /* Reduzido de 0.3px para 0.2px */
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    font-size: 0.85rem;  /* Tamanho de fonte reduzido */
+}
+
+.btn-with-icon i {
+    font-size: 0.9rem;  /* Reduzido de 1rem para 0.9rem */
+}
+
+.btn-with-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-with-icon:active {
+    transform: translateY(0);
+}
+
+/* Versão responsiva do botão */
+@media (max-width: 768px) {
+    .btn-with-icon span {
+        display: none; /* Esconde o texto em telas pequenas */
+    }
+    
+    .btn-with-icon {
+        padding: 10px 12px; /* Reduz o padding horizontal */
+    }
+    
+    .btn-with-icon i {
+        font-size: 1.1rem; /* Ícone um pouco maior quando está sozinho */
+        margin: 0;
     }
 }

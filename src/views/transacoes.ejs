@@ -8,24 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Toast container -->
-    <div id="toast-container"></div>
-    
-    <!-- Confirmation Modal -->
-    <div id="confirmModalOverlay" class="confirm-modal-overlay">
-        <div id="confirmModal" class="confirm-modal">
-            <div id="confirmModalIcon" class="confirm-modal-icon">
-                <i class="fas fa-info-circle"></i>
-            </div>
-            <h3 id="confirmModalTitle" class="confirm-modal-title">Confirmação</h3>
-            <p id="confirmModalMessage" class="confirm-modal-message">Tem certeza?</p>
-            <div class="confirm-modal-actions">
-                <button id="confirmModalConfirmBtn" class="btn btn-primary">Confirmar</button>
-                <button id="confirmModalCancelBtn" class="btn btn-secondary">Cancelar</button>
-            </div>
-        </div>
-    </div>
-    
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -160,6 +142,10 @@
                     <div class="section-header">
                         <h3>Todas as Transações</h3>
                         <div>
+                            <button id="deletarTodasTransacoesBtn" class="btn btn-danger btn-with-icon">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Deletar Todas</span>
+                            </button>
                             <select id="filterType" class="filter-control">
                                 <option value="">Todos os Tipos</option>
                                 <option value="deposito">Depósito</option>
@@ -213,54 +199,7 @@
         </main>
     </div>
 
-    <!-- Modal para visualizar/editar transação -->
-    <div id="transactionDetailModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Detalhes da Transação</h2>
-                <span class="close-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editTransactionForm">
-                    <input type="hidden" id="transactionId">
-                    <div class="form-group">
-                        <label for="transactionDate">Data</label>
-                        <input type="datetime-local" id="transactionDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="transactionHouse">Casa de Aposta</label>
-                        <select id="transactionHouse" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="transactionType">Tipo</label>
-                        <select id="transactionType" required>
-                            <option value="deposito">Depósito</option>
-                            <option value="saque">Saque</option>
-                            <option value="aposta">Aposta</option>
-                            <option value="ganho">Ganho</option>
-                            <option value="correcao">Correção de Saldo</option>
-                            <!-- Outros tipos podem ser adicionados aqui -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="transactionAmount">Valor</label>
-                        <input type="number" id="transactionAmount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="transactionDescription">Descrição/Observação</label>
-                        <textarea id="transactionDescription" rows="3"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-outline close-modal">Cancelar</button>
-                        <button type="submit" class="btn-primary">Salvar Alterações</button>
-                         <button type="button" class="btn-danger" id="deleteTransactionBtn">Excluir Transação</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/main.js"></script> <!-- Common JS like sidebar toggle -->
     <script src="js/transacoes.js"></script> 
+    <script src="js/main.js"></script> <!-- Common JS like sidebar toggle -->
 </body>
 </html> 

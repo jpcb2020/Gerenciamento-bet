@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     const filterDateRangeButton = document.getElementById('filterDateRange');
+    const deletarTodasTransacoesBtn = document.getElementById('deletarTodasTransacoesBtn');
 
     // Dashboard panel elements
     const dailyIncomeElement = document.getElementById('dailyIncome');
@@ -20,28 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const topHouseCountElement = document.getElementById('topHouseCount');
     const topHouseBalanceElement = document.getElementById('topHouseBalance');
 
-    // Modal elements (assuming generic modal handlers are in main.js)
-    const transactionDetailModal = document.getElementById('transactionDetailModal');
-    const editTransactionForm = document.getElementById('editTransactionForm');
-    const transactionIdInput = document.getElementById('transactionId');
-    const transactionDateInput = document.getElementById('transactionDate');
-    const transactionHouseSelect = document.getElementById('transactionHouse');
-    const transactionTypeSelect = document.getElementById('transactionType'); // In modal
-    const transactionAmountInput = document.getElementById('transactionAmount');
-    const transactionDescriptionInput = document.getElementById('transactionDescription');
-    const deleteTransactionBtn = document.getElementById('deleteTransactionBtn');
-    
-    // Confirmation modal elements
-    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
-    const confirmModal = document.getElementById('confirmModal');
-    const confirmModalTitle = document.getElementById('confirmModalTitle');
-    const confirmModalMessage = document.getElementById('confirmModalMessage');
-    const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
-    const confirmModalCancelBtn = document.getElementById('confirmModalCancelBtn');
-    
-    // Toast container
-    const toastContainer = document.getElementById('toast-container');
-    
     let allTransactions = [];
     let filteredTransactions = [];
     let bettingHouses = [];
@@ -50,92 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let sortColumn = 'data';
     let sortDirection = 'desc';
 
-    // Local implementation of showToast if it doesn't exist in global scope
-    if (typeof window.showToast !== 'function') {
-        window.showToast = function(message, type = 'info', duration = 3000) {
-            if (!toastContainer) {
-                console.error('Toast container not found');
-                alert(message); // Fallback to alert if toast container not found
-                return;
-            }
-            
-            const toast = document.createElement('div');
-            toast.className = `toast toast--${type}`;
-            
-            const messageSpan = document.createElement('span');
-            messageSpan.textContent = message;
-            toast.appendChild(messageSpan);
-            
-            const closeButton = document.createElement('button');
-            closeButton.innerHTML = '&times;';
-            closeButton.className = 'toast-close-btn';
-            closeButton.onclick = () => {
-                toast.classList.remove('toast--visible');
-                toast.classList.add('toast--hiding');
-                // Clear timeout if closed manually to prevent issues
-                if (toast.timerId) clearTimeout(toast.timerId);
-                if (toast.removeTimerId) clearTimeout(toast.removeTimerId);
-                setTimeout(() => toast.remove(), 300); // Animation duration for hiding
-            };
-            toast.appendChild(closeButton);
-            
-            // Timer bar
-            const timerBar = document.createElement('div');
-            timerBar.className = 'toast-timer-bar';
-            timerBar.style.animationDuration = `${duration}ms`;
-            toast.appendChild(timerBar);
-            
-            toastContainer.appendChild(toast);
-            
-            // Trigger reflow to enable animation
-            toast.offsetHeight;
-            toast.classList.add('toast--visible');
-            
-            // Store timer ID on the toast element to clear it if closed manually
-            toast.timerId = setTimeout(() => {
-                toast.classList.remove('toast--visible');
-                toast.classList.add('toast--hiding');
-                toast.removeTimerId = setTimeout(() => toast.remove(), 300); // Animation duration for hiding
-            }, duration);
-        }
-    }
-    
-    // Local implementation of showConfirmModal if it doesn't exist in global scope
-    if (typeof window.showConfirmModal !== 'function') {
-        window.showConfirmModal = function(message, title = 'Confirmação') {
-            if (!confirmModalOverlay || !confirmModal) {
-                console.error('Confirmation modal elements not found');
-                // Fallback to standard confirm
-                return Promise.resolve(window.confirm(message));
-            }
-            
-            return new Promise((resolve) => {
-                if (confirmModalTitle) confirmModalTitle.textContent = title;
-                confirmModalMessage.textContent = message;
-                confirmModalOverlay.classList.add('active');
-                
-                const handleConfirm = () => {
-                    cleanup();
-                    resolve(true);
-                };
-                
-                const handleCancel = () => {
-                    cleanup();
-                    resolve(false);
-                };
-                
-                const cleanup = () => {
-                    confirmModalOverlay.classList.remove('active');
-                    confirmModalConfirmBtn.removeEventListener('click', handleConfirm);
-                    confirmModalCancelBtn.removeEventListener('click', handleCancel);
-                };
-                
-                confirmModalConfirmBtn.addEventListener('click', handleConfirm);
-                confirmModalCancelBtn.addEventListener('click', handleCancel);
-            });
-        }
-    }
-    
     async function fetchTransactions() {
         try {
             const response = await fetch('/api/transacoes');
@@ -151,9 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erro ao buscar transações:', error);
             transactionsTableBody.innerHTML = `<tr><td colspan="8" class="empty-transactions"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar transações</h3><p>${error.message}</p></div></td></tr>`;
-            if (typeof showToast === 'function') {
-                showToast(`Erro ao carregar transações: ${error.message}`, 'error');
-            }
         }
     }
 
@@ -162,12 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/casas');
             bettingHouses = await response.json();
             populateHouseFilter(bettingHouses);
-            populateHouseSelectModal(bettingHouses);
         } catch (error) {
             console.error('Erro ao buscar casas de apostas:', error);
-            if (typeof showToast === 'function') {
-                showToast(`Erro ao buscar casas de apostas: ${error.message}`, 'error');
-            }
         }
     }
 
@@ -178,16 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
             option.value = house.id;
             option.textContent = house.nome;
             filterHouseSelect.appendChild(option);
-        });
-    }
-    
-    function populateHouseSelectModal(houses) {
-        transactionHouseSelect.innerHTML = ''; // Reset
-        houses.forEach(house => {
-            const option = document.createElement('option');
-            option.value = house.id;
-            option.textContent = house.nome;
-            transactionHouseSelect.appendChild(option);
         });
     }
 
@@ -271,20 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const actionsCell = row.insertCell();
             actionsCell.classList.add('actions-cell');
-            const editButton = document.createElement('button');
-            editButton.innerHTML = '<i class="fas fa-edit"></i>';
-            editButton.classList.add('btn-icon');
-            editButton.title = "Editar/Ver Detalhes";
-            editButton.addEventListener('click', () => openTransactionModal(t));
-            actionsCell.appendChild(editButton);
-
-            // Add a delete button directly in the row
-            const deleteBtnRow = document.createElement('button');
-            deleteBtnRow.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtnRow.classList.add('btn-icon', 'btn-danger-icon');
-            deleteBtnRow.title = "Excluir Transação";
-            deleteBtnRow.addEventListener('click', () => handleDeleteTransaction(t.id));
-            actionsCell.appendChild(deleteBtnRow);
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteButton.classList.add('btn-icon', 'btn-danger-icon');
+            deleteButton.title = "Excluir Transação";
+            deleteButton.addEventListener('click', () => handleDeleteTransaction(t.id));
+            actionsCell.appendChild(deleteButton);
         });
         updatePaginationControls();
     }
@@ -294,6 +162,54 @@ document.addEventListener('DOMContentLoaded', () => {
         pageInfo.textContent = `Página ${currentPage} de ${totalPages || 1}`;
         prevPageButton.disabled = currentPage === 1;
         nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    async function handleDeleteTransaction(id) {
+        if (!id) return;
+        
+        // Confirmation dialog
+        const confirmed = await showConfirmModal('Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e o saldo da casa será ajustado.', 'Confirmar Exclusão');
+        
+        if (confirmed) {
+            try {
+                const response = await fetch(`/api/transacoes/${id}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                await fetchTransactions(); // Refresh list
+                
+                showToast('Transação excluída com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir transação:', error);
+                showToast(`Erro ao excluir: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    async function handleDeleteAllTransactions() {
+        const confirmed = await showConfirmModal(
+            'Tem certeza que deseja excluir <strong>TODAS</strong> as transações? Esta ação <strong>não pode ser desfeita</strong> e os saldos de <strong>TODAS</strong> as casas serão recalculados ou zerados. É <strong>altamente recomendável fazer um backup</strong> antes de prosseguir.',
+            'Confirmar Exclusão de Todas as Transações',
+            'warning' // Adiciona um nível de aviso mais forte
+        );
+
+        if (confirmed) {
+            try {
+                const response = await fetch('/api/transacoes/all', { method: 'DELETE' });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                await fetchTransactions(); // Refresh list
+                // É importante também atualizar os painéis do dashboard, pois os saldos podem mudar drasticamente.
+                await updateDashboardPanels(); 
+                showToast('Todas as transações foram excluídas com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir todas as transações:', error);
+                showToast(`Erro ao excluir todas as transações: ${error.message}`, 'error');
+            }
+        }
     }
 
     function applyFiltersAndSort() {
@@ -375,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     endDateInput.addEventListener('change', applyFiltersAndSort);
     filterTypeSelect.addEventListener('change', applyFiltersAndSort);
     filterHouseSelect.addEventListener('change', applyFiltersAndSort);
-    searchDescriptionInput.addEventListener('input', applyFiltersAndSort); // Or 'keyup'
+    searchDescriptionInput.addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); updateDashboardPanels(); });
 
     // Event Listeners for pagination
     prevPageButton.addEventListener('click', () => {
@@ -415,183 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Modal Logic
-    function openTransactionModal(transaction = null) {
-        editTransactionForm.reset(); // Clear form
-        populateHouseSelectModal(bettingHouses); // Ensure houses are populated
-
-        if (transaction) { // Editing existing transaction
-            transactionIdInput.value = transaction.id;
-            // Format date for datetime-local input: YYYY-MM-DDTHH:mm
-            transactionDateInput.value = transaction.data ? new Date(new Date(transaction.data).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0,16) : '';
-            transactionHouseSelect.value = transaction.casa_id || '';
-            transactionTypeSelect.value = transaction.tipo || '';
-            transactionAmountInput.value = transaction.valor || '';
-            transactionDescriptionInput.value = transaction.descricao || '';
-            deleteTransactionBtn.style.display = 'inline-block';
-            deleteTransactionBtn.dataset.id = transaction.id;
-        } else { // Adding new transaction (if functionality is added)
-            transactionIdInput.value = '';
-            deleteTransactionBtn.style.display = 'none';
-            // Set default values if needed for a new transaction
-        }
-        // This assumes a global function showModal exists from main.js or similar
-        if (typeof showModal === 'function') {
-            showModal('transactionDetailModal');
-        } else {
-            transactionDetailModal.style.display = 'block'; // Fallback basic show
-            // Assuming a modal overlay is also handled by main.js or CSS
-        }
+    // Event listener para o botão de deletar todas as transações
+    if (deletarTodasTransacoesBtn) {
+        deletarTodasTransacoesBtn.addEventListener('click', handleDeleteAllTransactions);
     }
-    
-    // Add event listener for closing modal if not handled globally
-    transactionDetailModal.querySelector('.close-modal')?.addEventListener('click', () => {
-         if (typeof closeModal === 'function') {
-            closeModal('transactionDetailModal');
-        } else {
-            transactionDetailModal.style.display = 'none'; // Fallback basic hide
-        }
-    });
-    // Also for cancel button
-    transactionDetailModal.querySelector('.btn-outline.close-modal')?.addEventListener('click', () => {
-        if (typeof closeModal === 'function') {
-           closeModal('transactionDetailModal');
-       } else {
-           transactionDetailModal.style.display = 'none'; // Fallback basic hide
-       }
-   });
-
-
-    editTransactionForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const id = transactionIdInput.value;
-        const casa_id_raw = transactionHouseSelect.value;
-        const valor_raw = transactionAmountInput.value;
-
-        // Basic validation
-        if (!casa_id_raw) {
-            if (typeof showToast === 'function') {
-                showToast('Por favor, selecione uma casa de aposta.', 'warning');
-            } else {
-                alert('Por favor, selecione uma casa de aposta.');
-            }
-            return;
-        }
-        if (!valor_raw || isNaN(parseFloat(valor_raw))) {
-            if (typeof showToast === 'function') {
-                showToast('Por favor, insira um valor numérico válido.', 'warning');
-            } else {
-                alert('Por favor, insira um valor numérico válido.');
-            }
-            return;
-        }
-
-
-        const transactionData = {
-            data: transactionDateInput.value,
-            casa_id: parseInt(casa_id_raw),
-            tipo: transactionTypeSelect.value,
-            valor: parseFloat(valor_raw),
-            descricao: transactionDescriptionInput.value
-            // status is not in the form, default or handle as needed
-        };
-
-        try {
-            let response;
-            let method;
-
-            if (id) { // Update existing transaction
-                method = 'PUT';
-                response = await fetch(`/api/transacoes/${id}`, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(transactionData)
-                });
-            } else { // Add new transaction
-                // This assumes we might add a "New Transaction" button eventually.
-                // The POST /api/transacoes endpoint exists.
-                method = 'POST';
-                response = await fetch('/api/transacoes', {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(transactionData)
-                });
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
-
-            // const result = await response.json(); // The new/updated transaction
-            await fetchTransactions(); // Refresh the list
-
-            if (typeof closeModal === 'function') {
-                closeModal('transactionDetailModal');
-            } else {
-                transactionDetailModal.style.display = 'none';
-            }
-            // Show success toast/message
-            if (typeof showToast === 'function') {
-                showToast(`${id ? 'Transação atualizada' : 'Transação adicionada'} com sucesso!`, 'success');
-            } else {
-                alert(`${id ? 'Transação atualizada' : 'Transação adicionada'} com sucesso!`);
-            }
-
-        } catch (error) {
-            console.error(`Erro ao ${id ? 'atualizar' : 'adicionar'} transação:`, error);
-            // Show error toast/message
-            if (typeof showToast === 'function') {
-                showToast(`Erro: ${error.message}`, 'error');
-            } else {
-                alert(`Erro: ${error.message}`);
-            }
-        }
-    });
-
-    // Delete transaction handler (to be used by both the modal and row buttons)
-    async function handleDeleteTransaction(id) {
-        if (!id) return;
-
-        try {
-            // Use our window.showConfirmModal function
-            const confirmed = await window.showConfirmModal(
-                'Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e o saldo da casa será ajustado.',
-                'Confirmar Exclusão'
-            );
-            
-            if (confirmed) {
-                const response = await fetch(`/api/transacoes/${id}`, { method: 'DELETE' });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                await fetchTransactions(); // Refresh list
-                
-                // Close modal if open
-                if (typeof closeModal === 'function') {
-                    closeModal('transactionDetailModal');
-                } else {
-                    transactionDetailModal.style.display = 'none';
-                }
-                
-                // Show success toast with our own function
-                window.showToast('Transação excluída com sucesso!', 'success');
-                console.log('Toast shown for successful deletion');
-            }
-        } catch (error) {
-            console.error('Erro ao excluir transação:', error);
-            window.showToast(`Erro ao excluir: ${error.message}`, 'error');
-        }
-    }
-
-    // Update the delete button in the modal to use the common handler
-    deleteTransactionBtn.addEventListener('click', async () => {
-        const id = deleteTransactionBtn.dataset.id;
-        if (!id) return;
-        
-        handleDeleteTransaction(id);
-    });
 
     // Function to update all dashboard panels
     function updateDashboardPanels() {
@@ -816,6 +559,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial data load
     fetchBettingHouses(); // Fetch houses first for filters
     fetchTransactions();
+
+    // Event Listeners
+    prevPageButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTransactions();
+        }
+    });
+
+    nextPageButton.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTransactions();
+        }
+    });
+
+    filterHouseSelect.addEventListener('change', () => { currentPage = 1; applyFiltersAndSort(); updateDashboardPanels(); });
+    filterTypeSelect.addEventListener('change', () => { currentPage = 1; applyFiltersAndSort(); updateDashboardPanels(); });
+    searchDescriptionInput.addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); updateDashboardPanels(); });
+    filterDateRangeButton.addEventListener('click', () => { currentPage = 1; applyFiltersAndSort(); updateDashboardPanels(); });
 });
 
 // Helper for styling positive/negative values - add to your style.css

@@ -9,8 +9,8 @@ router.get('/', transacoesController.getAllTransacoes);
 // POST /api/transacoes - Adiciona uma nova transação.
 router.post('/', transacoesController.addTransacao);
 
-// PUT /api/transacoes/:id - Atualiza uma transação existente.
-router.put('/:id', transacoesController.updateTransacao);
+// DELETE /api/transacoes/all - Deleta TODAS as transações.
+router.delete('/all', transacoesController.deleteAllTransacoes);
 
 // DELETE /api/transacoes/:id - Deleta uma transação existente.
 router.delete('/:id', transacoesController.deleteTransacao);
