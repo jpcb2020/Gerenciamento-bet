@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // API URLs
-    const API_BASE_URL = 'http://192.168.111.128:3000/api';
+    const API_BASE_URL = 'http://localhost:3000/api';
     const API_CASAS = `${API_BASE_URL}/casas`;
     const API_TRANSACOES = `${API_BASE_URL}/transacoes`;
     const API_DASHBOARD = `${API_BASE_URL}/dashboard`;
