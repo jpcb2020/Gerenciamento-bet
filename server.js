@@ -14,6 +14,10 @@ const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configure View Engine (EJS)
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'src', 'views'));
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -27,6 +31,13 @@ initDb();
 app.use('/api/casas', casasRoutes);
 app.use('/api/transacoes', transacoesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+// Rota principal para renderizar o index.ejs da pasta views
+app.get('/', (req, res) => {
+  // Você pode passar dados para o template se necessário
+  // Exemplo: res.render('index', { title: 'Página Inicial BetManager' });
+  res.render('index', { title: 'Gerenciamento de Apostas' }); 
+});
 
 // Start the server
 app.listen(PORT, () => {
