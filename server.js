@@ -44,6 +44,11 @@ app.get('/casas-de-apostas', (req, res) => {
   res.render('casas-de-apostas', { title: 'Casas de Apostas' });
 });
 
+// Rota para a página de transações
+app.get('/transacoes', (req, res) => {
+  res.render('transacoes', { title: 'Transações' });
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

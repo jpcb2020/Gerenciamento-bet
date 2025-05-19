@@ -782,6 +782,278 @@ table td {
     }
 }
 
+/* Styles for Transactions Page */
+
+.page-title .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title .date-filter label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.page-title .date-filter input[type="date"],
+.page-title .date-filter button {
+    padding: 8px 12px;
+    border-radius: var(--border-radius, 5px); /* Use existing var or default */
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.page-title .date-filter button {
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+}
+.page-title .date-filter button:hover {
+    background-color: var(--primary-light);
+}
+
+
+.section-header { /* Ensure this existing class can accommodate new filter layout */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Existing is 15px, can adjust if needed */
+}
+
+.section-header > div:last-child { /* Container for filter controls */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-control {
+    padding: 10px 15px;
+    border-radius: var(--border-radius, 5px);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    background-color: var(--card-color);
+    min-width: 150px; /* Adjust as needed */
+}
+
+#searchDescription.filter-control {
+    min-width: 200px; /* More space for search */
+}
+
+
+/* Full Transactions Table */
+.transactions-table-full {
+    background-color: var(--card-color);
+    padding: 20px;
+    border-radius: var(--border-radius, 8px);
+    box-shadow: var(--shadow);
+    overflow-x: auto; /* For responsiveness on small screens */
+}
+
+.transactions-table-full table {
+    width: 100%;
+    border-collapse: collapse; /* Overrides global if needed */
+}
+
+.transactions-table-full th,
+.transactions-table-full td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.transactions-table-full th {
+    font-weight: 600;
+    color: var(--text-light);
+    background-color: var(--bg-color); /* Light header for table */
+}
+
+.transactions-table-full th[data-sort] {
+    cursor: pointer;
+    position: relative;
+}
+
+.transactions-table-full th[data-sort]:hover {
+    background-color: #e9ecef; /* Slightly darker hover for sortable headers */
+}
+
+.transactions-table-full th[data-sort] i {
+    margin-left: 8px;
+    color: var(--text-light);
+    font-size: 0.8em;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.transactions-table-full th[data-sort]:hover i {
+    color: var(--dark-color);
+}
+
+.transactions-table-full tbody tr:hover {
+    background-color: #f8f9fa; /* Light hover for rows */
+}
+
+.transactions-table-full .empty-transactions td {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.transactions-table-full .empty-state { /* Already styled globally, ensure it fits */
+    margin: 0 auto;
+}
+
+
+.positive-value {
+    color: var(--green-color);
+    font-weight: 500;
+}
+.negative-value {
+    color: var(--red-color);
+    font-weight: 500;
+}
+
+.actions-cell .btn-icon { /* Ensure .btn-icon from global is sufficient or add specifics */
+    margin-right: 5px;
+    padding: 6px 8px;
+}
+.actions-cell .btn-icon i {
+    font-size: 0.9rem;
+}
+
+
+/* Pagination Controls */
+.pagination-controls {
+    margin-top: 25px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-controls button {
+    padding: 8px 15px;
+    border-radius: var(--border-radius, 5px);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-color);
+    color: var(--primary-color);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-controls button:disabled {
+    color: var(--text-light);
+    cursor: not-allowed;
+    background-color: var(--bg-color);
+}
+
+.pagination-controls #pageInfo {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    padding: 0 10px;
+}
+
+
+/* Transaction Detail Modal - ensure it uses existing modal styles effectively */
+/* Most styles should come from global .modal, .modal-content etc. */
+/* Add specific overrides or enhancements if needed below */
+
+#transactionDetailModal .modal-content {
+    max-width: 550px; /* Adjust as needed */
+}
+
+#transactionDetailModal .form-group input[type="datetime-local"],
+#transactionDetailModal .form-group select,
+#transactionDetailModal .form-group input[type="number"],
+#transactionDetailModal .form-group textarea {
+    /* Ensure these use the global .form-group input/select styles */
+    /* If not, replicate styles from .form-group input in global CSS */
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius, 5px);
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+#transactionDetailModal .form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+#transactionDetailModal .form-actions {
+    /* Ensure global .form-actions are applied */
+    /* Example: display: flex, justify-content: flex-end, gap: 10px */
+    margin-top: 20px;
+}
+
+#transactionDetailModal .form-actions .btn-danger {
+    background-color: var(--red-color);
+    color: white;
+}
+#transactionDetailModal .form-actions .btn-danger:hover {
+    background-color: #c0392b; /* Darker red */
+}
+
+/* Responsive adjustments for transaction page elements if needed */
+@media (max-width: 768px) {
+    .page-title .date-filter {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 15px;
+    }
+    .page-title .date-filter input[type="date"],
+    .page-title .date-filter button {
+        width: 100%;
+    }
+    .page-title .date-filter span {
+        display: none; /* Hide "até" on small screens, stack inputs */
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .section-header > div:last-child { /* Filter controls container */
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .filter-control {
+        width: 100%;
+        min-width: unset;
+    }
+    #searchDescription.filter-control {
+        min-width: unset;
+    }
+
+    .transactions-table-full th,
+    .transactions-table-full td {
+        padding: 10px 8px; /* Reduce padding for smaller screens */
+        font-size: 0.85rem;
+    }
+
+    .transactions-table-full th[data-sort] i {
+        right: 5px; /* Adjust icon position */
+    }
+
+    .pagination-controls button {
+        padding: 6px 10px;
+    }
+    .pagination-controls #pageInfo {
+        font-size: 0.8rem;
+    }
+}
+
+
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
@@ -1425,4 +1697,30 @@ table td {
         width: 90%;
         margin: 20% auto; /* Adjust margin for smaller screens */
     }
+}
+
+.table-house-cell {
+    /* display: flex; -- REMOVED */
+    /* align-items: center; -- REMOVED */
+    /* gap: 10px; -- REMOVED (gap is for flex/grid) */
+    /* vertical-align: middle; -- Inherited from td */
+}
+
+.house-logo-small {
+    width: 30px; /* Adjust size as needed */
+    height: 30px;
+    border-radius: 4px; /* Optional: if logos look better with rounded corners */
+    object-fit: contain; /* Or cover, depending on logo aspect ratios */
+    vertical-align: middle; /* ADDED/MODIFIED */
+    margin-right: 8px; /* ADDED for spacing, adjust as needed */
+}
+
+/* ADDED: Style the span containing the house name for vertical alignment */
+.table-house-cell > span {
+    vertical-align: middle;
+}
+
+.transactions-table-full .empty-transactions td {
+    text-align: center;
+    padding: 40px 0;
 }

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transações - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li class="active">
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://via.placeholder.com/40" alt="Profile">
+                        <span>Usuário</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <h2>Transações</h2>
+                    <div class="date-filter">
+                        <label for="dateRange">Filtrar por Data:</label>
+                        <input type="date" id="startDate">
+                        <span>até</span>
+                        <input type="date" id="endDate">
+                        <button class="btn-primary" id="filterDateRange">Filtrar</button>
+                    </div>
+                </div>
+
+                <!-- Transactions Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>Todas as Transações</h3>
+                        <div>
+                            <select id="filterType" class="filter-control">
+                                <option value="">Todos os Tipos</option>
+                                <option value="deposito">Depósito</option>
+                                <option value="saque">Saque</option>
+                                <option value="aposta">Aposta</option>
+                                <option value="ganho">Ganho</option>
+                                <option value="correcao">Correção</option>
+                            </select>
+                            <select id="filterHouse" class="filter-control">
+                                <option value="">Todas as Casas</option>
+                                <!-- Options will be populated by JS -->
+                            </select>
+                            <input type="text" id="searchDescription" class="filter-control" placeholder="Buscar por descrição...">
+                        </div>
+                    </div>
+                    <div class="transactions-table-full">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-sort="data">Data <i class="fas fa-sort"></i></th>
+                                    <th data-sort="casa_nome">Casa <i class="fas fa-sort"></i></th>
+                                    <th data-sort="tipo">Tipo <i class="fas fa-sort"></i></th>
+                                    <th data-sort="valor">Valor <i class="fas fa-sort"></i></th>
+                                    <th data-sort="saldo_anterior">Saldo Anterior <i class="fas fa-sort"></i></th>
+                                    <th data-sort="saldo_posterior">Saldo Posterior <i class="fas fa-sort"></i></th>
+                                    <th>Descrição/Obs</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTableBody">
+                                <!-- Transactions will be loaded here by JavaScript -->
+                                <tr>
+                                    <td colspan="8" class="empty-transactions">
+                                        <div class="empty-state">
+                                            <i class="fas fa-exchange-alt"></i>
+                                            <h3>Nenhuma transação encontrada</h3>
+                                            <p>As transações aparecerão aqui após o carregamento ou aplicação dos filtros.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="pagination-controls">
+                           <button id="prevPage" disabled>Anterior</button>
+                           <span id="pageInfo">Página 1 de 1</span>
+                           <button id="nextPage" disabled>Próxima</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para visualizar/editar transação -->
+    <div id="transactionDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalhes da Transação</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editTransactionForm">
+                    <input type="hidden" id="transactionId">
+                    <div class="form-group">
+                        <label for="transactionDate">Data</label>
+                        <input type="datetime-local" id="transactionDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionHouse">Casa de Aposta</label>
+                        <select id="transactionHouse" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionType">Tipo</label>
+                        <select id="transactionType" required>
+                            <option value="deposito">Depósito</option>
+                            <option value="saque">Saque</option>
+                            <option value="aposta">Aposta</option>
+                            <option value="ganho">Ganho</option>
+                            <option value="correcao">Correção de Saldo</option>
+                            <!-- Outros tipos podem ser adicionados aqui -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionAmount">Valor</label>
+                        <input type="number" id="transactionAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionDescription">Descrição/Observação</label>
+                        <textarea id="transactionDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar Alterações</button>
+                         <button type="button" class="btn-danger" id="deleteTransactionBtn">Excluir Transação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/transacoes.js"></script> 
+    <script src="js/main.js"></script> <!-- Common JS like sidebar toggle -->
+</body>
+</html> 
