@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmModalHTML = `
         <div id="confirmModalOverlay" class="confirm-modal-overlay">
             <div id="confirmModal" class="confirm-modal">
-                <h4 id="confirmModalTitle" class="confirm-modal-title">Confirmação</h4>
+                <div id="confirmModalIcon" class="confirm-modal-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
                 <p id="confirmModalMessage" class="confirm-modal-message">Tem certeza?</p>
                 <div class="confirm-modal-actions">
                     <button id="confirmModalConfirmBtn" class="btn btn-primary">Confirmar</button>
@@ -21,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const confirmModalOverlay = document.getElementById('confirmModalOverlay');
     const confirmModalElement = document.getElementById('confirmModal');
-    const confirmModalTitleEl = document.getElementById('confirmModalTitle');
     const confirmModalMessageEl = document.getElementById('confirmModalMessage');
     const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
     const confirmModalCancelBtn = document.getElementById('confirmModalCancelBtn');
@@ -41,9 +42,18 @@ document.addEventListener('DOMContentLoaded', function() {
         closeButton.onclick = () => {
             toast.classList.remove('toast--visible');
             toast.classList.add('toast--hiding');
-            setTimeout(() => toast.remove(), 300); // Animation duration
+            // Clear timeout if closed manually to prevent issues
+            if (toast.timerId) clearTimeout(toast.timerId);
+            if (toast.removeTimerId) clearTimeout(toast.removeTimerId);
+            setTimeout(() => toast.remove(), 300); // Animation duration for hiding
         };
         toast.appendChild(closeButton);
+
+        // Timer bar
+        const timerBar = document.createElement('div');
+        timerBar.className = 'toast-timer-bar';
+        timerBar.style.animationDuration = `${duration}ms`;
+        toast.appendChild(timerBar);
 
         toastContainer.appendChild(toast);
 
@@ -51,17 +61,17 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.offsetHeight;
         toast.classList.add('toast--visible');
 
-        setTimeout(() => {
+        // Store timer ID on the toast element to clear it if closed manually
+        toast.timerId = setTimeout(() => {
             toast.classList.remove('toast--visible');
             toast.classList.add('toast--hiding');
-            setTimeout(() => toast.remove(), 300); // Animation duration
+            toast.removeTimerId = setTimeout(() => toast.remove(), 300); // Animation duration for hiding
         }, duration);
     }
 
     // --- Confirmation Modal Function ---
     function showConfirmModal(message, title = 'Confirmação') {
         return new Promise((resolve) => {
-            confirmModalTitleEl.textContent = title;
             confirmModalMessageEl.textContent = message;
             confirmModalOverlay.classList.add('active');
             confirmModalElement.classList.add('active');
@@ -239,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const cardHTML = `
                         <div class="betting-house-card" data-id="${casa.id}">
                             <div class="house-info">
-                                <img src="${casa.logo || 'https://via.placeholder.com/50?text=' + casa.nome}" alt="${casa.nome}">
+                                <img src="${casa.logo || '/images/bet-default-icon.png'}" alt="${casa.nome}">
                                 <div>
                                     <h4>${casa.nome}</h4>
                                     <p>ID: ${casa.id}</p>
@@ -256,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button class="btn-outline btn-withdraw" data-id="${casa.id}" data-nome="${casa.nome}">
                                     <i class="fas fa-minus"></i> Saque
                                 </button>
-                                <button class="btn-outline btn-edit-balance" data-id="${casa.id}" data-nome="${casa.nome}" data-saldo="${casa.saldo}" data-logo="${casa.logo || 'https://via.placeholder.com/50?text=' + casa.nome}">
+                                <button class="btn-outline btn-edit-balance" data-id="${casa.id}" data-nome="${casa.nome}" data-saldo="${casa.saldo}" data-logo="${casa.logo || '/images/bet-default-icon.png'}">
                                     <i class="fas fa-edit"></i> Editar Saldo
                                 </button>
                                 <button class="btn-outline btn-delete" data-id="${casa.id}" data-nome="${casa.nome}">
@@ -317,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td data-label="Data">${formatDate(transacao.data)}</td>
                                 <td data-label="Casa">
                                     <div class="table-house">
-                                        <img src="${transacao.casa_logo || 'https://via.placeholder.com/30?text=' + transacao.casa_nome}" alt="${transacao.casa_nome}">
+                                        <img src="${transacao.casa_logo || '/images/bet-default-icon.png'}" alt="${transacao.casa_nome}">
                                         <span>${transacao.casa_nome}</span>
                                     </div>
                                 </td>
@@ -497,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const casaId = this.getAttribute('data-id');
                 const casaNome = this.getAttribute('data-nome');
                 
-                const confirmed = await showConfirmModal(`Tem certeza que deseja excluir a casa ${casaNome}? Todas as transações associadas também serão excluídas. Esta ação não pode ser desfeita.`);
+                const confirmed = await showConfirmModal(`Tem certeza que deseja excluir a casa ${casaNome}? Todas as informações associadas também serão excluídas. Esta ação não pode ser desfeita.`);
                 
                 if (confirmed) {
                     try {
@@ -695,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({
                         nome: houseName,
-                        logo: houseLogo || `https://via.placeholder.com/50?text=${encodeURIComponent(houseName)}`,
+                        logo: houseLogo,
                         saldo: initialBalance
                     })
                 });

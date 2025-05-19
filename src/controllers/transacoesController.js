@@ -8,7 +8,7 @@ const getAllTransacoes = async (req, res) => {
     const query = `
       SELECT t.*, 
              COALESCE(c.nome, 'Casa Excluída') as casa_nome, 
-             COALESCE(c.logo, 'https://via.placeholder.com/30?text=Excluida') as casa_logo 
+             COALESCE(c.logo, '/images/bet-default-icon.png') as casa_logo 
       FROM transacoes t
       LEFT JOIN casas_apostas c ON t.casa_id = c.id
       ORDER BY t.data DESC
@@ -27,7 +27,7 @@ const getTransacoesByCasaId = async (req, res) => {
     const query = `
       SELECT t.*, 
              COALESCE(c.nome, 'Casa Excluída') as casa_nome, 
-             COALESCE(c.logo, 'https://via.placeholder.com/30?text=Excluida') as casa_logo 
+             COALESCE(c.logo, '/images/bet-default-icon.png') as casa_logo 
       FROM transacoes t
       LEFT JOIN casas_apostas c ON t.casa_id = c.id
       WHERE t.casa_id = $1
@@ -89,7 +89,7 @@ const addTransacao = async (req, res) => {
       const query = `
         SELECT t.*, 
           COALESCE(c.nome, 'Casa Excluída') as casa_nome, 
-          COALESCE(c.logo, 'https://via.placeholder.com/30?text=Excluida') as casa_logo 
+          COALESCE(c.logo, '/images/bet-default-icon.png') as casa_logo 
         FROM transacoes t
         LEFT JOIN casas_apostas c ON t.casa_id = c.id
         WHERE t.id = $1

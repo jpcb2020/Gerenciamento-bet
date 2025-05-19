@@ -927,6 +927,26 @@ table td {
     background-color: var(--red-color); /* Vermelho */
 }
 
+/* Toast Timer Bar */
+.toast-timer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.5); /* Cor da barra, pode ajustar */
+    animation: shrinkWidth linear forwards;
+}
+
+@keyframes shrinkWidth {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
 /* --- Confirmation Modal --- */
 .confirm-modal-overlay {
     position: fixed;
@@ -956,7 +976,7 @@ table td {
     border-radius: 12px;
     box-shadow: var(--shadow);
     width: 90%;
-    max-width: 450px;
+    max-width: 400px;
     text-align: center;
     transform: scale(0.9);
     transition: transform 0.2s ease;
@@ -964,6 +984,13 @@ table td {
 
 .confirm-modal-overlay.active .confirm-modal {
     transform: scale(1);
+}
+
+/* Novo estilo para o ícone do modal */
+.confirm-modal-icon {
+    font-size: 2.8rem;
+    color: var(--blue-color);
+    margin-bottom: 15px;
 }
 
 .confirm-modal-title {
@@ -974,10 +1001,11 @@ table td {
 }
 
 .confirm-modal-message {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--text-light);
-    line-height: 1.6;
+    line-height: 1.5;
     margin-bottom: 25px;
+    margin-top: 0;
 }
 
 .confirm-modal-actions {
@@ -995,7 +1023,7 @@ table td {
 }
 
 .confirm-modal-actions .btn-primary {
-    background-color: var(--primary-color); /* Cor primária do seu tema */
+    background-color: var(--primary-color);
     color: white;
     border: 1px solid var(--primary-color);
 }
@@ -1013,7 +1041,7 @@ table td {
 }
 
 .confirm-modal-actions .btn-secondary:hover {
-    background-color: #e0e0e0; /* Um pouco mais escuro que --bg-color */
+    background-color: #e0e0e0;
     border-color: #c7c7c7;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -1024,7 +1052,7 @@ table td {
         right: 10px;
         left: 10px;
         top: 10px;
-        max-width: none; /* Ocupar largura total com margens */
+        max-width: none;
     }
 
     .confirm-modal {
@@ -1037,7 +1065,7 @@ table td {
         font-size: 0.9rem;
     }
     .confirm-modal-actions {
-        flex-direction: column; /* Empilhar botões em telas menores */
+        flex-direction: column;
     }
     .confirm-modal-actions .btn {
         width: 100%;
