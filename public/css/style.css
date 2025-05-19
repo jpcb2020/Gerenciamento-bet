@@ -1046,6 +1046,19 @@ table td {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* Estilo para o botão de perigo (Excluir) no modal de confirmação */
+.confirm-modal-actions .btn.btn-danger {
+    background-color: var(--red-color);
+    color: white;
+    border: 1px solid var(--red-color);
+}
+
+.confirm-modal-actions .btn.btn-danger:hover {
+    background-color: #c9302c; /* Tom de vermelho mais escuro para hover, var(--red-color) é #e74c3c */
+    border-color: #ac2925; /* Tom de borda ainda mais escuro para hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra similar ao hover do btn-primary */
+}
+
 /* Responsive adjustments for modals and toasts if needed */
 @media (max-width: 768px) {
     #toast-container {
@@ -1069,5 +1082,347 @@ table td {
     }
     .confirm-modal-actions .btn {
         width: 100%;
+    }
+}
+
+/* Styles for Casas Detalhadas Page */
+.detailed-casas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsive grid */
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.casa-card-detailed {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.casa-card-detailed:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.casa-logo-detailed {
+    width: 60px; /* Adjust size as needed */
+    height: 60px;
+    object-fit: contain; /* Or cover, depending on logo aspect ratios */
+    margin-bottom: 15px;
+    align-self: center; /* Center logo if card is wider */
+    border-radius: 4px; /* Optional: if logos look better with rounded corners */
+}
+
+.casa-info-detailed {
+    text-align: center; /* Center text below logo */
+    flex-grow: 1; /* Allows this section to grow, pushing actions to bottom */
+    margin-bottom: 15px;
+}
+
+.casa-name-detailed {
+    font-size: 1.4em;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.casa-balance-detailed {
+    font-size: 1.1em;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.casa-balance-detailed strong {
+    color: #28a745; /* Green for positive balance, or choose a neutral color */
+    font-weight: 700;
+}
+
+.casa-actions-detailed {
+    display: flex;
+    flex-wrap: wrap; /* Permitir que os itens quebrem para a próxima linha */
+    gap: 8px; /* Espaçamento entre as linhas de botões e entre botões na mesma linha se houver espaço */
+    align-items: center;
+    border-top: 1px solid #eee; /* Separator line */
+    padding-top: 15px;
+    margin-top: auto; /* Pushes actions to the bottom of the card */
+    text-align: center; /* Ensure text is centered if it wraps */
+}
+
+/* Adicionar estilos para as linhas de ação */
+.casa-actions-detailed .action-row {
+    display: flex;
+    flex-basis: 100%; /* Fazer cada linha ocupar a largura total */
+    justify-content: center; /* MUDADO: Centralizar os botões na linha */
+    gap: 10px; /* AJUSTADO: Espaçamento entre botões na mesma linha */
+}
+
+.casa-actions-detailed .action-row:not(:last-child) {
+    margin-bottom: 8px; /* Espaço entre as linhas de botões */
+}
+
+.casa-actions-detailed .btn-icon {
+    /* flex: 1; REMOVIDO para não esticar os botões */
+    background-color: #f8f9fa; /* ADICIONADO: Fundo leve para os botões */
+    border: 1px solid #dee2e6; /* ADICIONADO: Borda sutil */
+    color: var(--primary-color); /* Primary action color */
+    padding: 8px 12px; /* AJUSTADO: Padding */
+    border-radius: 5px; /* AJUSTADO: Raio da borda */
+    cursor: pointer;
+    font-size: 0.85em; /* AJUSTADO: Tamanho da fonte */
+    font-weight: 500; /* ADICIONADO: Peso da fonte */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.2;
+    text-align: center;
+    min-width: 110px; /* ADICIONADO: Largura mínima para uniformidade */
+}
+
+.casa-actions-detailed .btn-icon i {
+    margin-right: 6px;
+    font-size: 1em; /* AJUSTADO: Tamanho do ícone */
+}
+
+.casa-actions-detailed .btn-icon:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: var(--dark-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.casa-actions-detailed .btn-icon.danger {
+    color: var(--red-color);
+    border-color: var(--red-color);
+    background-color: rgba(231, 76, 60, 0.05); /* Fundo vermelho bem claro */
+}
+
+.casa-actions-detailed .btn-icon.danger:hover {
+    background-color: var(--red-color);
+    color: white;
+    border-color: var(--red-color);
+}
+
+/* Estilo para o botão de Saque */
+.casa-actions-detailed .btn-icon.btn-withdraw {
+    color: var(--orange-color);
+    border-color: var(--orange-color);
+    background-color: rgba(230, 126, 34, 0.05); /* Fundo laranja bem claro */
+}
+
+.casa-actions-detailed .btn-icon.btn-withdraw:hover {
+    background-color: var(--orange-color);
+    color: white;
+    border-color: var(--orange-color);
+}
+
+/* O botão de Editar usará as cores primárias por padrão */
+.casa-actions-detailed .btn-icon.btn-edit-casa {
+    color: var(--blue-color); /* Exemplo: Azul para editar */
+    border-color: var(--blue-color);
+    background-color: rgba(9, 132, 227, 0.05);
+}
+
+.casa-actions-detailed .btn-icon.btn-edit-casa:hover {
+    background-color: var(--blue-color);
+    color: white;
+    border-color: var(--blue-color);
+}
+
+/* O botão de Depósito usará as cores primárias por padrão (verde) */
+.casa-actions-detailed .btn-icon.btn-deposit {
+    color: var(--green-color); 
+    border-color: var(--green-color);
+    background-color: rgba(0, 184, 148, 0.05); 
+}
+
+.casa-actions-detailed .btn-icon.btn-deposit:hover {
+    background-color: var(--green-color);
+    color: white;
+    border-color: var(--green-color);
+}
+
+/* Ensure modals are styled if not already globally done */
+.modal {
+    /* display: none; Replaced by active class toggle */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5); /* Dim background */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* Adjusted for better centering */
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px; /* Max width for larger screens */
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    color: #333;
+}
+
+.close-modal {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: black;
+    text-decoration: none;
+}
+
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-body .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.modal-body .form-group input[type="text"],
+.modal-body .form-group input[type="number"],
+.modal-body .form-group input[type="url"],
+.modal-body .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.modal-body .form-group small {
+    font-size: 0.85em;
+    color: #777;
+}
+
+.modal-body .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Styling for empty state message on detailed page */
+#detailedCasasEmptyState {
+    /* Ensure it's styled similar to other empty states if those exist */
+    padding: 40px 20px;
+    text-align: center;
+    color: #777;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+#detailedCasasEmptyState i {
+    font-size: 3em;
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+#detailedCasasEmptyState h3 {
+    font-size: 1.5em;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999; /* Below modal, above other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+/* Ensure buttons are styled if not already done by btn-primary, btn-outline */
+.btn-primary {
+    /* Add or ensure styles for btn-primary */
+}
+.btn-outline {
+    /* Add or ensure styles for btn-outline */
+}
+.btn-danger {
+    /* Add or ensure styles for btn-danger */
+}
+
+/* Responsive adjustments for sidebar and main content if not already present */
+@media (max-width: 768px) {
+    .sidebar {
+        /* Styles for collapsed or hidden sidebar */
+    }
+    .main-content {
+        /* Adjustments for smaller screens */
+    }
+    .detailed-casas-grid {
+        grid-template-columns: 1fr; /* Stack cards on smaller screens */
+    }
+    .modal-content {
+        width: 90%;
+        margin: 20% auto; /* Adjust margin for smaller screens */
     }
 }

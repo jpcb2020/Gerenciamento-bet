@@ -39,6 +39,11 @@ app.get('/', (req, res) => {
   res.render('index', { title: 'Gerenciamento de Apostas' }); 
 });
 
+// Rota para a nova página de casas detalhadas
+app.get('/casas-de-apostas', (req, res) => {
+  res.render('casas-de-apostas', { title: 'Casas de Apostas' });
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

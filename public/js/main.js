@@ -27,6 +27,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
     const confirmModalCancelBtn = document.getElementById('confirmModalCancelBtn');
 
+    // --- Modal Elements ---
+    const addHouseModal = document.getElementById('addHouseModal');
+    const editBalanceModal = document.getElementById('editBalanceModal');
+    // New Modals
+    const depositModal = document.getElementById('depositModal');
+    const withdrawModal = document.getElementById('withdrawModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+
+    // --- Form Elements ---
+    const addHouseForm = document.getElementById('addHouseForm');
+    const editBalanceForm = document.getElementById('editBalanceForm');
+    // New Forms
+    const depositForm = document.getElementById('depositForm');
+    const withdrawForm = document.getElementById('withdrawForm');
+
+    // --- New Modal Input/Display Elements ---
+    // Deposit Modal
+    const depositHouseIdInput = document.getElementById('depositHouseId');
+    const depositHouseNameDisplay = document.getElementById('depositHouseName');
+    const depositHouseLogoDisplay = document.getElementById('depositHouseLogo');
+    const depositAmountInput = document.getElementById('depositAmount');
+    const depositDescriptionInput = document.getElementById('depositDescription');
+    const cancelDepositBtn = document.getElementById('cancelDeposit');
+
+    // Withdraw Modal
+    const withdrawHouseIdInput = document.getElementById('withdrawHouseId');
+    const withdrawHouseNameDisplay = document.getElementById('withdrawHouseName');
+    const withdrawHouseLogoDisplay = document.getElementById('withdrawHouseLogo');
+    const withdrawAmountInput = document.getElementById('withdrawAmount');
+    const withdrawDescriptionInput = document.getElementById('withdrawDescription');
+    const cancelWithdrawBtn = document.getElementById('cancelWithdraw');
+
     // --- Toast Notification Function ---
     function showToast(message, type = 'info', duration = 3000) {
         const toast = document.createElement('div');
@@ -249,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const cardHTML = `
                         <div class="betting-house-card" data-id="${casa.id}">
                             <div class="house-info">
-                                <img src="${casa.logo || '/images/bet-default-icon.png'}" alt="${casa.nome}">
+                                <img src="${casa.logo || '/images/bet-default-icon.png'}" alt="${casa.nome}" class="betting-house-logo">
                                 <div>
                                     <h4>${casa.nome}</h4>
                                     <p>ID: ${casa.id}</p>
@@ -282,12 +314,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     bettingHousesContainer.innerHTML += cardHTML;
                 });
                 
-                // Add event listeners
-                setupBettingHouseEvents();
+                // Add event listeners (Original setupBettingHouseEvents() was called here)
+                // This will now be handled by event delegation on document
             }
             
         } catch (error) {
-            handleError(error);
+            // Only handleError if it's relevant to the current page context
+            if (document.querySelector('.betting-houses')) {
+                handleError(error);
+            }
         }
     }
     
@@ -456,74 +491,105 @@ document.addEventListener('DOMContentLoaded', function() {
         return statusMap[status] || status;
     }
     
-    // Set up betting house events
-    function setupBettingHouseEvents() {
-        // Deposit buttons
-        document.querySelectorAll('.btn-deposit').forEach(button => {
-            button.addEventListener('click', async function(e) {
-                e.stopPropagation();
-                const casaId = this.getAttribute('data-id');
-                const casaNome = this.getAttribute('data-nome');
-                const valor = prompt(`Valor do depósito para ${casaNome}:`);
+    // NEW: Event delegation for deposit, withdraw, edit balance, delete house, and more options buttons
+    document.addEventListener('click', async function(e) {
+        const target = e.target;
+        const button = target.closest('button'); // Get the actual button element if click was on icon
+
+        if (!button) return; // Not a click on a button or its child
+
+        // Deposit Modal Trigger
+        if (button.matches('.btn-deposit')) {
+            e.stopPropagation();
+            const casaId = button.dataset.id;
+            const casaNome = button.dataset.nome;
+            const cardElement = button.closest('.betting-house-card, .casa-card-detailed');
+            let casaLogo = button.dataset.logo || 'https://via.placeholder.com/50'; // Use data-logo if present, fallback
+            if (cardElement && !button.dataset.logo) { // If data-logo not on button, try to find in card
+                 const logoImg = cardElement.querySelector('.house-info img, .betting-house-logo, .casa-logo-detailed');
+                 if (logoImg) casaLogo = logoImg.src;
+            }
+
+            if (depositModal && depositHouseIdInput && depositHouseNameDisplay && depositHouseLogoDisplay && depositAmountInput) {
+                depositHouseIdInput.value = casaId;
+                depositHouseNameDisplay.textContent = casaNome;
+                depositHouseLogoDisplay.src = casaLogo;
+                depositAmountInput.value = '';
+                depositDescriptionInput.value = '';
+                openModal(depositModal);
+            } else {
+                console.error('Deposit modal elements not found');
+                showToast('Erro ao abrir o modal de depósito.', 'error');
+            }
+        }
+
+        // Withdraw Modal Trigger
+        else if (button.matches('.btn-withdraw')) {
+            e.stopPropagation();
+            const casaId = button.dataset.id;
+            const casaNome = button.dataset.nome;
+            const cardElement = button.closest('.betting-house-card, .casa-card-detailed');
+            let casaLogo = button.dataset.logo || 'https://via.placeholder.com/50';
+            if (cardElement && !button.dataset.logo) {
+                const logoImg = cardElement.querySelector('.house-info img, .betting-house-logo, .casa-logo-detailed');
+                if (logoImg) casaLogo = logoImg.src;
+            }
+
+            if (withdrawModal && withdrawHouseIdInput && withdrawHouseNameDisplay && withdrawHouseLogoDisplay && withdrawAmountInput) {
+                withdrawHouseIdInput.value = casaId;
+                withdrawHouseNameDisplay.textContent = casaNome;
+                withdrawHouseLogoDisplay.src = casaLogo;
+                withdrawAmountInput.value = '';
+                withdrawDescriptionInput.value = '';
+                openModal(withdrawModal);
+            } else {
+                console.error('Withdraw modal elements not found');
+                showToast('Erro ao abrir o modal de saque.', 'error');
+            }
+        }
+
+        // Edit Balance Modal Trigger (from dashboard cards)
+        else if (button.matches('.btn-edit-balance')) {
+            e.stopPropagation();
+            // Ensure we are on the dashboard page or that editBalanceModal exists
+            if (document.getElementById('editBalanceModal')) {
+                const casaId = button.dataset.id;
+                const casaNome = button.dataset.nome;
+                const saldoAtual = parseFloat(button.dataset.saldo);
+                const logo = button.dataset.logo;
                 
-                if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
-                    try {
-                        const response = await fetch(API_TRANSACOES, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                casa_id: casaId,
-                                tipo: 'deposito',
-                                valor: parseFloat(valor),
-                                descricao: `Depósito para ${casaNome}`
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            showToast('Depósito realizado com sucesso!', 'success');
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar depósito' }));
-                            throw new Error(errorData.message || 'Erro ao realizar depósito');
-                        }
-                    } catch (error) {
-                        handleError(error);
-                    }
-                } else if (valor !== null) {
-                    showToast('Por favor, insira um valor válido.', 'warning');
-                }
-            });
-        });
-        
-        // Delete buttons
-        document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', async function(e) {
-                e.stopPropagation();
-                const casaId = this.getAttribute('data-id');
-                const casaNome = this.getAttribute('data-nome');
+                document.getElementById('editHouseId').value = casaId;
+                document.getElementById('editHouseName').textContent = casaNome;
+                document.getElementById('editHouseLogo').src = logo || 'https://via.placeholder.com/50';
+                document.getElementById('currentBalance').value = formatCurrency(saldoAtual);
+                document.getElementById('newBalance').value = saldoAtual.toFixed(2);
+                document.getElementById('balanceNote').value = '';
                 
+                openModal(editBalanceModal);
+            } else {
+                 // console.log('Edit Balance Modal not found on this page');
+            }
+        }
+
+        // Delete House Trigger (from dashboard cards)
+        else if (button.matches('.btn-delete')) { // Assuming '.btn-delete' is for dashboard house deletion
+            e.stopPropagation();
+             // This delete is the generic one using showConfirmModal, typically from dashboard
+            const casaId = button.dataset.id;
+            const casaNome = button.dataset.nome;
+            if (casaId && casaNome) { // Ensure it has the necessary data
                 const confirmed = await showConfirmModal(`Tem certeza que deseja excluir a casa ${casaNome}? Todas as informações associadas também serão excluídas. Esta ação não pode ser desfeita.`);
-                
                 if (confirmed) {
                     try {
                         const response = await fetch(`${API_CASAS}/${casaId}`, {
                             method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
+                            headers: {'Content-Type': 'application/json'}
                         });
-                        
                         if (response.ok) {
                             showToast(`Casa ${casaNome} excluída com sucesso!`, 'success');
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
+                            if (typeof loadDashboardSummary === 'function') loadDashboardSummary();
+                            if (typeof loadBettingHouses === 'function') loadBettingHouses(); // This will re-render dashboard cards
+                            if (typeof loadRecentTransactions === 'function') loadRecentTransactions();
                         } else {
                             const errorData = await response.json().catch(() => ({ message: 'Erro ao excluir casa de apostas' }));
                             throw new Error(errorData.message || 'Erro ao excluir casa de apostas');
@@ -532,102 +598,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         handleError(error);
                     }
                 }
-            });
-        });
+            }
+        }
         
-        // Withdraw buttons
-        document.querySelectorAll('.btn-withdraw').forEach(button => {
-            button.addEventListener('click', async function(e) {
-                e.stopPropagation();
-                const casaId = this.getAttribute('data-id');
-                const casaNome = this.getAttribute('data-nome');
-                const valor = prompt(`Valor do saque de ${casaNome}:`);
-                
-                if (valor && !isNaN(valor) && parseFloat(valor) > 0) {
-                    try {
-                        const response = await fetch(API_TRANSACOES, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                casa_id: casaId,
-                                tipo: 'saque',
-                                valor: parseFloat(valor),
-                                descricao: `Saque de ${casaNome}`
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            showToast('Saque realizado com sucesso!', 'success');
-                            // Reload data
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar saque' }));
-                            throw new Error(errorData.message || 'Erro ao realizar saque');
-                        }
-                    } catch (error) {
-                        handleError(error);
-                    }
-                } else if (valor !== null) {
-                    showToast('Por favor, insira um valor válido.', 'warning');
-                }
-            });
-        });
-        
-        // Edit Balance buttons
-        document.querySelectorAll('.btn-edit-balance').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const casaId = this.getAttribute('data-id');
-                const casaNome = this.getAttribute('data-nome');
-                const saldoAtual = parseFloat(this.getAttribute('data-saldo'));
-                const logo = this.getAttribute('data-logo');
-                
-                // Preencher o modal com os dados da casa
-                document.getElementById('editHouseId').value = casaId;
-                document.getElementById('editHouseName').textContent = casaNome;
-                document.getElementById('editHouseLogo').src = logo;
-                document.getElementById('currentBalance').value = formatCurrency(saldoAtual);
-                document.getElementById('newBalance').value = saldoAtual.toFixed(2);
-                
-                // Abrir o modal
-                openModal(editBalanceModal);
-            });
-        });
-        
-        // More button
-        document.querySelectorAll('.btn-more').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const casaId = this.getAttribute('data-id');
-                showToast(`Mais opções para casa ID: ${casaId}`, 'info');
-            });
-        });
-        
-        // Card click (for details)
-        document.querySelectorAll('.betting-house-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (!e.target.closest('button')) {
-                    const casaId = this.getAttribute('data-id');
-                    // For now, a toast. This could navigate to a detail page or open a detailed modal.
-                    showToast(`Detalhes da casa ID: ${casaId}. Clique nos botões para ações.`, 'info');
-                }
-            });
-        });
-    }
+        // More Options Trigger (from dashboard cards)
+        else if (button.matches('.btn-more')) {
+             e.stopPropagation();
+             const casaId = button.dataset.id;
+             showToast(`Mais opções para casa ID: ${casaId}`, 'info');
+        }
+    });
     
     // Modal functions
-    const addHouseModal = document.getElementById('addHouseModal');
-    const editBalanceModal = document.getElementById('editBalanceModal');
-    const modalOverlay = document.getElementById('modalOverlay');
     const closeModalBtns = document.querySelectorAll('.close-modal');
     const cancelAddBtn = document.getElementById('cancelAddHouse');
     const cancelEditBtn = document.getElementById('cancelEditBalance');
-    const addHouseForm = document.getElementById('addHouseForm');
-    const editBalanceForm = document.getElementById('editBalanceForm');
     
     // Function to open modal (generic)
     function openModal(modalElement) {
@@ -645,6 +630,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset all forms
         if (addHouseForm) addHouseForm.reset();
         if (editBalanceForm) editBalanceForm.reset();
+        if (depositForm) depositForm.reset();     // Added reset
+        if (withdrawForm) withdrawForm.reset();   // Added reset
         
         // Remove active class from all modals
         const allModals = document.querySelectorAll('.modal');
@@ -670,23 +657,44 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelEditBtn.addEventListener('click', closeAllModals);
     }
     
+    // Add listeners for new modal cancel buttons
+    if (cancelDepositBtn) {
+        cancelDepositBtn.addEventListener('click', closeAllModals);
+    }
+
+    if (cancelWithdrawBtn) {
+        cancelWithdrawBtn.addEventListener('click', closeAllModals);
+    }
+    
     if (modalOverlay) {
         modalOverlay.addEventListener('click', closeAllModals);
     }
     
     // Add new betting house button
-    const addHouseBtn = document.querySelector('.section-header .btn-primary');
+    const addHouseBtn = document.querySelector('.section-header .btn-primary, #addHouseBtnDetailed'); // Make selector more general for both pages
     
     if (addHouseBtn) {
         addHouseBtn.addEventListener('click', function() {
-            openModal(addHouseModal);
+            if (addHouseForm) addHouseForm.reset();
+            // Preencher placeholder do logo se existir o campo (pode ser diferente entre modais)
+            const houseLogoInput = document.getElementById('houseLogo');
+            if (houseLogoInput) {
+                // Idealmente, o DEFAULT_LOGO deveria ser uma constante acessível ou passada
+                // Por agora, vamos assumir que o placeholder é definido no HTML ou não é crítico aqui.
+            }
+            if (addHouseModal) openModal(addHouseModal);
         });
     }
     
     // Add house form submission
-    if (addHouseForm) {
+    // Only add this listener from main.js if we are NOT on the casas-de-apostas page (which has its own handler)
+    if (addHouseForm && !document.getElementById('detailedCasasGrid')) {
         addHouseForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            const submitButton = addHouseForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Salvando...';
             
             const houseName = document.getElementById('houseName').value.trim();
             const houseLogo = document.getElementById('houseLogo').value.trim();
@@ -726,6 +734,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 handleError(error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
             }
         });
     }
@@ -734,6 +745,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editBalanceForm) {
         editBalanceForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            const submitButton = editBalanceForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Atualizando...';
             
             const casaId = document.getElementById('editHouseId').value;
             const casaNome = document.getElementById('editHouseName').textContent;
@@ -790,6 +805,122 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 handleError(error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        });
+    }
+    
+    // Deposit form submission
+    if (depositForm) {
+        depositForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitButton = depositForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Confirmando...';
+
+            const casaId = depositHouseIdInput.value;
+            const valor = parseFloat(depositAmountInput.value);
+            const descricao = depositDescriptionInput.value.trim() || `Depósito para ${depositHouseNameDisplay.textContent}`;
+
+            if (!casaId || isNaN(valor) || valor <= 0) {
+                showToast('Por favor, insira um valor de depósito válido.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_TRANSACOES, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        casa_id: casaId,
+                        tipo: 'deposito',
+                        valor: valor,
+                        descricao: descricao
+                    })
+                });
+
+                if (response.ok) {
+                    closeAllModals();
+                    showToast('Depósito realizado com sucesso!', 'success');
+                    // Reload data for dashboard if these functions exist
+                    if (typeof loadDashboardSummary === 'function') loadDashboardSummary();
+                    if (typeof loadBettingHouses === 'function') loadBettingHouses(); 
+                    if (typeof loadRecentTransactions === 'function') loadRecentTransactions();
+
+                    // Dispatch a custom event for other scripts to listen to
+                    document.dispatchEvent(new CustomEvent('transactionComplete', { detail: { type: 'deposit' } }));
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar depósito' }));
+                    throw new Error(errorData.message || 'Erro ao realizar depósito');
+                }
+            } catch (error) {
+                handleError(error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        });
+    }
+
+    // Withdraw form submission
+    if (withdrawForm) {
+        withdrawForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitButton = withdrawForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Confirmando...';
+
+            const casaId = withdrawHouseIdInput.value;
+            const valor = parseFloat(withdrawAmountInput.value);
+            const descricao = withdrawDescriptionInput.value.trim() || `Saque de ${withdrawHouseNameDisplay.textContent}`;
+
+            if (!casaId || isNaN(valor) || valor <= 0) {
+                showToast('Por favor, insira um valor de saque válido.', 'warning');
+                return;
+            }
+
+            // Optional: Add a check here if current balance is sufficient for withdrawal if that data is readily available.
+            // For now, server-side validation will handle it.
+
+            try {
+                const response = await fetch(API_TRANSACOES, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        casa_id: casaId,
+                        tipo: 'saque',
+                        valor: valor,
+                        descricao: descricao
+                    })
+                });
+
+                if (response.ok) {
+                    closeAllModals();
+                    showToast('Saque realizado com sucesso!', 'success');
+                    // Reload data for dashboard if these functions exist
+                    if (typeof loadDashboardSummary === 'function') loadDashboardSummary();
+                    if (typeof loadBettingHouses === 'function') loadBettingHouses();
+                    if (typeof loadRecentTransactions === 'function') loadRecentTransactions();
+
+                    // Dispatch a custom event for other scripts to listen to
+                    document.dispatchEvent(new CustomEvent('transactionComplete', { detail: { type: 'withdraw' } }));
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar saque' }));
+                    throw new Error(errorData.message || 'Erro ao realizar saque');
+                }
+            } catch (error) {
+                handleError(error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
             }
         });
     }

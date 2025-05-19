@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento de Apostas</title>
+    <title>Casas de Apostas - BetManager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -19,13 +19,13 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="active">
+                    <li>
                         <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                     </li>
-                    <li>
+                    <li class="active"> 
                         <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
                     </li>
-                    <li>
+                    <li> 
                         <a href="#transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
                     </li>
                     <li>
@@ -45,13 +45,13 @@
         <main class="main-content">
             <header class="main-header">
                 <div class="header-search">
-                    <input type="text" placeholder="Pesquisar...">
+                    <input type="text" placeholder="Pesquisar casas...">
                     <i class="fas fa-search"></i>
                 </div>
                 <div class="header-user">
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
+                        <span class="badge">0</span> 
                     </div>
                     <div class="user-profile">
                         <img src="https://via.placeholder.com/40" alt="Profile">
@@ -63,118 +63,29 @@
             <div class="content-wrapper">
                 <!-- Page Title -->
                 <div class="page-title">
-                    <h2>Dashboard</h2>
-                    <div class="date-filter">
-                        <select>
-                            <option>Hoje</option>
-                            <option>Esta Semana</option>
-                            <option>Este Mês</option>
-                            <option>Este Ano</option>
-                        </select>
-                    </div>
+                    <h2>Casas de Apostas</h2>
+                    <button class="btn-primary" id="addHouseBtnDetailed"><i class="fas fa-plus"></i> Adicionar Nova Casa</button>
                 </div>
 
-                <!-- Overview Cards -->
-                <div class="overview-cards">
-                    <div class="card">
-                        <div class="card-icon green">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="card-info">
-                            <h3>Saldo Total</h3>
-                            <p class="card-value">R$ 0,00</p>
-                            <p class="card-change">Nenhuma transação</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon blue">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="card-info">
-                            <h3>Casas Ativas</h3>
-                            <p class="card-value">0</p>
-                            <p class="card-change">nenhuma casa cadastrada</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon purple">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="card-info">
-                            <h3>Maior Saldo</h3>
-                            <p class="card-value">-</p>
-                            <p class="card-change">R$ 0,00</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon orange">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="card-info">
-                            <h3>Rendimento</h3>
-                            <p class="card-value">0,0%</p>
-                            <p class="card-change">Último mês</p>
-                        </div>
-                    </div>
+                <!-- Detailed Betting Houses Display Area -->
+                <div id="detailedCasasGrid" class="detailed-casas-grid">
+                    <!-- Casa items will be dynamically inserted here -->
                 </div>
-
-                <!-- Betting Houses Section -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>Casas de Apostas</h3>
-                        <button class="btn-primary"><i class="fas fa-plus"></i> Adicionar Casa</button>
-                    </div>
-                    <div class="betting-houses">
-                        <div class="empty-state">
-                            <i class="fas fa-home"></i>
-                            <h3>Nenhuma casa de aposta cadastrada</h3>
-                            <p>Clique no botão "Adicionar Casa" para começar</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Transactions -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>Transações Recentes</h3>
-                        <button class="btn-text">Ver Todas <i class="fas fa-arrow-right"></i></button>
-                    </div>
-                    <div class="transactions-table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Casa</th>
-                                    <th>Tipo</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="6" class="empty-transactions">
-                                        <div class="empty-state">
-                                            <i class="fas fa-exchange-alt"></i>
-                                            <h3>Nenhuma transação registrada</h3>
-                                            <p>As transações aparecerão aqui</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                 <div class="empty-state" id="detailedCasasEmptyState" style="display: none;">
+                    <i class="fas fa-home"></i>
+                    <h3>Nenhuma casa de aposta cadastrada</h3>
+                    <p>Clique no botão "Adicionar Nova Casa" para começar</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal para adicionar casa de aposta -->
+    <!-- Modals -->
     <div id="addHouseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Adicionar Casa de Aposta</h2>
-                <span class="close-modal">&times;</span>
+                <span class="close-modal" data-modal-id="addHouseModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="addHouseForm">
@@ -185,14 +96,14 @@
                     <div class="form-group">
                         <label for="houseLogo">URL do Logo (opcional)</label>
                         <input type="text" id="houseLogo" name="houseLogo" placeholder="URL da imagem">
-                        <small>Deixe em branco para usar um logo padrão</small>
+                        <small>Deixe em branco para usar um logo padrão: /images/default-logo.png</small>
                     </div>
                     <div class="form-group">
                         <label for="initialBalance">Saldo Inicial</label>
-                        <input type="number" id="initialBalance" name="initialBalance" placeholder="0.00" step="0.01" min="0">
+                        <input type="number" id="initialBalance" name="initialBalance" placeholder="0.00" step="0.01" value="0">
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn-outline" id="cancelAddHouse">Cancelar</button>
+                        <button type="button" class="btn-outline" data-modal-id="addHouseModal" id="cancelAddHouse">Cancelar</button>
                         <button type="submit" class="btn-primary">Salvar</button>
                     </div>
                 </form>
@@ -200,48 +111,58 @@
         </div>
     </div>
     
-    <!-- Modal para editar saldo -->
-    <div id="editBalanceModal" class="modal">
+    <div id="editHouseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Editar Saldo</h2>
-                <span class="close-modal">&times;</span>
+                <h2>Editar Casa de Aposta</h2>
+                <span class="close-modal" data-modal-id="editHouseModal">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="editBalanceForm">
-                    <input type="hidden" id="editHouseId">
-                    <div class="house-info-display">
-                        <img id="editHouseLogo" src="https://via.placeholder.com/50" alt="Logo">
-                        <h3 id="editHouseName">Nome da Casa</h3>
+                <form id="editHouseFormDetailed">
+                    <input type="hidden" id="editHouseIdDetailed">
+                    <div class="form-group">
+                        <label for="editHouseNameDetailed">Nome da Casa</label>
+                        <input type="text" id="editHouseNameDetailed" name="houseName" required>
                     </div>
                     <div class="form-group">
-                        <label for="currentBalance">Saldo Atual</label>
-                        <input type="text" id="currentBalance" disabled>
+                        <label for="editHouseLogoDetailed">URL do Logo</label>
+                        <input type="text" id="editHouseLogoDetailed" name="houseLogo" placeholder="URL da imagem ou /images/default-logo.png">
+                         <small>Deixe em branco para manter o logo atual ou use /images/default-logo.png para o padrão.</small>
                     </div>
                     <div class="form-group">
-                        <label for="newBalance">Novo Saldo</label>
-                        <input type="number" id="newBalance" name="newBalance" placeholder="0.00" step="0.01" min="0" required>
-                        <small>Informe o valor total do saldo</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="balanceNote">Observação (opcional)</label>
-                        <textarea id="balanceNote" name="balanceNote" placeholder="Motivo da alteração" rows="2"></textarea>
+                        <label for="editHouseBalanceDetailed">Saldo</label>
+                        <input type="number" id="editHouseBalanceDetailed" name="initialBalance" placeholder="0.00" step="0.01" min="0" required>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn-outline" id="cancelEditBalance">Cancelar</button>
-                        <button type="submit" class="btn-primary">Atualizar Saldo</button>
+                        <button type="button" class="btn-outline" data-modal-id="editHouseModal" id="cancelEditHouseDetailed">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar Alterações</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal para confirmação de exclusão -->
+    <div id="deleteConfirmModal" class="confirm-modal-overlay">
+        <div class="confirm-modal">
+            <div class="confirm-modal-icon">
+                <i class="fas fa-trash-alt" style="color: var(--red-color);"></i>
+            </div>
+            <h2 class="confirm-modal-title">Confirmar Exclusão</h2>
+            <p class="confirm-modal-message">Tem certeza de que deseja excluir a casa "<span id="deleteCasaName"></span>"? Esta ação não pode ser desfeita.<br></p>
+            <div class="confirm-modal-actions">
+                 <button type="button" class="btn btn-secondary" id="cancelDeleteHouse">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteHouseBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para Depósito -->
     <div id="depositModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Realizar Depósito</h2>
-                <span class="close-modal">&times;</span>
+                <span class="close-modal" data-modal-id="depositModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="depositForm">
@@ -272,7 +193,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Realizar Saque</h2>
-                <span class="close-modal">&times;</span>
+                <span class="close-modal" data-modal-id="withdrawModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="withdrawForm">
@@ -298,9 +219,12 @@
         </div>
     </div>
 
-    <!-- Overlay para o fundo escuro -->
     <div id="modalOverlay" class="modal-overlay"></div>
+
+    <div id="toast-container"></div>
     
-    <script src="js/main.js"></script>
+    <script src="/js/casas-de-apostas.js"></script>
+    <script src="/js/modalHandler.js"></script>
+    <script src="/js/main.js"></script>
 </body>
 </html> 
