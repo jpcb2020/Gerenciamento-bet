@@ -1,0 +1,95 @@
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para adicionar casa de aposta -->
+    <div id="addHouseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Casa de Aposta</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addHouseForm">
+                    <div class="form-group">
+                        <label for="houseName">Nome da Casa</label>
+                        <input type="text" id="houseName" name="houseName" placeholder="Ex: Bet365" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="houseLogo">URL do Logo (opcional)</label>
+                        <input type="text" id="houseLogo" name="houseLogo" placeholder="URL da imagem">
+                        <small>Deixe em branco para usar um logo padrão</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="initialBalance">Saldo Inicial</label>
+                        <input type="number" id="initialBalance" name="initialBalance" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline" id="cancelAddHouse">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para editar saldo -->
+    <div id="editBalanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Saldo</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editBalanceForm">
+                    <input type="hidden" id="editHouseId">
+                    <div class="house-info-display">
+                        <img id="editHouseLogo" src="https://via.placeholder.com/50" alt="Logo">
+                        <h3 id="editHouseName">Nome da Casa</h3>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentBalance">Saldo Atual</label>
+                        <input type="text" id="currentBalance" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="newBalance">Novo Saldo</label>
+                        <input type="number" id="newBalance" name="newBalance" placeholder="0.00" step="0.01" min="0" required>
+                        <small>Informe o valor total do saldo</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="balanceNote">Observação (opcional)</label>
+                        <textarea id="balanceNote" name="balanceNote" placeholder="Motivo da alteração" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline" id="cancelEditBalance">Cancelar</button>
+                        <button type="submit" class="btn-primary">Atualizar Saldo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay para o fundo escuro -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+    
+    <!-- Modal de confirmação -->
+    <div id="confirmModal" class="modal confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirmação</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" id="confirmCancel">Cancelar</button>
+                    <button type="button" class="btn-primary" id="confirmOk">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html> 

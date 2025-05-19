@@ -5,11 +5,16 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const { initDb } = require('./config/database');
 const apiRoutes = require('./routes');
+const viewRoutes = require('./routes/viewRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 // Inicializar app Express
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configurar EJS como view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 // Middleware
 app.use(cors());
@@ -27,18 +32,8 @@ initDb();
 // Rotas da API
 app.use('/api', apiRoutes);
 
-// Servir o index.html para qualquer rota não definida (SPA)
-app.get('*', (req, res) => {
-  // Primeiro tenta servir da nova localização, se existir
-  const newIndexPath = path.join(__dirname, 'public/index.html');
-  const oldIndexPath = path.join(__dirname, '../index.html');
-  
-  if (require('fs').existsSync(newIndexPath)) {
-    res.sendFile(newIndexPath);
-  } else {
-    res.sendFile(oldIndexPath);
-  }
-});
+// Rotas de visualização (views)
+app.use('/', viewRoutes);
 
 // Middleware de tratamento de erros
 app.use(notFound);

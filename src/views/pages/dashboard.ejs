@@ -1,0 +1,145 @@
+<%- include('../partials/header', { title: 'Dashboard', active: 'dashboard', showDateFilter: true }) %>
+
+<!-- Overview Cards -->
+<div class="overview-cards">
+    <div class="card">
+        <div class="card-icon green">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="card-info">
+            <h3>Saldo Total</h3>
+            <p class="card-value">R$ <%= dashboard.saldo_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %></p>
+            <p class="card-change"><%= dashboard.saldo_total > 0 ? 'Valor atualizado' : 'Nenhuma transação' %></p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon blue">
+            <i class="fas fa-home"></i>
+        </div>
+        <div class="card-info">
+            <h3>Casas Ativas</h3>
+            <p class="card-value"><%= dashboard.casas_count %></p>
+            <p class="card-change"><%= dashboard.casas_count > 0 ? `${dashboard.casas_count} casas cadastradas` : 'nenhuma casa cadastrada' %></p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon purple">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="card-info">
+            <h3>Maior Saldo</h3>
+            <p class="card-value"><%= dashboard.maior_saldo ? dashboard.maior_saldo.nome : '-' %></p>
+            <p class="card-change">R$ <%= dashboard.maior_saldo ? dashboard.maior_saldo.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00' %></p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon orange">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="card-info">
+            <h3>Rendimento</h3>
+            <p class="card-value"><%= dashboard.rendimento.toLocaleString('pt-BR', { minimumFractionDigits: 1 }) %>%</p>
+            <p class="card-change">Último mês</p>
+        </div>
+    </div>
+</div>
+
+<!-- Betting Houses Section -->
+<div class="section">
+    <div class="section-header">
+        <h3>Casas de Apostas</h3>
+        <button class="btn-primary"><i class="fas fa-plus"></i> Adicionar Casa</button>
+    </div>
+    <div class="betting-houses">
+        <% if (casas && casas.length > 0) { %>
+            <% casas.forEach(casa => { %>
+                <div class="betting-house" data-id="<%= casa.id %>">
+                    <div class="house-logo">
+                        <img src="<%= casa.logo || 'https://via.placeholder.com/100?text=' + casa.nome.charAt(0) %>" alt="<%= casa.nome %>">
+                    </div>
+                    <div class="house-info">
+                        <h4><%= casa.nome %></h4>
+                        <p class="house-balance">R$ <%= casa.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %></p>
+                    </div>
+                    <div class="house-actions">
+                        <button class="action-btn edit-balance" data-id="<%= casa.id %>"><i class="fas fa-wallet"></i></button>
+                        <button class="action-btn transactions" data-id="<%= casa.id %>"><i class="fas fa-exchange-alt"></i></button>
+                        <button class="action-btn edit-house" data-id="<%= casa.id %>"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-house" data-id="<%= casa.id %>"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="empty-state">
+                <i class="fas fa-home"></i>
+                <h3>Nenhuma casa de aposta cadastrada</h3>
+                <p>Clique no botão "Adicionar Casa" para começar</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="section">
+    <div class="section-header">
+        <h3>Transações Recentes</h3>
+        <a href="/transacoes" class="btn-text">Ver Todas <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="transactions-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Casa</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (transacoes && transacoes.length > 0) { %>
+                    <% transacoes.forEach(transacao => { %>
+                        <tr>
+                            <td><%= new Date(transacao.data).toLocaleDateString('pt-BR') %></td>
+                            <td>
+                                <div class="house-cell">
+                                    <img src="<%= transacao.casa_logo %>" alt="<%= transacao.casa_nome %>">
+                                    <span><%= transacao.casa_nome %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="transaction-type <%= transacao.tipo %>">
+                                    <%= transacao.tipo.charAt(0).toUpperCase() + transacao.tipo.slice(1) %>
+                                </span>
+                            </td>
+                            <td class="<%= ['deposito', 'ganho'].includes(transacao.tipo) ? 'positive' : 'negative' %>">
+                                <%= ['deposito', 'ganho'].includes(transacao.tipo) ? '+' : '-' %> R$ <%= Math.abs(transacao.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %>
+                            </td>
+                            <td><span class="status <%= transacao.status %>"><%= transacao.status %></span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="action-btn delete-transaction" data-id="<%= transacao.id %>">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="empty-transactions">
+                            <div class="empty-state">
+                                <i class="fas fa-exchange-alt"></i>
+                                <h3>Nenhuma transação registrada</h3>
+                                <p>As transações aparecerão aqui</p>
+                            </div>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %> 

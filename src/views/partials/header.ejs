@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Gerenciamento de Apostas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="<%= active === 'dashboard' ? 'active' : '' %>">
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li class="<%= active === 'casas' ? 'active' : '' %>">
+                        <a href="/casas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li class="<%= active === 'transacoes' ? 'active' : '' %>">
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li class="<%= active === 'relatorios' ? 'active' : '' %>">
+                        <a href="/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li class="<%= active === 'configuracoes' ? 'active' : '' %>">
+                        <a href="/configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://via.placeholder.com/40" alt="Profile">
+                        <span>Usuário</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <h2><%= title %></h2>
+                    <% if (showDateFilter) { %>
+                    <div class="date-filter">
+                        <select>
+                            <option>Hoje</option>
+                            <option>Esta Semana</option>
+                            <option>Este Mês</option>
+                            <option>Este Ano</option>
+                        </select>
+                    </div>
+                    <% } %>
+                </div> 

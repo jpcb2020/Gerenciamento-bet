@@ -1,0 +1,53 @@
+<%- include('../partials/header', { title: 'Casas de Apostas', active: 'casas', showDateFilter: false }) %>
+
+<!-- Betting Houses Page -->
+<div class="page-actions">
+    <button class="btn-primary" id="addHouseBtn"><i class="fas fa-plus"></i> Adicionar Casa</button>
+</div>
+
+<div class="houses-grid">
+    <% if (casas && casas.length > 0) { %>
+        <% casas.forEach(casa => { %>
+            <div class="house-card" data-id="<%= casa.id %>">
+                <div class="house-card-header">
+                    <img src="<%= casa.logo || 'https://via.placeholder.com/150?text=' + casa.nome.charAt(0) %>" alt="<%= casa.nome %>">
+                    <h3><%= casa.nome %></h3>
+                </div>
+                <div class="house-card-body">
+                    <div class="house-balance">
+                        <span class="label">Saldo Atual:</span>
+                        <span class="value">R$ <%= casa.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %></span>
+                    </div>
+                    <div class="house-created">
+                        <span class="label">Criada em:</span>
+                        <span class="value"><%= new Date(casa.data_criacao).toLocaleDateString('pt-BR') %></span>
+                    </div>
+                </div>
+                <div class="house-card-footer">
+                    <button class="btn-outline btn-sm" onclick="window.location.href='/casas/<%= casa.id %>/transacoes'">
+                        <i class="fas fa-exchange-alt"></i> Transações
+                    </button>
+                    <div class="house-actions">
+                        <button class="action-btn edit-balance" data-id="<%= casa.id %>">
+                            <i class="fas fa-wallet" title="Editar Saldo"></i>
+                        </button>
+                        <button class="action-btn edit-house" data-id="<%= casa.id %>">
+                            <i class="fas fa-edit" title="Editar Casa"></i>
+                        </button>
+                        <button class="action-btn delete-house" data-id="<%= casa.id %>">
+                            <i class="fas fa-trash" title="Excluir Casa"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <div class="empty-state full-width">
+            <i class="fas fa-home"></i>
+            <h3>Nenhuma casa de aposta cadastrada</h3>
+            <p>Clique no botão "Adicionar Casa" para começar</p>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %> 

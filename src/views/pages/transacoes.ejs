@@ -1,0 +1,93 @@
+<%- include('../partials/header', { title: 'Transações', active: 'transacoes', showDateFilter: true }) %>
+
+<!-- Transactions Page -->
+<div class="page-actions">
+    <div class="action-group">
+        <button class="btn-outline" id="filterByTypeBtn">
+            <i class="fas fa-filter"></i> Filtrar por Tipo
+        </button>
+        <button class="btn-outline" id="filterByCasaBtn">
+            <i class="fas fa-home"></i> Filtrar por Casa
+        </button>
+    </div>
+    <button class="btn-primary" id="addTransactionBtn"><i class="fas fa-plus"></i> Nova Transação</button>
+</div>
+
+<div class="transactions-container">
+    <div class="advanced-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Casa</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (transacoes && transacoes.length > 0) { %>
+                    <% transacoes.forEach(transacao => { %>
+                        <tr>
+                            <td><%= transacao.id %></td>
+                            <td><%= new Date(transacao.data).toLocaleDateString('pt-BR') %></td>
+                            <td>
+                                <div class="house-cell">
+                                    <img src="<%= transacao.casa_logo %>" alt="<%= transacao.casa_nome %>">
+                                    <span><%= transacao.casa_nome %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="transaction-type <%= transacao.tipo %>">
+                                    <%= transacao.tipo.charAt(0).toUpperCase() + transacao.tipo.slice(1) %>
+                                </span>
+                            </td>
+                            <td class="<%= ['deposito', 'ganho'].includes(transacao.tipo) ? 'positive' : 'negative' %>">
+                                <%= ['deposito', 'ganho'].includes(transacao.tipo) ? '+' : '-' %> R$ <%= Math.abs(transacao.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %>
+                            </td>
+                            <td><%= transacao.descricao || '-' %></td>
+                            <td><span class="status <%= transacao.status %>"><%= transacao.status %></span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="action-btn view-transaction" data-id="<%= transacao.id %>">
+                                        <i class="fas fa-eye" title="Ver Detalhes"></i>
+                                    </button>
+                                    <button class="action-btn delete-transaction" data-id="<%= transacao.id %>">
+                                        <i class="fas fa-trash" title="Excluir"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="8" class="empty-transactions">
+                            <div class="empty-state">
+                                <i class="fas fa-exchange-alt"></i>
+                                <h3>Nenhuma transação registrada</h3>
+                                <p>Use o botão "Nova Transação" para adicionar transações</p>
+                            </div>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<% if (transacoes && transacoes.length > 0) { %>
+<div class="pagination">
+    <button class="btn-outline btn-sm" id="prevPage" <%= currentPage <= 1 ? 'disabled' : '' %>>
+        <i class="fas fa-arrow-left"></i> Anterior
+    </button>
+    <span class="page-info">Página <%= currentPage %> de <%= totalPages %></span>
+    <button class="btn-outline btn-sm" id="nextPage" <%= currentPage >= totalPages ? 'disabled' : '' %>>
+        Próxima <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
+<% } %>
+
+<%- include('../partials/footer') %> 
