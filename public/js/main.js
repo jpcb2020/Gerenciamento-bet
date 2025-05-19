@@ -1,4 +1,99 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Inject Toast Container
+    const toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    document.body.appendChild(toastContainer);
+
+    // Inject Confirm Modal HTML
+    const confirmModalHTML = `
+        <div id="confirmModalOverlay" class="confirm-modal-overlay">
+            <div id="confirmModal" class="confirm-modal">
+                <h4 id="confirmModalTitle" class="confirm-modal-title">Confirmação</h4>
+                <p id="confirmModalMessage" class="confirm-modal-message">Tem certeza?</p>
+                <div class="confirm-modal-actions">
+                    <button id="confirmModalConfirmBtn" class="btn btn-primary">Confirmar</button>
+                    <button id="confirmModalCancelBtn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', confirmModalHTML);
+
+    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+    const confirmModalElement = document.getElementById('confirmModal');
+    const confirmModalTitleEl = document.getElementById('confirmModalTitle');
+    const confirmModalMessageEl = document.getElementById('confirmModalMessage');
+    const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
+    const confirmModalCancelBtn = document.getElementById('confirmModalCancelBtn');
+
+    // --- Toast Notification Function ---
+    function showToast(message, type = 'info', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${type}`;
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        toast.appendChild(messageSpan);
+
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '&times;';
+        closeButton.className = 'toast-close-btn';
+        closeButton.onclick = () => {
+            toast.classList.remove('toast--visible');
+            toast.classList.add('toast--hiding');
+            setTimeout(() => toast.remove(), 300); // Animation duration
+        };
+        toast.appendChild(closeButton);
+
+        toastContainer.appendChild(toast);
+
+        // Trigger reflow to enable animation
+        toast.offsetHeight;
+        toast.classList.add('toast--visible');
+
+        setTimeout(() => {
+            toast.classList.remove('toast--visible');
+            toast.classList.add('toast--hiding');
+            setTimeout(() => toast.remove(), 300); // Animation duration
+        }, duration);
+    }
+
+    // --- Confirmation Modal Function ---
+    function showConfirmModal(message, title = 'Confirmação') {
+        return new Promise((resolve) => {
+            confirmModalTitleEl.textContent = title;
+            confirmModalMessageEl.textContent = message;
+            confirmModalOverlay.classList.add('active');
+            confirmModalElement.classList.add('active');
+
+            const handleConfirm = () => {
+                cleanupAndResolve(true);
+            };
+
+            const handleCancel = () => {
+                cleanupAndResolve(false);
+            };
+            
+            const cleanupAndResolve = (value) => {
+                confirmModalOverlay.classList.remove('active');
+                confirmModalElement.classList.remove('active');
+                confirmModalConfirmBtn.removeEventListener('click', handleConfirm);
+                confirmModalCancelBtn.removeEventListener('click', handleCancel);
+                // Also remove listener for overlay click if you add it
+                resolve(value);
+            };
+
+            confirmModalConfirmBtn.addEventListener('click', handleConfirm);
+            confirmModalCancelBtn.addEventListener('click', handleCancel);
+            // Optional: Close on overlay click
+            // confirmModalOverlay.addEventListener('click', (e) => {
+            //     if (e.target === confirmModalOverlay) {
+            //         cleanupAndResolve(false);
+            //     }
+            // });
+        });
+    }
+
     // API URLs
     const API_BASE_URL = 'http://localhost:3000/api';
     const API_CASAS = `${API_BASE_URL}/casas`;
@@ -45,13 +140,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Format date
     function formatDate(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' };
+        return date.toLocaleDateString('pt-BR', options);
     }
     
     // Error handling
     function handleError(error) {
         console.error('Error:', error);
-        alert('Ocorreu um erro ao carregar os dados. Por favor, tente novamente.');
+        showToast('Ocorreu um erro ao processar sua solicitação. Tente novamente.', 'error');
     }
     
     // Load dashboard summary
@@ -296,22 +392,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 const transacaoId = this.getAttribute('data-id');
                 
-                const confirmDelete = confirm(`Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.`);
+                const confirmed = await showConfirmModal(`Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.`);
                 
-                if (confirmDelete) {
+                if (confirmed) {
                     try {
                         const response = await fetch(`${API_TRANSACOES}/${transacaoId}`, {
                             method: 'DELETE'
                         });
                         
                         if (response.ok) {
-                            alert('Transação excluída com sucesso!');
+                            showToast('Transação excluída com sucesso!', 'success');
                             // Recarregar dados
                             loadDashboardSummary();
                             loadBettingHouses();
                             loadRecentTransactions();
                         } else {
-                            throw new Error('Erro ao excluir transação');
+                            const errorData = await response.json().catch(() => ({ message: 'Erro ao excluir transação' }));
+                            throw new Error(errorData.message || 'Erro ao excluir transação');
                         }
                     } catch (error) {
                         handleError(error);
@@ -319,7 +416,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Fechar o menu
-                document.getElementById(`menu-${transacaoId}`).classList.remove('active');
+                const menu = this.closest('.transaction-menu');
+                if (menu) {
+                    menu.classList.remove('active');
+                }
             });
         });
     }
@@ -330,7 +430,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'deposito': 'Depósito',
             'saque': 'Saque',
             'aposta': 'Aposta',
-            'ganho': 'Ganho'
+            'ganho': 'Ganho',
+            'ajuste': 'Ajuste' // Added for manual balance adjustments
         };
         return tipos[tipo] || tipo;
     }
@@ -339,7 +440,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatStatus(status) {
         const statusMap = {
             'completo': 'Completo',
-            'pendente': 'Pendente'
+            'pendente': 'Pendente',
+            'ajuste': 'Ajuste' // Added for manual balance adjustments
         };
         return statusMap[status] || status;
     }
@@ -370,19 +472,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         
                         if (response.ok) {
-                            alert('Depósito realizado com sucesso!');
+                            showToast('Depósito realizado com sucesso!', 'success');
                             // Reload data
                             loadDashboardSummary();
                             loadBettingHouses();
                             loadRecentTransactions();
                         } else {
-                            throw new Error('Erro ao realizar depósito');
+                            const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar depósito' }));
+                            throw new Error(errorData.message || 'Erro ao realizar depósito');
                         }
                     } catch (error) {
                         handleError(error);
                     }
                 } else if (valor !== null) {
-                    alert('Por favor, insira um valor válido.');
+                    showToast('Por favor, insira um valor válido.', 'warning');
                 }
             });
         });
@@ -394,9 +497,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const casaId = this.getAttribute('data-id');
                 const casaNome = this.getAttribute('data-nome');
                 
-                const confirmDelete = confirm(`Tem certeza que deseja excluir a casa ${casaNome}? Esta ação não pode ser desfeita.`);
+                const confirmed = await showConfirmModal(`Tem certeza que deseja excluir a casa ${casaNome}? Todas as transações associadas também serão excluídas. Esta ação não pode ser desfeita.`);
                 
-                if (confirmDelete) {
+                if (confirmed) {
                     try {
                         const response = await fetch(`${API_CASAS}/${casaId}`, {
                             method: 'DELETE',
@@ -406,13 +509,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         
                         if (response.ok) {
-                            alert(`Casa ${casaNome} excluída com sucesso!`);
+                            showToast(`Casa ${casaNome} excluída com sucesso!`, 'success');
                             // Reload data
                             loadDashboardSummary();
                             loadBettingHouses();
                             loadRecentTransactions();
                         } else {
-                            throw new Error('Erro ao excluir casa de apostas');
+                            const errorData = await response.json().catch(() => ({ message: 'Erro ao excluir casa de apostas' }));
+                            throw new Error(errorData.message || 'Erro ao excluir casa de apostas');
                         }
                     } catch (error) {
                         handleError(error);
@@ -445,19 +549,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         
                         if (response.ok) {
-                            alert('Saque realizado com sucesso!');
+                            showToast('Saque realizado com sucesso!', 'success');
                             // Reload data
                             loadDashboardSummary();
                             loadBettingHouses();
                             loadRecentTransactions();
                         } else {
-                            throw new Error('Erro ao realizar saque');
+                            const errorData = await response.json().catch(() => ({ message: 'Erro ao realizar saque' }));
+                            throw new Error(errorData.message || 'Erro ao realizar saque');
                         }
                     } catch (error) {
                         handleError(error);
                     }
                 } else if (valor !== null) {
-                    alert('Por favor, insira um valor válido.');
+                    showToast('Por favor, insira um valor válido.', 'warning');
                 }
             });
         });
@@ -488,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const casaId = this.getAttribute('data-id');
-                alert(`Mais opções para casa ID: ${casaId}`);
+                showToast(`Mais opções para casa ID: ${casaId}`, 'info');
             });
         });
         
@@ -497,7 +602,8 @@ document.addEventListener('DOMContentLoaded', function() {
             card.addEventListener('click', function(e) {
                 if (!e.target.closest('button')) {
                     const casaId = this.getAttribute('data-id');
-                    alert(`Detalhes da casa ID: ${casaId}`);
+                    // For now, a toast. This could navigate to a detail page or open a detailed modal.
+                    showToast(`Detalhes da casa ID: ${casaId}. Clique nos botões para ações.`, 'info');
                 }
             });
         });
@@ -577,7 +683,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const initialBalance = parseFloat(document.getElementById('initialBalance').value) || 0;
             
             if (!houseName) {
-                alert('O nome da casa de apostas é obrigatório!');
+                showToast('O nome da casa de apostas é obrigatório!', 'warning');
                 return;
             }
             
@@ -599,13 +705,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeAllModals();
                     
                     // Show success message
-                    alert('Casa de apostas adicionada com sucesso!');
+                    showToast('Casa de apostas adicionada com sucesso!', 'success');
                     
                     // Reload data
                     loadDashboardSummary();
                     loadBettingHouses();
                 } else {
-                    throw new Error('Erro ao adicionar casa de apostas');
+                    const errorData = await response.json().catch(() => ({ message: 'Erro ao adicionar casa de apostas' }));
+                    throw new Error(errorData.message || 'Erro ao adicionar casa de apostas');
                 }
             } catch (error) {
                 handleError(error);
@@ -624,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const balanceNote = document.getElementById('balanceNote').value.trim();
             
             if (isNaN(newBalance) || newBalance < 0) {
-                alert('Por favor, insira um valor de saldo válido!');
+                showToast('Por favor, insira um valor de saldo válido e não negativo!', 'warning');
                 return;
             }
             
@@ -651,8 +758,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             body: JSON.stringify({
                                 casa_id: casaId,
                                 tipo: 'ajuste',
-                                valor: 0,  // Valor 0 porque já atualizamos o saldo diretamente
-                                descricao: `Ajuste manual de saldo: ${balanceNote}`
+                                valor: newBalance - parseFloat(document.getElementById('currentBalance').value.replace(/[^0-9,-]+/g,"").replace(",",".")), // Calcula a diferença para o valor da transação
+                                descricao: `Ajuste manual de saldo: ${balanceNote || 'Correção de saldo.'}` // Adiciona uma descrição padrão se vazia
                             })
                         });
                     }
@@ -661,14 +768,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeAllModals();
                     
                     // Mostrar mensagem de sucesso
-                    alert(`Saldo de ${casaNome} atualizado com sucesso!`);
+                    showToast(`Saldo de ${casaNome} atualizado com sucesso!`, 'success');
                     
                     // Recarregar dados
                     loadDashboardSummary();
                     loadBettingHouses();
                     loadRecentTransactions();
                 } else {
-                    throw new Error('Erro ao atualizar saldo');
+                    const errorData = await updateResponse.json().catch(() => ({ message: 'Erro ao atualizar saldo' }));
+                    throw new Error(errorData.message || 'Erro ao atualizar saldo');
                 }
             } catch (error) {
                 handleError(error);

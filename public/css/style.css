@@ -855,3 +855,191 @@ table td {
         font-weight: 600;
     }
 }
+
+/* --- Toast Notifications --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000; /* Muito alto para ficar sobre outros elementos */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px; /* Largura máxima dos toasts */
+}
+
+.toast {
+    background-color: #333;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.toast--visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast--hiding {
+    opacity: 0;
+    transform: translateX(100%); /* Ou outra animação de saída */
+}
+
+.toast-close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    line-height: 1;
+    margin-left: 15px;
+    cursor: pointer;
+    padding: 0 5px;
+    opacity: 0.7;
+}
+
+.toast-close-btn:hover {
+    opacity: 1;
+}
+
+/* Toast Types */
+.toast--info {
+    background-color: var(--blue-color); /* Azul */
+}
+
+.toast--success {
+    background-color: var(--green-color); /* Verde */
+}
+
+.toast--warning {
+    background-color: var(--orange-color); /* Laranja */
+}
+
+.toast--error {
+    background-color: var(--red-color); /* Vermelho */
+}
+
+/* --- Confirmation Modal --- */
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998; /* Abaixo do toast, mas acima do resto */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.confirm-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease;
+}
+
+.confirm-modal {
+    background-color: var(--card-color);
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
+}
+
+.confirm-modal-overlay.active .confirm-modal {
+    transform: scale(1);
+}
+
+.confirm-modal-title {
+    font-size: 1.4rem;
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.confirm-modal-message {
+    font-size: 1rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-modal-actions .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.confirm-modal-actions .btn-primary {
+    background-color: var(--primary-color); /* Cor primária do seu tema */
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.confirm-modal-actions .btn-primary:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-modal-actions .btn-secondary {
+    background-color: var(--bg-color); 
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.confirm-modal-actions .btn-secondary:hover {
+    background-color: #e0e0e0; /* Um pouco mais escuro que --bg-color */
+    border-color: #c7c7c7;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments for modals and toasts if needed */
+@media (max-width: 768px) {
+    #toast-container {
+        right: 10px;
+        left: 10px;
+        top: 10px;
+        max-width: none; /* Ocupar largura total com margens */
+    }
+
+    .confirm-modal {
+        padding: 20px;
+    }
+    .confirm-modal-title {
+        font-size: 1.2rem;
+    }
+    .confirm-modal-message {
+        font-size: 0.9rem;
+    }
+    .confirm-modal-actions {
+        flex-direction: column; /* Empilhar botões em telas menores */
+    }
+    .confirm-modal-actions .btn {
+        width: 100%;
+    }
+}
