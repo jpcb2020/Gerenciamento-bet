@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (bettingHousesContainer) {
                 bettingHousesContainer.innerHTML = '';
                 
-                casas.forEach(casa => {
+                casas.slice(0, 5).forEach(casa => {
                     const isPositive = casa.saldo > 0;
                     const cardHTML = `
                         <div class="betting-house-card" data-id="${casa.id}">
@@ -304,9 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button class="btn-outline btn-delete" data-id="${casa.id}" data-nome="${casa.nome}">
                                     <i class="fas fa-trash"></i> Excluir
                                 </button>
-                                <button class="btn-icon btn-more" data-id="${casa.id}">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
                             </div>
                         </div>
                     `;
@@ -329,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load recent transactions
     async function loadRecentTransactions() {
         try {
-            const response = await fetch(`${API_TRANSACOES}?limit=5`);
+            const response = await fetch(`${API_TRANSACOES}?limit=10`);
             if (!response.ok) {
                 throw new Error('Erro ao carregar transações recentes');
             }
@@ -344,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Exibir mensagem de nenhuma transação
                     transacoesBody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="empty-transactions">
+                            <td colspan="5" class="empty-transactions">
                                 <div class="empty-state">
                                     <i class="fas fa-exchange-alt"></i>
                                     <h3>Nenhuma transação registrada</h3>
@@ -373,100 +370,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td data-label="Status">
                                     <span class="status-${transacao.status}">${formatStatus(transacao.status)}</span>
                                 </td>
-                                <td class="actions-cell">
-                                    <button class="btn-icon btn-transaction-menu" data-id="${transacao.id}">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="transaction-menu" id="menu-${transacao.id}">
-                                        <ul>
-                                            <li class="delete-transaction" data-id="${transacao.id}">
-                                                <i class="fas fa-trash"></i> Excluir Transação
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
                             </tr>
                         `;
                         
                         transacoesBody.innerHTML += transacaoHTML;
                     });
-                    
-                    // Configurar ouvintes de eventos para os menus de transações
-                    setupTransactionMenus();
                 }
             }
             
         } catch (error) {
             handleError(error);
         }
-    }
-    
-    // Configura os menus de transações
-    function setupTransactionMenus() {
-        // Fechar todos os menus abertos quando clicar em qualquer lugar na página
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.actions-cell')) {
-                document.querySelectorAll('.transaction-menu.active').forEach(menu => {
-                    menu.classList.remove('active');
-                });
-            }
-        });
-        
-        // Botões de menu de transações
-        document.querySelectorAll('.btn-transaction-menu').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const transacaoId = this.getAttribute('data-id');
-                const menu = document.getElementById(`menu-${transacaoId}`);
-                
-                // Fechar todos os outros menus primeiro
-                document.querySelectorAll('.transaction-menu.active').forEach(activeMenu => {
-                    if (activeMenu !== menu) {
-                        activeMenu.classList.remove('active');
-                    }
-                });
-                
-                // Alternar o menu atual
-                menu.classList.toggle('active');
-            });
-        });
-        
-        // Opção de exclusão de transação
-        document.querySelectorAll('.delete-transaction').forEach(item => {
-            item.addEventListener('click', async function(e) {
-                e.stopPropagation();
-                const transacaoId = this.getAttribute('data-id');
-                
-                const confirmed = await showConfirmModal(`Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.`);
-                
-                if (confirmed) {
-                    try {
-                        const response = await fetch(`${API_TRANSACOES}/${transacaoId}`, {
-                            method: 'DELETE'
-                        });
-                        
-                        if (response.ok) {
-                            showToast('Transação excluída com sucesso!', 'success');
-                            // Recarregar dados
-                            loadDashboardSummary();
-                            loadBettingHouses();
-                            loadRecentTransactions();
-                        } else {
-                            const errorData = await response.json().catch(() => ({ message: 'Erro ao excluir transação' }));
-                            throw new Error(errorData.message || 'Erro ao excluir transação');
-                        }
-                    } catch (error) {
-                        handleError(error);
-                    }
-                }
-                
-                // Fechar o menu
-                const menu = this.closest('.transaction-menu');
-                if (menu) {
-                    menu.classList.remove('active');
-                }
-            });
-        });
     }
     
     // Format transaction type
@@ -599,13 +513,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-        }
-        
-        // More Options Trigger (from dashboard cards)
-        else if (button.matches('.btn-more')) {
-             e.stopPropagation();
-             const casaId = button.dataset.id;
-             showToast(`Mais opções para casa ID: ${casaId}`, 'info');
         }
     });
     

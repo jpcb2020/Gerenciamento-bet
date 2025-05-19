@@ -8,6 +8,24 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmModalOverlay" class="confirm-modal-overlay">
+        <div id="confirmModal" class="confirm-modal">
+            <div id="confirmModalIcon" class="confirm-modal-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <h3 id="confirmModalTitle" class="confirm-modal-title">Confirmação</h3>
+            <p id="confirmModalMessage" class="confirm-modal-message">Tem certeza?</p>
+            <div class="confirm-modal-actions">
+                <button id="confirmModalConfirmBtn" class="btn btn-primary">Confirmar</button>
+                <button id="confirmModalCancelBtn" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -70,6 +88,70 @@
                         <span>até</span>
                         <input type="date" id="endDate">
                         <button class="btn-primary" id="filterDateRange">Filtrar</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Panels -->
+                <div class="dashboard-panels">
+                    <div class="panel panel-primary">
+                        <div class="panel-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="panel-content">
+                            <h4>Movimentação do Dia</h4>
+                            <div class="panel-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Entradas:</span>
+                                    <span class="stat-value income" id="dailyIncome">R$ 0,00</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Saídas:</span>
+                                    <span class="stat-value expense" id="dailyExpense">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel panel-success">
+                        <div class="panel-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="panel-content">
+                            <h4>Saldo Consolidado</h4>
+                            <p class="panel-value" id="totalBalance">R$ 0,00</p>
+                            <span class="panel-change" id="balanceChange">0% desde ontem</span>
+                        </div>
+                    </div>
+                    
+                    <div class="panel panel-info">
+                        <div class="panel-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="panel-content">
+                            <h4>Total de Transações</h4>
+                            <p class="panel-value" id="transactionCount">0</p>
+                            <span class="panel-label">no período selecionado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="panel panel-warning">
+                        <div class="panel-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="panel-content">
+                            <h4>Casa Mais Ativa</h4>
+                            <p class="panel-value" id="topHouseName">-</p>
+                            <div class="panel-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Transações:</span>
+                                    <span class="stat-value" id="topHouseCount">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Saldo:</span>
+                                    <span class="stat-value" id="topHouseBalance">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -178,7 +260,7 @@
         </div>
     </div>
 
-    <script src="js/transacoes.js"></script> 
     <script src="js/main.js"></script> <!-- Common JS like sidebar toggle -->
+    <script src="js/transacoes.js"></script> 
 </body>
 </html> 

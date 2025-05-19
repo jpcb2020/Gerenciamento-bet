@@ -10,6 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const endDateInput = document.getElementById('endDate');
     const filterDateRangeButton = document.getElementById('filterDateRange');
 
+    // Dashboard panel elements
+    const dailyIncomeElement = document.getElementById('dailyIncome');
+    const dailyExpenseElement = document.getElementById('dailyExpense');
+    const totalBalanceElement = document.getElementById('totalBalance');
+    const balanceChangeElement = document.getElementById('balanceChange');
+    const transactionCountElement = document.getElementById('transactionCount');
+    const topHouseNameElement = document.getElementById('topHouseName');
+    const topHouseCountElement = document.getElementById('topHouseCount');
+    const topHouseBalanceElement = document.getElementById('topHouseBalance');
+
     // Modal elements (assuming generic modal handlers are in main.js)
     const transactionDetailModal = document.getElementById('transactionDetailModal');
     const editTransactionForm = document.getElementById('editTransactionForm');
@@ -21,6 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const transactionDescriptionInput = document.getElementById('transactionDescription');
     const deleteTransactionBtn = document.getElementById('deleteTransactionBtn');
     
+    // Confirmation modal elements
+    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmModalTitle = document.getElementById('confirmModalTitle');
+    const confirmModalMessage = document.getElementById('confirmModalMessage');
+    const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
+    const confirmModalCancelBtn = document.getElementById('confirmModalCancelBtn');
+    
+    // Toast container
+    const toastContainer = document.getElementById('toast-container');
+    
     let allTransactions = [];
     let filteredTransactions = [];
     let bettingHouses = [];
@@ -29,6 +50,92 @@ document.addEventListener('DOMContentLoaded', () => {
     let sortColumn = 'data';
     let sortDirection = 'desc';
 
+    // Local implementation of showToast if it doesn't exist in global scope
+    if (typeof window.showToast !== 'function') {
+        window.showToast = function(message, type = 'info', duration = 3000) {
+            if (!toastContainer) {
+                console.error('Toast container not found');
+                alert(message); // Fallback to alert if toast container not found
+                return;
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast--${type}`;
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            toast.appendChild(messageSpan);
+            
+            const closeButton = document.createElement('button');
+            closeButton.innerHTML = '&times;';
+            closeButton.className = 'toast-close-btn';
+            closeButton.onclick = () => {
+                toast.classList.remove('toast--visible');
+                toast.classList.add('toast--hiding');
+                // Clear timeout if closed manually to prevent issues
+                if (toast.timerId) clearTimeout(toast.timerId);
+                if (toast.removeTimerId) clearTimeout(toast.removeTimerId);
+                setTimeout(() => toast.remove(), 300); // Animation duration for hiding
+            };
+            toast.appendChild(closeButton);
+            
+            // Timer bar
+            const timerBar = document.createElement('div');
+            timerBar.className = 'toast-timer-bar';
+            timerBar.style.animationDuration = `${duration}ms`;
+            toast.appendChild(timerBar);
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger reflow to enable animation
+            toast.offsetHeight;
+            toast.classList.add('toast--visible');
+            
+            // Store timer ID on the toast element to clear it if closed manually
+            toast.timerId = setTimeout(() => {
+                toast.classList.remove('toast--visible');
+                toast.classList.add('toast--hiding');
+                toast.removeTimerId = setTimeout(() => toast.remove(), 300); // Animation duration for hiding
+            }, duration);
+        }
+    }
+    
+    // Local implementation of showConfirmModal if it doesn't exist in global scope
+    if (typeof window.showConfirmModal !== 'function') {
+        window.showConfirmModal = function(message, title = 'Confirmação') {
+            if (!confirmModalOverlay || !confirmModal) {
+                console.error('Confirmation modal elements not found');
+                // Fallback to standard confirm
+                return Promise.resolve(window.confirm(message));
+            }
+            
+            return new Promise((resolve) => {
+                if (confirmModalTitle) confirmModalTitle.textContent = title;
+                confirmModalMessage.textContent = message;
+                confirmModalOverlay.classList.add('active');
+                
+                const handleConfirm = () => {
+                    cleanup();
+                    resolve(true);
+                };
+                
+                const handleCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+                
+                const cleanup = () => {
+                    confirmModalOverlay.classList.remove('active');
+                    confirmModalConfirmBtn.removeEventListener('click', handleConfirm);
+                    confirmModalCancelBtn.removeEventListener('click', handleCancel);
+                };
+                
+                confirmModalConfirmBtn.addEventListener('click', handleConfirm);
+                confirmModalCancelBtn.addEventListener('click', handleCancel);
+            });
+        }
+    }
+    
     async function fetchTransactions() {
         try {
             const response = await fetch('/api/transacoes');
@@ -40,9 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // or calculated. Currently, the API /api/transacoes does not provide them.
             // For now, they will appear as empty in the table.
             applyFiltersAndSort();
+            updateDashboardPanels();
         } catch (error) {
             console.error('Erro ao buscar transações:', error);
             transactionsTableBody.innerHTML = `<tr><td colspan="8" class="empty-transactions"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar transações</h3><p>${error.message}</p></div></td></tr>`;
+            if (typeof showToast === 'function') {
+                showToast(`Erro ao carregar transações: ${error.message}`, 'error');
+            }
         }
     }
 
@@ -54,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
             populateHouseSelectModal(bettingHouses);
         } catch (error) {
             console.error('Erro ao buscar casas de apostas:', error);
+            if (typeof showToast === 'function') {
+                showToast(`Erro ao buscar casas de apostas: ${error.message}`, 'error');
+            }
         }
     }
 
@@ -164,12 +278,13 @@ document.addEventListener('DOMContentLoaded', () => {
             editButton.addEventListener('click', () => openTransactionModal(t));
             actionsCell.appendChild(editButton);
 
-            // Optionally, add a delete button directly in the row if desired, or keep it in modal
-            // const deleteBtnRow = document.createElement('button');
-            // deleteBtnRow.innerHTML = '<i class="fas fa-trash"></i>';
-            // deleteBtnRow.classList.add('btn-icon', 'btn-danger-icon');
-            // deleteBtnRow.addEventListener('click', () => handleDeleteTransaction(t.id));
-            // actionsCell.appendChild(deleteBtnRow);
+            // Add a delete button directly in the row
+            const deleteBtnRow = document.createElement('button');
+            deleteBtnRow.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtnRow.classList.add('btn-icon', 'btn-danger-icon');
+            deleteBtnRow.title = "Excluir Transação";
+            deleteBtnRow.addEventListener('click', () => handleDeleteTransaction(t.id));
+            actionsCell.appendChild(deleteBtnRow);
         });
         updatePaginationControls();
     }
@@ -249,8 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         filteredTransactions = tempTransactions;
-        currentPage = 1; // Reset to first page after filtering/sorting
+        currentPage = 1; // Reset to first page when filters change
         renderTransactions();
+        updateDashboardPanels(); // Update dashboard after filtering
     }
 
     // Event Listeners for filters
@@ -354,11 +470,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Basic validation
         if (!casa_id_raw) {
-            alert('Por favor, selecione uma casa de aposta.');
+            if (typeof showToast === 'function') {
+                showToast('Por favor, selecione uma casa de aposta.', 'warning');
+            } else {
+                alert('Por favor, selecione uma casa de aposta.');
+            }
             return;
         }
-         if (!valor_raw || isNaN(parseFloat(valor_raw))) {
-            alert('Por favor, insira um valor numérico válido.');
+        if (!valor_raw || isNaN(parseFloat(valor_raw))) {
+            if (typeof showToast === 'function') {
+                showToast('Por favor, insira um valor numérico válido.', 'warning');
+            } else {
+                alert('Por favor, insira um valor numérico válido.');
+            }
             return;
         }
 
@@ -377,17 +501,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let method;
 
             if (id) { // Update existing transaction
-                // IMPORTANT: The backend does not currently have a PUT /api/transacoes/:id endpoint.
-                // This will fail until that endpoint is implemented.
-                // For now, this is a placeholder.
                 method = 'PUT';
                 response = await fetch(`/api/transacoes/${id}`, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(transactionData)
                 });
-                // alert('Funcionalidade de Edição (PUT /api/transacoes/:id) pendente de implementação no backend.');
-                // return; 
             } else { // Add new transaction
                 // This assumes we might add a "New Transaction" button eventually.
                 // The POST /api/transacoes endpoint exists.
@@ -412,8 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 transactionDetailModal.style.display = 'none';
             }
-            // Show success toast/message (assuming a global toast function)
-             if (typeof showToast === 'function') {
+            // Show success toast/message
+            if (typeof showToast === 'function') {
                 showToast(`${id ? 'Transação atualizada' : 'Transação adicionada'} com sucesso!`, 'success');
             } else {
                 alert(`${id ? 'Transação atualizada' : 'Transação adicionada'} com sucesso!`);
@@ -430,42 +549,269 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    deleteTransactionBtn.addEventListener('click', async () => {
-        const id = deleteTransactionBtn.dataset.id;
+    // Delete transaction handler (to be used by both the modal and row buttons)
+    async function handleDeleteTransaction(id) {
         if (!id) return;
 
-        // Confirmation dialog (assuming a global confirm function or using window.confirm)
-        const confirmed = window.confirm('Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e o saldo da casa será ajustado.');
-        
-        if (confirmed) {
-            try {
+        try {
+            // Use our window.showConfirmModal function
+            const confirmed = await window.showConfirmModal(
+                'Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e o saldo da casa será ajustado.',
+                'Confirmar Exclusão'
+            );
+            
+            if (confirmed) {
                 const response = await fetch(`/api/transacoes/${id}`, { method: 'DELETE' });
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
                 await fetchTransactions(); // Refresh list
+                
+                // Close modal if open
                 if (typeof closeModal === 'function') {
                     closeModal('transactionDetailModal');
                 } else {
                     transactionDetailModal.style.display = 'none';
                 }
-                if (typeof showToast === 'function') {
-                    showToast('Transação excluída com sucesso!', 'success');
-                } else {
-                    alert('Transação excluída com sucesso!');
-                }
-            } catch (error) {
-                console.error('Erro ao excluir transação:', error);
-                 if (typeof showToast === 'function') {
-                    showToast(`Erro ao excluir: ${error.message}`, 'error');
-                } else {
-                    alert(`Erro ao excluir: ${error.message}`);
-                }
+                
+                // Show success toast with our own function
+                window.showToast('Transação excluída com sucesso!', 'success');
+                console.log('Toast shown for successful deletion');
             }
+        } catch (error) {
+            console.error('Erro ao excluir transação:', error);
+            window.showToast(`Erro ao excluir: ${error.message}`, 'error');
         }
+    }
+
+    // Update the delete button in the modal to use the common handler
+    deleteTransactionBtn.addEventListener('click', async () => {
+        const id = deleteTransactionBtn.dataset.id;
+        if (!id) return;
+        
+        handleDeleteTransaction(id);
     });
 
+    // Function to update all dashboard panels
+    function updateDashboardPanels() {
+        updateMovimentacaoDoDia();
+        updateSaldoConsolidado();
+        updateTransactionCount();
+        updateTopHouse();
+    }
+
+    // Update "Movimentação do Dia" panel
+    function updateMovimentacaoDoDia() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayTransactions = allTransactions.filter(t => {
+            const transactionDate = new Date(t.data);
+            transactionDate.setHours(0, 0, 0, 0);
+            return transactionDate.getTime() === today.getTime();
+        });
+        
+        let income = 0;
+        let expense = 0;
+        
+        todayTransactions.forEach(t => {
+            const value = parseFloat(t.valor) || 0;
+            if (t.tipo === 'deposito' || t.tipo === 'ganho') {
+                income += value;
+            } else if (t.tipo === 'saque' || t.tipo === 'aposta') {
+                expense += Math.abs(value);
+            } else if (t.tipo === 'correcao') {
+                if (value > 0) {
+                    income += value;
+                } else {
+                    expense += Math.abs(value);
+                }
+            }
+        });
+        
+        dailyIncomeElement.textContent = formatCurrency(income);
+        dailyExpenseElement.textContent = formatCurrency(expense);
+    }
+    
+    // Update "Saldo Consolidado" panel
+    function updateSaldoConsolidado() {
+        // Calculate total balance across all transactions
+        let totalBalance = 0;
+        let yesterdayBalance = 0;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Primeiro agrupar o saldo por casa de apostas
+        const casaBalances = {};
+        
+        // Inicializar o balanço de cada casa como 0
+        bettingHouses.forEach(casa => {
+            casaBalances[casa.id] = 0;
+        });
+        
+        // Calcular o saldo atual de cada casa
+        allTransactions.forEach(t => {
+            if (!t || !t.casa_id || t.casa_id === undefined) return;
+            
+            const value = parseFloat(t.valor) || 0;
+            const casaId = t.casa_id;
+            
+            // Se a casa não estiver no objeto, inicialize
+            if (casaBalances[casaId] === undefined) {
+                casaBalances[casaId] = 0;
+            }
+            
+            // Calcular o saldo para cada casa
+            if (t.tipo === 'deposito' || t.tipo === 'ganho') {
+                casaBalances[casaId] += value;
+            } else if (t.tipo === 'saque' || t.tipo === 'aposta') {
+                casaBalances[casaId] -= Math.abs(value);
+            } else if (t.tipo === 'correcao') {
+                casaBalances[casaId] += value; // Pode ser positivo ou negativo
+            }
+        });
+        
+        // Somar o saldo de todas as casas
+        totalBalance = Object.values(casaBalances).reduce((sum, balance) => sum + balance, 0);
+        
+        // Calcular o saldo de ontem
+        const casaBalancesYesterday = { ...casaBalances };
+        Object.keys(casaBalancesYesterday).forEach(casaId => {
+            casaBalancesYesterday[casaId] = 0;
+        });
+        
+        allTransactions.forEach(t => {
+            if (!t || !t.casa_id || !t.data) return;
+            
+            const transactionDate = new Date(t.data);
+            transactionDate.setHours(0, 0, 0, 0);
+            
+            // Considerar apenas transações até ontem
+            if (transactionDate.getTime() <= yesterday.getTime()) {
+                const value = parseFloat(t.valor) || 0;
+                const casaId = t.casa_id;
+                
+                if (casaBalancesYesterday[casaId] === undefined) {
+                    casaBalancesYesterday[casaId] = 0;
+                }
+                
+                if (t.tipo === 'deposito' || t.tipo === 'ganho') {
+                    casaBalancesYesterday[casaId] += value;
+                } else if (t.tipo === 'saque' || t.tipo === 'aposta') {
+                    casaBalancesYesterday[casaId] -= Math.abs(value);
+                } else if (t.tipo === 'correcao') {
+                    casaBalancesYesterday[casaId] += value;
+                }
+            }
+        });
+        
+        yesterdayBalance = Object.values(casaBalancesYesterday).reduce((sum, balance) => sum + balance, 0);
+        
+        totalBalanceElement.textContent = formatCurrency(totalBalance);
+        
+        // Calculate percentage change from yesterday
+        if (yesterdayBalance !== 0) {
+            const percentChange = ((totalBalance - yesterdayBalance) / Math.abs(yesterdayBalance)) * 100;
+            const sign = percentChange >= 0 ? '+' : '';
+            balanceChangeElement.textContent = `${sign}${percentChange.toFixed(2)}% desde ontem`;
+            balanceChangeElement.style.color = percentChange >= 0 ? '#2ecc71' : '#e74c3c';
+        } else {
+            balanceChangeElement.textContent = 'Primeiro dia de atividade';
+            balanceChangeElement.style.color = '#666';
+        }
+    }
+    
+    // Update "Total de Transações" panel
+    function updateTransactionCount() {
+        transactionCountElement.textContent = filteredTransactions.length;
+    }
+    
+    // Update "Casa Mais Ativa" panel
+    function updateTopHouse() {
+        // Filtrar transações pelo período selecionado
+        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        
+        if (endDate) {
+            endDate.setHours(23, 59, 59, 999); // Incluir o dia inteiro
+        }
+        
+        // Filtrar transações por intervalo de data, se especificado
+        const periodTransactions = allTransactions.filter(t => {
+            if (!t || !t.data) return false;
+            
+            const transactionDate = new Date(t.data);
+            
+            if (startDate && endDate) {
+                return transactionDate >= startDate && transactionDate <= endDate;
+            } else if (startDate) {
+                return transactionDate >= startDate;
+            } else if (endDate) {
+                return transactionDate <= endDate;
+            }
+            
+            return true; // Se nenhum intervalo de data for especificado, incluir todas as transações
+        });
+        
+        // Agrupar transações por casa de apostas
+        const houseStats = {};
+        
+        periodTransactions.forEach(t => {
+            if (!t || !t.casa_id) return;
+            
+            const casaId = t.casa_id;
+            const casaNome = t.casa_nome || 'Casa Desconhecida';
+            const value = parseFloat(t.valor) || 0;
+            
+            if (!houseStats[casaId]) {
+                houseStats[casaId] = {
+                    id: casaId,
+                    nome: casaNome,
+                    count: 0,
+                    balance: 0
+                };
+            }
+            
+            // Incrementar contagem de transações
+            houseStats[casaId].count += 1;
+            
+            // Atualizar saldo da casa
+            if (t.tipo === 'deposito' || t.tipo === 'ganho') {
+                houseStats[casaId].balance += value;
+            } else if (t.tipo === 'saque' || t.tipo === 'aposta') {
+                houseStats[casaId].balance -= Math.abs(value);
+            } else if (t.tipo === 'correcao') {
+                houseStats[casaId].balance += value; // Pode ser positivo ou negativo
+            }
+        });
+        
+        // Converter objeto em array para classificar
+        const housesArray = Object.values(houseStats);
+        
+        if (housesArray.length === 0) {
+            // Nenhuma casa encontrada no período
+            topHouseNameElement.textContent = 'Nenhuma';
+            topHouseCountElement.textContent = '0';
+            topHouseBalanceElement.textContent = formatCurrency(0);
+            return;
+        }
+        
+        // Classificar pelo número de transações (mais ativa)
+        housesArray.sort((a, b) => b.count - a.count);
+        
+        const topHouse = housesArray[0];
+        
+        // Atualizar elementos do painel
+        topHouseNameElement.textContent = topHouse.nome;
+        topHouseCountElement.textContent = topHouse.count;
+        topHouseBalanceElement.textContent = formatCurrency(topHouse.balance);
+        topHouseBalanceElement.style.color = topHouse.balance >= 0 ? '#2ecc71' : '#e74c3c';
+    }
 
     // Initial data load
     fetchBettingHouses(); // Fetch houses first for filters
