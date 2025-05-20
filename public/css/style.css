@@ -2803,6 +2803,19 @@ table td {
 }
 
 /* Modal para Nova Entrada */
+#newEntryModal .modal-content {
+    max-width: 700px; /* Aumentar um pouco a largura para este modal específico */
+    max-height: 90vh; /* Limitar a altura a 90% da altura da viewport */
+    display: flex; /* Para permitir que o form cresça e o modal-body role */
+    flex-direction: column;
+}
+
+#newEntryModal .modal-body-scrollable {
+    overflow-y: auto; /* Adicionar rolagem ao corpo do modal */
+    padding-right: 15px; /* Espaço para a barra de rolagem */
+    flex-grow: 1;
+}
+
 .entry-bets {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -2851,6 +2864,11 @@ table td {
 }
 
 @media (max-width: 768px) {
+    #newEntryModal .modal-content {
+        max-height: 85vh;
+        width: 95%;
+    }
+
     .surebet-header {
         grid-template-columns: 1fr;
     }

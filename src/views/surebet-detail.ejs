@@ -65,7 +65,7 @@
 
             <div class="content-wrapper">
                 <div class="page-title">
-                    <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName">Detalhes da Surebet</span></h2>
+                    <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName"><%= bankroll.nome %></span></h2>
                     <div class="action-buttons">
                         <button id="addSurebetEntryBtn" class="btn-primary"><i class="fas fa-plus"></i> Nova Entrada</button>
                         <button id="configSurebetBtn" class="btn-outline"><i class="fas fa-cog"></i> Configurar</button>
@@ -78,16 +78,16 @@
                         <div class="tag tag-surebet">Surebet</div>
                         <div class="surebet-balance">
                             <span class="balance-label">Saldo Atual:</span>
-                            <h3 id="currentBalance">R$ 0,00</h3>
+                            <h3 id="currentBalance"><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
                         </div>
                         <div class="surebet-stats">
                             <div class="stat-item">
                                 <span class="stat-label"><i class="fas fa-chart-line"></i> ROI:</span>
-                                <span class="stat-value" id="roiValue">0%</span>
+                                <span class="stat-value" id="roiValue"><%= bankroll.roi || '0' %>%</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label"><i class="fas fa-calendar-alt"></i> Período:</span>
-                                <span class="stat-value" id="periodValue">30 dias</span>
+                                <span class="stat-value" id="periodValue">N/A</span>
                             </div>
                         </div>
                     </div>
@@ -418,93 +418,182 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3>Nova Entrada de Surebet</h3>
-            <form id="newEntryForm">
-                <div class="form-group">
-                    <label for="entryEvent">Evento</label>
-                    <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
-                </div>
-                <div class="form-group">
-                    <label for="entryCompetition">Competição</label>
-                    <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
-                </div>
-                <div class="form-row">
+            <div class="modal-body-scrollable">
+                <form id="newEntryForm">
                     <div class="form-group">
-                        <label for="entryDate">Data</label>
-                        <input type="date" id="entryDate" required>
+                        <label for="entryEvent">Evento</label>
+                        <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
                     </div>
                     <div class="form-group">
-                        <label for="entryTime">Hora</label>
-                        <input type="time" id="entryTime" required>
+                        <label for="entryCompetition">Competição</label>
+                        <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
                     </div>
-                </div>
-
-                <div class="entry-bets" id="entryBetsContainer">
-                    <h4>Apostas</h4>
-                    <div class="entry-bet">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="betHouse1">Casa de Apostas</label>
-                                <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
-                            </div>
-                            <div class="form-group">
-                                <label for="betMarket1">Mercado</label>
-                                <input type="text" id="betMarket1" required placeholder="Ex: Vitória Mandante">
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="entryDate">Data</label>
+                            <input type="date" id="entryDate" required>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="betOdds1">Odds</label>
-                                <input type="number" id="betOdds1" required step="0.01" min="1" placeholder="2.00">
-                            </div>
-                            <div class="form-group">
-                                <label for="betStake1">Valor Apostado (R$)</label>
-                                <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
-                            </div>
+                        <div class="form-group">
+                            <label for="entryTime">Hora</label>
+                            <input type="time" id="entryTime" required>
                         </div>
                     </div>
-                    <div class="entry-bet">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="betHouse2">Casa de Apostas</label>
-                                <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+
+                    <div class="entry-bets" id="entryBetsContainer">
+                        <h4>Apostas</h4>
+                        <div class="entry-bet">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="betHouse1">Casa de Apostas</label>
+                                    <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
+                                </div>
+                                <div class="form-group">
+                                    <label for="betMarket1">Mercado</label>
+                                    <input type="text" id="betMarket1" required placeholder="Ex: Vitória Mandante">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="betMarket2">Mercado</label>
-                                <input type="text" id="betMarket2" required placeholder="Ex: Empate ou Fora">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="betOdds1">Odds</label>
+                                    <input type="number" id="betOdds1" required step="0.01" min="1" placeholder="2.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="betStake1">Valor Apostado (R$)</label>
+                                    <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
+                                </div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="betOdds2">Odds</label>
-                                <input type="number" id="betOdds2" required step="0.01" min="1" placeholder="1.90">
+                        <div class="entry-bet">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="betHouse2">Casa de Apostas</label>
+                                    <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                                </div>
+                                <div class="form-group">
+                                    <label for="betMarket2">Mercado</label>
+                                    <input type="text" id="betMarket2" required placeholder="Ex: Empate ou Fora">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="betStake2">Valor Apostado (R$)</label>
-                                <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="betOdds2">Odds</label>
+                                    <input type="number" id="betOdds2" required step="0.01" min="1" placeholder="1.90">
+                                </div>
+                                <div class="form-group">
+                                    <label for="betStake2">Valor Apostado (R$)</label>
+                                    <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                                </div>
                             </div>
                         </div>
+                        <button type="button" id="addMoreBetBtn" class="btn-outline btn-sm">
+                            <i class="fas fa-plus"></i> Adicionar Outra Aposta
+                        </button>
                     </div>
-                    <button type="button" id="addMoreBetBtn" class="btn-outline btn-sm">
-                        <i class="fas fa-plus"></i> Adicionar Outra Aposta
-                    </button>
-                </div>
 
-                <div class="form-group">
-                    <label for="entryNotes">Observações</label>
-                    <textarea id="entryNotes" rows="3" placeholder="Notas adicionais sobre esta surebet..."></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="entryNotes">Observações</label>
+                        <textarea id="entryNotes" rows="3" placeholder="Notas adicionais sobre esta surebet..."></textarea>
+                    </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">Salvar Entrada</button>
-                    <button type="button" id="cancelEntryBtn" class="btn-secondary">Cancelar</button>
-                </div>
-            </form>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Salvar Entrada</button>
+                        <button type="button" id="cancelEntryBtn" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const bankrollId = new URLSearchParams(window.location.search).get('id');
+
+            // Formatação de moeda e data
+            const formatCurrency = (value) => {
+                return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            };
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                       date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            // Função para buscar e renderizar entradas de surebet
+            async function fetchSurebetEntries(filters = {}) {
+                if (!bankrollId) return;
+
+                const entriesTableBody = document.getElementById('entriesTableBody');
+                entriesTableBody.innerHTML = '<tr><td colspan="8" class="loading-state"><i class="fas fa-spinner fa-spin"></i> Carregando entradas...</td></tr>';
+
+                try {
+                    let apiUrl = `/api/surebet/entries/${bankrollId}`;
+                    const queryParams = new URLSearchParams();
+                    if (filters.period) queryParams.append('period', filters.period);
+                    if (filters.status) queryParams.append('status', filters.status);
+                    if (filters.search) queryParams.append('search', filters.search);
+                    
+                    if (queryParams.toString()) {
+                        apiUrl += `?${queryParams.toString()}`;
+                    }
+
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.msg || 'Erro ao buscar entradas de surebet');
+                    }
+                    const entries = await response.json();
+                    renderEntriesTable(entries);
+                } catch (error) {
+                    console.error('Erro ao buscar entradas:', error);
+                    entriesTableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar entradas</h3><p>${error.message}</p></div></td></tr>`;
+                }
+            }
+
+            function renderEntriesTable(entries) {
+                const entriesTableBody = document.getElementById('entriesTableBody');
+                entriesTableBody.innerHTML = ''; // Limpar tabela
+
+                if (entries.length === 0) {
+                    entriesTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <div class="empty-state-content">
+                                    <i class="fas fa-list"></i>
+                                    <h3>Nenhuma entrada encontrada</h3>
+                                    <p>Adicione uma nova entrada usando o botão "Nova Entrada" ou ajuste os filtros.</p>
+                                </div>
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                entries.forEach(entry => {
+                    const casasApostas = entry.bets.map(b => b.casa_apostas).join(', ');
+                    const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
+
+                    const row = entriesTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${formatDate(entry.data_evento)}</td>
+                        <td>
+                            <div>${entry.evento}</div>
+                            <small class="text-muted">${entry.competicao || ''}</small>
+                        </td>
+                        <td>${casasApostas}</td>
+                        <td>${formatCurrency(valorTotalApostado)}</td>
+                        <td>${formatCurrency(entry.retorno_total)}</td>
+                        <td class="${parseFloat(entry.lucro_total) >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(entry.lucro_total)}</td>
+                        <td><span class="status-tag status-${entry.status ? entry.status.toLowerCase() : 'pendente'}">${entry.status || 'Pendente'}</span></td>
+                        <td>
+                            <button class="btn-icon btn-sm btn-view-entry" title="Ver Detalhes" data-entry-id="${entry.id}"><i class="fas fa-eye"></i></button>
+                            <button class="btn-icon btn-sm btn-edit-entry" title="Editar" data-entry-id="${entry.id}"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon btn-sm btn-delete-entry" title="Excluir" data-entry-id="${entry.id}"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                });
+            }
+
             // Inicialização das tabs
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabPanes = document.querySelectorAll('.tab-pane');
@@ -513,18 +602,16 @@
                 button.addEventListener('click', () => {
                     const tabTarget = button.dataset.tab;
                     
-                    // Ativa o botão da tab e desativa os outros
                     tabButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                     
-                    // Mostra o conteúdo da tab selecionada e esconde os outros
                     tabPanes.forEach(pane => {
-                        if (pane.id === tabTarget + 'Tab') {
-                            pane.classList.add('active');
-                        } else {
-                            pane.classList.remove('active');
-                        }
+                        pane.classList.toggle('active', pane.id === tabTarget + 'Tab');
                     });
+
+                    if (tabTarget === 'entries') {
+                        fetchSurebetEntries(); // Carregar entradas ao abrir a aba
+                    }
                 });
             });
 
@@ -600,12 +687,75 @@
 
             // Formulário de nova entrada
             const newEntryForm = document.getElementById('newEntryForm');
-            
-            newEntryForm.addEventListener('submit', function(event) {
+            newEntryForm.addEventListener('submit', async function(event) {
                 event.preventDefault();
-                // Aqui seria implementada a lógica para salvar a entrada
-                alert('Entrada salva com sucesso!');
-                newEntryModal.classList.remove('active');
+
+                const bankrollId = new URLSearchParams(window.location.search).get('id');
+                const entryEvent = document.getElementById('entryEvent').value;
+                const entryCompetition = document.getElementById('entryCompetition').value;
+                const entryDate = document.getElementById('entryDate').value;
+                const entryTime = document.getElementById('entryTime').value;
+                const entryNotes = document.getElementById('entryNotes').value;
+
+                const entryBetsData = [];
+                const betElements = entryBetsContainer.querySelectorAll('.entry-bet');
+                
+                for (let i = 0; i < betElements.length; i++) {
+                    const betElement = betElements[i];
+                    // Os IDs dos inputs são betHouse1, betMarket1, etc. para o primeiro, 
+                    // mas para os adicionados dinamicamente, eles seguem o betCount (betHouse2, betHouse3...)
+                    // Portanto, precisamos encontrar os inputs dentro de cada betElement.
+                    const house = betElement.querySelector(`input[id^="betHouse"]`).value;
+                    const market = betElement.querySelector(`input[id^="betMarket"]`).value;
+                    const odds = betElement.querySelector(`input[id^="betOdds"]`).value;
+                    const stake = betElement.querySelector(`input[id^="betStake"]`).value;
+
+                    if (!house || !market || !odds || !stake) {
+                        alert('Por favor, preencha todos os campos de todas as apostas.');
+                        return;
+                    }
+                    entryBetsData.push({ house, market, odds, stake });
+                }
+
+                if (entryBetsData.length === 0) {
+                    alert('Adicione pelo menos uma aposta para a entrada.');
+                    return;
+                }
+
+                const formData = {
+                    bankrollId,
+                    entryEvent,
+                    entryCompetition,
+                    entryDate,
+                    entryTime,
+                    entryNotes,
+                    entryBets: entryBetsData
+                };
+
+                try {
+                    const response = await fetch('/api/surebet/entries', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.msg || `Erro HTTP: ${response.status}`);
+                    }
+
+                    alert(result.msg || 'Entrada salva com sucesso!');
+                    newEntryForm.reset();
+                    newEntryModal.classList.remove('active');
+                    fetchSurebetEntries(); // Atualizar a tabela após salvar
+
+                } catch (error) {
+                    console.error('Erro ao salvar entrada:', error);
+                    alert(`Erro ao salvar entrada: ${error.message}`);
+                }
             });
 
             // Calculadora
@@ -661,16 +811,41 @@
 
             // Pré-carregar dados se vier de um bankroll específico
             // Código simulado para fins de demonstração
-            const urlParams = new URLSearchParams(window.location.search);
-            const bankrollId = urlParams.get('id');
-            
             if (bankrollId) {
                 // Aqui seria feita uma requisição para obter os dados do bankroll
                 // Exemplo simulado:
-                document.getElementById('bankrollName').textContent = 'Surebet #' + bankrollId;
-                document.getElementById('currentBalance').textContent = 'R$ 1.250,00';
-                document.getElementById('roiValue').textContent = '2,5%';
+                // document.getElementById('bankrollName').textContent = 'Surebet #' + bankrollId;
+                // document.getElementById('currentBalance').textContent = 'R$ 1.250,00';
+                // document.getElementById('roiValue').textContent = '2,5%';
+                 // Os dados agora são injetados diretamente pelo EJS, então esta parte pode ser removida ou ajustada
             }
+
+            // Carregar entradas inicialmente se a aba "Entries" estiver ativa por padrão
+            if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
+                fetchSurebetEntries();
+            }
+
+            // Lógica para filtros da tabela de entradas
+            const dateFilterEntries = document.getElementById('dateFilterEntries');
+            const statusFilterEntries = document.getElementById('statusFilterEntries');
+            const searchEntriesInput = document.getElementById('searchEntries');
+
+            function applyFilters() {
+                const filters = {
+                    period: dateFilterEntries.value,
+                    status: statusFilterEntries.value,
+                    search: searchEntriesInput.value.trim()
+                };
+                fetchSurebetEntries(filters);
+            }
+
+            dateFilterEntries.addEventListener('change', applyFilters);
+            statusFilterEntries.addEventListener('change', applyFilters);
+            searchEntriesInput.addEventListener('input', () => {
+                // debounce para evitar muitas requisições ao digitar
+                clearTimeout(searchEntriesInput.timer);
+                searchEntriesInput.timer = setTimeout(applyFilters, 500);
+            });
         });
     </script>
     <script src="/js/main.js"></script>

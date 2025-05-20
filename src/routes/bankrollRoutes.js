@@ -13,6 +13,21 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET a specific bankroll by ID
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: 'Bankroll não encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(`Erro na rota GET /api/bankrolls/${id}:`, err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // POST a new bankroll
 router.post('/', async (req, res) => {
   const { nome, saldo_inicial, categoria } = req.body;
