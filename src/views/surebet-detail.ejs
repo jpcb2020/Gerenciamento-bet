@@ -6,6 +6,280 @@
     <title>Detalhes Surebet - BetManager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Estilos para os cards de entradas */
+        /* Estilos da tabela de entradas */
+        .entries-table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 992px) {
+            .event-competition {
+                display: none;
+            }
+            
+            .bet-market {
+                max-width: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .entries-table thead th:nth-child(4), /* Total */
+            .entries-table tbody td:nth-child(4),
+            .entries-table thead th:nth-child(5), /* Retorno */
+            .entries-table tbody td:nth-child(5) {
+                display: none;
+            }
+            
+            .bet-market {
+                max-width: 60px;
+            }
+        }
+        
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        
+        .entries-table thead th {
+            padding: 8px 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+        
+        .entries-table tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        
+        .entries-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .entries-table td {
+            padding: 6px 10px;
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+        
+        /* Status da linha por cores */
+        .status-ganho-row, .status-completado-row {
+            border-left: 3px solid #10b981;
+        }
+        
+        .status-pendente-row {
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .status-cancelado-row, .status-perdido-row {
+            border-left: 3px solid #ef4444;
+        }
+        
+        /* Estilos das células */
+        .entry-date {
+            white-space: nowrap;
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+        
+        .entry-event {
+            max-width: 200px;
+        }
+        
+        .event-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .event-competition {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+        
+        /* Apostas e odds */
+        .entry-bets {
+            min-width: 200px;
+        }
+        
+        .bets-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .bet-item {
+            display: flex;
+            align-items: center;
+            background-color: #f9fafb;
+            border-radius: 4px;
+            padding: 4px 6px;
+        }
+        
+        .bet-house {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 0.8rem;
+            margin-right: 6px;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+        
+        .bet-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .bet-market {
+            font-size: 0.75rem;
+            flex-grow: 1;
+            margin-right: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+        
+        .bet-odds {
+            font-weight: 700;
+            color: #059669;
+            background-color: rgba(5, 150, 105, 0.1);
+            padding: 1px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            font-size: 0.75rem;
+        }
+        
+        .bet-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 2px 0;
+        }
+        
+        .bet-status-badge {
+            font-size: 0.7rem;
+            text-align: right;
+            padding: 1px 4px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        
+        .status-win {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .status-lose {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        
+        /* Valores financeiros */
+        .entry-stake, .entry-return, .entry-profit, .entry-roi {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        /* Ações */
+        .entry-actions {
+            white-space: nowrap;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+        }
+        
+        .btn-icon.btn-xs {
+            width: 22px;
+            height: 22px;
+            font-size: 0.7rem;
+            padding: 0;
+        }
+        
+        /* ROI Badge */
+        .roi-badge {
+            display: block;
+            font-size: 0.7rem;
+            margin-top: 2px;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+        
+        .text-success {
+            color: #10b981;
+        }
+        
+        .text-danger {
+            color: #ef4444;
+        }
+        
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            width: 100%;
+        }
+        
+        .loading-state i {
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+        
+        .loading-state p {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .empty-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 40px 0;
+        }
+        
+        .empty-state-content {
+            text-align: center;
+        }
+        
+        .empty-state-content i {
+            font-size: 2.5rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state-content h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4b5563;
+        }
+        
+        .empty-state-content p {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -157,18 +431,18 @@
                                         <tr>
                                             <th>Data</th>
                                             <th>Evento</th>
-                                            <th>Casas de Apostas</th>
-                                            <th>Valor Apostado</th>
+                                            <th>Apostas / Odds</th>
+                                            <th>Total</th>
                                             <th>Retorno</th>
-                                            <th>Lucro</th>
+                                            <th>Lucro/ROI</th>
                                             <th>Status</th>
-                                            <th>Ações</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody id="entriesTableBody">
-                                        <!-- Conteúdo da tabela será preenchido via JavaScript -->
-                                        <tr>
-                                            <td colspan="8" class="empty-state">
+                                        <!-- Conteúdo será preenchido via JavaScript -->
+                                        <tr class="empty-state-row">
+                                            <td colspan="9" class="empty-state">
                                                 <div class="empty-state-content">
                                                     <i class="fas fa-list"></i>
                                                     <h3>Nenhuma entrada encontrada</h3>
@@ -525,7 +799,13 @@
                 if (!bankrollId) return;
 
                 const entriesTableBody = document.getElementById('entriesTableBody');
-                entriesTableBody.innerHTML = '<tr><td colspan="8" class="loading-state"><i class="fas fa-spinner fa-spin"></i> Carregando entradas...</td></tr>';
+                entriesTableBody.innerHTML = `
+                    <tr class="loading-state-row">
+                        <td colspan="8" class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Carregando entradas...</p>
+                        </td>
+                    </tr>`;
 
                 try {
                     let apiUrl = `/api/surebet/entries/${bankrollId}`;
@@ -547,17 +827,26 @@
                     renderEntriesTable(entries);
                 } catch (error) {
                     console.error('Erro ao buscar entradas:', error);
-                    entriesTableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar entradas</h3><p>${error.message}</p></div></td></tr>`;
+                    entriesTableBody.innerHTML = `
+                        <tr class="error-state-row">
+                            <td colspan="8" class="empty-state">
+                                <div class="empty-state-content">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <h3>Erro ao carregar entradas</h3>
+                                    <p>${error.message}</p>
+                                </div>
+                            </td>
+                        </tr>`;
                 }
             }
 
             function renderEntriesTable(entries) {
                 const entriesTableBody = document.getElementById('entriesTableBody');
-                entriesTableBody.innerHTML = ''; // Limpar tabela
+                entriesTableBody.innerHTML = ''; // Limpar conteúdo
 
                 if (entries.length === 0) {
                     entriesTableBody.innerHTML = `
-                        <tr>
+                        <tr class="empty-state-row">
                             <td colspan="8" class="empty-state">
                                 <div class="empty-state-content">
                                     <i class="fas fa-list"></i>
@@ -570,27 +859,71 @@
                 }
 
                 entries.forEach(entry => {
-                    const casasApostas = entry.bets.map(b => b.casa_apostas).join(', ');
                     const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
-
-                    const row = entriesTableBody.insertRow();
+                    const roiClass = parseFloat(entry.roi_percentual) >= 0 ? 'text-success' : 'text-danger';
+                    const roiValue = entry.roi_percentual ? parseFloat(entry.roi_percentual).toFixed(2) + '%' : 'N/A';
+                    
+                    // Renderizar apostas e odds
+                    let betsHtml = '';
+                    entry.bets.forEach((bet, index) => {
+                        // Se não for a primeira aposta, adicionar um separador
+                        if (index > 0) {
+                            betsHtml += '<div class="bet-divider"></div>';
+                        }
+                        
+                        betsHtml += `
+                            <div class="bet-item">
+                                <div class="bet-house">${bet.casa_apostas}:</div>
+                                <div class="bet-info">
+                                    <span class="bet-market">${bet.mercado}</span>
+                                    <span class="bet-odds">${parseFloat(bet.odds).toFixed(2)}</span>
+                                </div>
+                                ${bet.status_aposta && bet.status_aposta.toLowerCase() !== 'pendente' ? 
+                                    `<div class="bet-status-badge ${bet.status_aposta.toLowerCase() === 'ganhou' ? 'status-win' : 'status-lose'}">
+                                        ${bet.status_aposta}
+                                    </div>` : ''
+                                }
+                            </div>`;
+                    });
+                    
+                    // Criar linha da tabela
+                    const row = document.createElement('tr');
+                    row.className = `entry-row status-${entry.status ? entry.status.toLowerCase() : 'pendente'}-row`;
+                    
                     row.innerHTML = `
-                        <td>${formatDate(entry.data_evento)}</td>
-                        <td>
-                            <div>${entry.evento}</div>
-                            <small class="text-muted">${entry.competicao || ''}</small>
+                        <td class="entry-date">
+                            ${formatDate(entry.data_evento)}
                         </td>
-                        <td>${casasApostas}</td>
-                        <td>${formatCurrency(valorTotalApostado)}</td>
-                        <td>${formatCurrency(entry.retorno_total)}</td>
-                        <td class="${parseFloat(entry.lucro_total) >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(entry.lucro_total)}</td>
-                        <td><span class="status-tag status-${entry.status ? entry.status.toLowerCase() : 'pendente'}">${entry.status || 'Pendente'}</span></td>
-                        <td>
-                            <button class="btn-icon btn-sm btn-view-entry" title="Ver Detalhes" data-entry-id="${entry.id}"><i class="fas fa-eye"></i></button>
-                            <button class="btn-icon btn-sm btn-edit-entry" title="Editar" data-entry-id="${entry.id}"><i class="fas fa-edit"></i></button>
-                            <button class="btn-icon btn-sm btn-delete-entry" title="Excluir" data-entry-id="${entry.id}"><i class="fas fa-trash"></i></button>
+                        <td class="entry-event">
+                            <div class="event-name">${entry.evento}</div>
+                            ${entry.competicao ? `<div class="event-competition">${entry.competicao}</div>` : ''}
+                        </td>
+                        <td class="entry-bets">
+                            <div class="bets-container">
+                                ${betsHtml}
+                            </div>
+                        </td>
+                        <td class="entry-stake">${formatCurrency(valorTotalApostado)}</td>
+                        <td class="entry-return">${formatCurrency(entry.retorno_total)}</td>
+                        <td class="entry-profit ${parseFloat(entry.lucro_total) >= 0 ? 'text-success' : 'text-danger'}">
+                            ${formatCurrency(entry.lucro_total)}
+                            <span class="roi-badge ${roiClass}">${roiValue}</span>
+                        </td>
+                        <td class="entry-status">
+                            <span class="status-tag status-${entry.status ? entry.status.toLowerCase() : 'pendente'}">
+                                ${entry.status || 'Pendente'}
+                            </span>
+                        </td>
+                        <td class="entry-actions">
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-xs" title="Ver Detalhes" data-entry-id="${entry.id}"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon btn-xs" title="Editar" data-entry-id="${entry.id}"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-xs" title="Excluir" data-entry-id="${entry.id}"><i class="fas fa-trash"></i></button>
+                            </div>
                         </td>
                     `;
+                    
+                    entriesTableBody.appendChild(row);
                 });
             }
 
