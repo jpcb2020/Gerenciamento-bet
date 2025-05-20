@@ -156,4 +156,86 @@ router.post('/entries', async (req, res) => {
     }
 });
 
-module.exports = router; 
+// DELETE a surebet entry
+router.delete('/entries/:bankrollId/:entryId', async (req, res) => {
+    const { bankrollId, entryId } = req.params;
+
+    if (!bankrollId || !entryId) {
+        return res.status(400).json({ msg: 'ID do bankroll e da entrada são necessários para exclusão.' });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        // Iniciar transação para garantir que tudo seja excluído corretamente
+        await client.query('BEGIN');
+
+        // 1. Primeiro excluir os registros da tabela surebet_entry_bets que dependem dessa entrada
+        await client.query(
+            'DELETE FROM surebet_entry_bets WHERE surebet_entry_id = $1',
+            [entryId]
+        );
+
+        // 2. Excluir a entrada principal da tabela surebet_entries
+        const result = await client.query(
+            'DELETE FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 RETURNING id',
+            [entryId, bankrollId]
+        );
+
+        // Verificar se algum registro foi excluído
+        if (result.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ msg: 'Entrada não encontrada ou não pertence a este bankroll.' });
+        }
+
+        // Confirmar transação
+        await client.query('COMMIT');
+        res.json({ msg: 'Entrada de surebet excluída com sucesso!', entryId });
+
+    } catch (err) {
+        await client.query('ROLLBACK'); // Em caso de erro, fazer rollback
+        console.error(`Erro na rota DELETE /api/surebet/entries/${bankrollId}/${entryId}:`, err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao excluir entrada de surebet.', error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+// PATCH - Atualizar status de uma entrada de surebet
+router.patch('/entries/:bankrollId/:entryId/status', async (req, res) => {
+    const { bankrollId, entryId } = req.params;
+    const { status } = req.body;
+    
+    if (!bankrollId || !entryId) {
+        return res.status(400).json({ msg: 'ID do bankroll e da entrada são necessários para atualização.' });
+    }
+
+    if (!status) {
+        return res.status(400).json({ msg: 'O novo status é obrigatório.' });
+    }
+
+    // Validar se o status é um dos valores permitidos
+    const statusesPermitidos = ['Pendente', 'Resolvido', 'Cancelado'];
+    if (!statusesPermitidos.includes(status)) {
+        return res.status(400).json({ msg: 'Status inválido. Os valores permitidos são: ' + statusesPermitidos.join(', ') });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE surebet_entries SET status = $1 WHERE id = $2 AND bankroll_id = $3 RETURNING id',
+            [status, entryId, bankrollId]
+        );
+
+        // Verificar se algum registro foi atualizado
+        if (result.rowCount === 0) {
+            return res.status(404).json({ msg: 'Entrada não encontrada ou não pertence a este bankroll.' });
+        }
+
+        res.json({ msg: 'Status atualizado com sucesso!', status, entryId });
+    } catch (err) {
+        console.error(`Erro na rota PATCH /api/surebet/entries/${bankrollId}/${entryId}/status:`, err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao atualizar status da entrada de surebet.', error: err.message });
+    }
+});
+
+module.exports = router;

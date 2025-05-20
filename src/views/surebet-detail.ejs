@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="/css/style.css">
     <style>
         /* Estilos para os cards de entradas */
+        .card {
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
         /* Estilos da tabela de entradas */
         .entries-table-container {
             overflow-x: auto;
@@ -41,47 +49,148 @@
         
         .entries-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 10px;
             background-color: #fff;
         }
         
-        .entries-table thead th {
-            padding: 8px 10px;
+        .entries-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .entries-table th {
             background-color: #f8f9fa;
             border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .entries-table thead th {
             white-space: nowrap;
             font-size: 0.85rem;
         }
         
-        .entries-table tbody tr {
-            border-bottom: 1px solid #e5e7eb;
-            transition: background-color 0.2s;
+        .entries-table tbody tr.entry-row {
+            border-bottom: 1px solid #eee;
         }
         
-        .entries-table tbody tr:hover {
-            background-color: #f8fafc;
+        .entries-table tbody tr.entry-row td {
+            padding-top: 6px;
+            padding-bottom: 6px;
         }
         
-        .entries-table td {
-            padding: 6px 10px;
-            vertical-align: middle;
-            font-size: 0.85rem;
+        /* Subtle alternating background for better readability */
+        .entries-table tbody tr.entry-row:nth-child(odd) {
+            background-color: #fafafa;
         }
         
         /* Status da linha por cores */
-        .status-ganho-row, .status-completado-row {
-            border-left: 3px solid #10b981;
-        }
-        
+        /* Status row indicators - simplified */
         .status-pendente-row {
-            border-left: 3px solid #f59e0b;
+            border-left: 2px solid #fed7aa;
         }
         
-        .status-cancelado-row, .status-perdido-row {
-            border-left: 3px solid #ef4444;
+        .status-resolvido-row {
+            border-left: 2px solid #bbf7d0;
+        }
+        
+        .status-cancelado-row {
+            border-left: 2px solid #fecaca;
+        }
+        
+        /* Estilos simplificados para o dropdown de status */
+        .status-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+        
+        .dropdown-toggle .ml-1 {
+            margin-left: 3px;
+            font-size: 0.7rem;
+        }
+        
+        .status-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            min-width: 120px;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 3px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: visible;
+        }
+        
+        /* Menu abre para baixo por padrão */
+        .status-menu:not(.dropdown-up) {
+            top: 100%;
+        }
+        
+        /* Menu abre para cima quando tem a classe dropdown-up */
+        .status-menu.dropdown-up {
+            bottom: 100%;
+            top: auto;
+        }
+        
+        .status-menu.show {
+            display: block;
+        }
+        
+        .status-option {
+            display: block;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            color: #374151;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .status-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-resolvido, .status-option[data-status="Resolvido"] {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .status-pendente, .status-option[data-status="Pendente"] {
+            background-color: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+        }
+        
+        .status-cancelado, .status-option[data-status="Cancelado"] {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .status-option[data-status="Resolvido"]:hover {
+            background-color: #bbf7d0;
+        }
+        
+        .status-option[data-status="Cancelado"]:hover {
+            background-color: #fecaca;
+        }
+        
+        .status-option[data-status="Pendente"]:hover {
+            background-color: #fed7aa;
         }
         
         /* Estilos das células */
@@ -113,20 +222,19 @@
         .bets-container {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         
         .bet-item {
             display: flex;
             align-items: center;
-            background-color: #f9fafb;
-            border-radius: 4px;
             padding: 4px 6px;
+            border-bottom: 1px solid #f0f0f0;
         }
         
         .bet-house {
-            font-weight: 600;
-            color: #1e40af;
+            font-weight: 500;
+            color: #4b5563;
             font-size: 0.8rem;
             margin-right: 6px;
             white-space: nowrap;
@@ -161,9 +269,10 @@
         }
         
         .bet-divider {
-            height: 1px;
-            background-color: #e5e7eb;
-            margin: 2px 0;
+            height: 2px;
+            background-color: #e0e0e0;
+            margin: 6px 0;
+            border-radius: 1px;
         }
         
         .bet-status-badge {
@@ -425,8 +534,7 @@
                                 </div>
                             </div>
 
-                            <div class="entries-table-container">
-                                <table class="entries-table">
+                            <table class="entries-table">
                                     <thead>
                                         <tr>
                                             <th>Data</th>
@@ -451,8 +559,7 @@
                                             </td>
                                         </tr>
                                     </tbody>
-                                </table>
-                            </div>
+                            </table>
                         </div>
 
                         <!-- Aba de Oportunidades -->
@@ -780,6 +887,112 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Funções de manipulação de status definidas no escopo global para serem acessíveis
+        function toggleStatusMenu(button) {
+            const entryId = button.getAttribute('data-entry-id');
+            const menu = document.getElementById(`status-menu-${entryId}`);
+            
+            // Fechar todos os outros menus abertos
+            document.querySelectorAll('.status-menu.show').forEach(openMenu => {
+                if (openMenu !== menu) {
+                    openMenu.classList.remove('show');
+                }
+            });
+            
+            // Determinar se o menu deve abrir para cima ou para baixo
+            const buttonRect = button.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const buttonBottomPosition = buttonRect.bottom;
+            
+            // Se o botão estiver na metade inferior da tela, abrir o menu para cima
+            if (buttonBottomPosition > windowHeight - 150) {
+                menu.classList.add('dropdown-up');
+            } else {
+                menu.classList.remove('dropdown-up');
+            }
+            
+            // Alternar a visibilidade deste menu
+            menu.classList.toggle('show');
+            
+            // Evitar que cliques no menu se propaguem para o documento
+            menu.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Função para atualizar o status de uma entrada
+        async function updateEntryStatus(entryId, newStatus, event) {
+            if (event) {
+                event.preventDefault();
+            }
+            
+            const bankrollId = new URLSearchParams(window.location.search).get('id');
+            if (!bankrollId || !entryId) {
+                alert('Erro: ID do bankroll ou da entrada não encontrado');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/surebet/entries/${bankrollId}/${entryId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const contentType = response.headers.get('content-type');
+                
+                if (!response.ok) {
+                    let errorMessage = 'Erro ao atualizar status';
+                    
+                    if (contentType && contentType.includes('application/json')) {
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.msg || errorMessage;
+                        } catch (parseError) {
+                            console.error('Erro ao analisar resposta JSON:', parseError);
+                            errorMessage = `${errorMessage} (${response.status})`;
+                        }
+                    } else {
+                        errorMessage = `${errorMessage}: API retornou ${response.status}`;
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                // Atualizar a UI sem precisar recarregar toda a tabela
+                const dropdown = document.querySelector(`button.dropdown-toggle[data-entry-id="${entryId}"]`);
+                if (dropdown) {
+                    // Atualizar texto e classe CSS do botão
+                    // Remover todas as classes de status anteriores
+                    dropdown.classList.remove('status-pendente', 'status-resolvido', 'status-cancelado');
+                    // Adicionar a nova classe de status
+                    dropdown.classList.add(`status-${newStatus.toLowerCase()}`);
+                    // Atualizar o texto
+                    dropdown.innerHTML = `${newStatus}<i class="fas fa-chevron-down ml-1"></i>`;
+                    
+                    // Atualizar a classe da linha da tabela
+                    const row = dropdown.closest('tr');
+                    if (row) {
+                        row.classList.remove('status-pendente-row', 'status-resolvido-row', 'status-cancelado-row');
+                        row.classList.add(`status-${newStatus.toLowerCase()}-row`);
+                    }
+                    
+                    // Fechar o menu de dropdown
+                    const menu = document.getElementById(`status-menu-${entryId}`);
+                    if (menu) {
+                        menu.classList.remove('show');
+                    }
+                }
+                
+                console.log(`Status da entrada ${entryId} atualizado para ${newStatus}`);
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert(`Erro ao atualizar status: ${error.message}`);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             const bankrollId = new URLSearchParams(window.location.search).get('id');
 
@@ -910,9 +1123,17 @@
                             <span class="roi-badge ${roiClass}">${roiValue}</span>
                         </td>
                         <td class="entry-status">
-                            <span class="status-tag status-${entry.status ? entry.status.toLowerCase() : 'pendente'}">
-                                ${entry.status || 'Pendente'}
-                            </span>
+                            <div class="status-dropdown">
+                                <button class="status-tag status-${entry.status ? entry.status.toLowerCase() : 'pendente'} dropdown-toggle" data-entry-id="${entry.id}" onclick="toggleStatusMenu(this)">
+                                    ${entry.status || 'Pendente'}
+                                    <i class="fas fa-chevron-down ml-1"></i>
+                                </button>
+                                <div class="status-menu" id="status-menu-${entry.id}">
+                                    <a href="#" class="status-option" data-status="Pendente" onclick="updateEntryStatus(${entry.id}, 'Pendente', event)">Pendente</a>
+                                    <a href="#" class="status-option" data-status="Resolvido" onclick="updateEntryStatus(${entry.id}, 'Resolvido', event)">Resolvido</a>
+                                    <a href="#" class="status-option" data-status="Cancelado" onclick="updateEntryStatus(${entry.id}, 'Cancelado', event)">Cancelado</a>
+                                </div>
+                            </div>
                         </td>
                         <td class="entry-actions">
                             <div class="action-buttons">
@@ -924,6 +1145,14 @@
                     `;
                     
                     entriesTableBody.appendChild(row);
+                    
+                    // Adiciona o event listener para o botão de excluir
+                    const deleteButton = row.querySelector('button[title="Excluir"]');
+                    if (deleteButton) {
+                        deleteButton.addEventListener('click', function() {
+                            deleteSurebetEntry(entry.id);
+                        });
+                    }
                 });
             }
 
@@ -1153,6 +1382,57 @@
                  // Os dados agora são injetados diretamente pelo EJS, então esta parte pode ser removida ou ajustada
             }
 
+            // Função para deletar uma entrada de surebet
+            async function deleteSurebetEntry(entryId) {
+                const confirmation = confirm('Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.');
+                
+                if (!confirmation) {
+                    return; // Usuário cancelou a exclusão
+                }
+                
+                try {
+                    const bankrollId = new URLSearchParams(window.location.search).get('id');
+                    console.log(`Tentando excluir entrada ${entryId} da surebet ${bankrollId}`);
+                    
+                    const response = await fetch(`/api/surebet/entries/${bankrollId}/${entryId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    // Verificar se a resposta é um JSON antes de tentar analisá-la
+                    const contentType = response.headers.get('content-type');
+                    
+                    if (!response.ok) {
+                        let errorMessage = 'Erro ao excluir entrada';
+                        
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = await response.json();
+                                errorMessage = errorData.msg || errorMessage;
+                            } catch (parseError) {
+                                console.error('Erro ao analisar resposta JSON:', parseError);
+                                errorMessage = `${errorMessage} (${response.status})`;
+                            }
+                        } else {
+                            errorMessage = `${errorMessage}: API retornou ${response.status}. Verifique se a rota de exclusão está implementada no servidor.`;
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Recarregar a tabela após exclusão bem-sucedida
+                    fetchSurebetEntries();
+                    
+                    // Mostrar mensagem de sucesso
+                    alert('Entrada excluída com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao excluir entrada:', error);
+                    alert(`Erro ao excluir entrada: ${error.message}`);
+                }
+            }
+            
             // Carregar entradas inicialmente se a aba "Entries" estiver ativa por padrão
             if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
                 fetchSurebetEntries();
@@ -1179,8 +1459,10 @@
                 clearTimeout(searchEntriesInput.timer);
                 searchEntriesInput.timer = setTimeout(applyFilters, 500);
             });
+            
+            // Usar o listener global para fechar os menus
         });
     </script>
     <script src="/js/main.js"></script>
 </body>
-</html> 
+</html>
