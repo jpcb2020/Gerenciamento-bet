@@ -39,6 +39,21 @@ const initDb = async () => {
         FOREIGN KEY (casa_id) REFERENCES casas_apostas (id)
       )
     `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS bankrolls (
+        id SERIAL PRIMARY KEY,
+        nome TEXT NOT NULL,
+        saldo_inicial NUMERIC(15, 2) DEFAULT 0,
+        categoria TEXT NOT NULL,
+        saldo_atual NUMERIC(15, 2) DEFAULT 0,
+        casa_apostas TEXT NULL,
+        descricao TEXT NULL,
+        moeda VARCHAR(10) DEFAULT 'BRL',
+        publico BOOLEAN DEFAULT FALSE,
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     console.log('Tabelas verificadas/criadas com sucesso.');
     client.release();

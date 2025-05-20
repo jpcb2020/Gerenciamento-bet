@@ -9,6 +9,7 @@ const { initDb, pool } = require('./src/config/db'); // Atualizado para o novo c
 const casasRoutes = require('./src/routes/casasRoutes');
 const transacoesRoutes = require('./src/routes/transacoesRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const bankrollRoutes = require('./src/routes/bankrollRoutes');
 
 // Initialize express app
 const app = express();
@@ -31,6 +32,7 @@ initDb();
 app.use('/api/casas', casasRoutes);
 app.use('/api/transacoes', transacoesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/bankrolls', bankrollRoutes);
 
 // Rota principal para renderizar o index.ejs da pasta views
 app.get('/', (req, res) => {
@@ -47,6 +49,16 @@ app.get('/casas-de-apostas', (req, res) => {
 // Rota para a página de transações
 app.get('/transacoes', (req, res) => {
   res.render('transacoes', { title: 'Transações' });
+});
+
+// Rota para a página de bankrolls
+app.get('/bankrolls', (req, res) => {
+  res.render('bankrolls', { title: 'Gerenciar Bankrolls' });
+});
+
+// Rota para a página de detalhes de surebet
+app.get('/surebet-detail', (req, res) => {
+  res.render('surebet-detail', { title: 'Detalhes Surebet' });
 });
 
 // Start the server

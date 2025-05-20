@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes Surebet - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://via.placeholder.com/40" alt="Profile">
+                        <span>Usuário</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-title">
+                    <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName">Detalhes da Surebet</span></h2>
+                    <div class="action-buttons">
+                        <button id="addSurebetEntryBtn" class="btn-primary"><i class="fas fa-plus"></i> Nova Entrada</button>
+                        <button id="configSurebetBtn" class="btn-outline"><i class="fas fa-cog"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Área do cabeçalho da Surebet -->
+                <div class="surebet-header">
+                    <div class="surebet-info">
+                        <div class="tag tag-surebet">Surebet</div>
+                        <div class="surebet-balance">
+                            <span class="balance-label">Saldo Atual:</span>
+                            <h3 id="currentBalance">R$ 0,00</h3>
+                        </div>
+                        <div class="surebet-stats">
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-chart-line"></i> ROI:</span>
+                                <span class="stat-value" id="roiValue">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-calendar-alt"></i> Período:</span>
+                                <span class="stat-value" id="periodValue">30 dias</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="surebet-chart">
+                        <div class="chart-placeholder">
+                            <div class="chart-label">Evolução do Bankroll</div>
+                            <div class="chart-area" id="balanceChart">
+                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                <div class="no-data-message">
+                                    <i class="fas fa-chart-area"></i>
+                                    <p>Gráfico de evolução será exibido aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área das Abas -->
+                <div class="surebet-tabs">
+                    <div class="tab-header">
+                        <button class="tab-btn active" data-tab="entries">
+                            <i class="fas fa-list"></i> Entradas
+                        </button>
+                        <button class="tab-btn" data-tab="opportunities">
+                            <i class="fas fa-bolt"></i> Oportunidades
+                        </button>
+                        <button class="tab-btn" data-tab="calculator">
+                            <i class="fas fa-calculator"></i> Calculadora
+                        </button>
+                        <button class="tab-btn" data-tab="statistics">
+                            <i class="fas fa-chart-pie"></i> Estatísticas
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Aba de Entradas -->
+                        <div class="tab-pane active" id="entriesTab">
+                            <div class="entries-header">
+                                <div class="entries-filters">
+                                    <div class="filter-group">
+                                        <label for="dateFilterEntries">Período:</label>
+                                        <select id="dateFilterEntries" class="filter-control">
+                                            <option value="7">Últimos 7 dias</option>
+                                            <option value="30" selected>Últimos 30 dias</option>
+                                            <option value="90">Últimos 90 dias</option>
+                                            <option value="all">Todo período</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="statusFilterEntries">Status:</label>
+                                        <select id="statusFilterEntries" class="filter-control">
+                                            <option value="all" selected>Todos</option>
+                                            <option value="active">Ativos</option>
+                                            <option value="completed">Completados</option>
+                                            <option value="cancelled">Cancelados</option>
+                                        </select>
+                                    </div>
+                                    <div class="search-entries">
+                                        <input type="text" id="searchEntries" placeholder="Buscar entradas...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="entries-table-container">
+                                <table class="entries-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Evento</th>
+                                            <th>Casas de Apostas</th>
+                                            <th>Valor Apostado</th>
+                                            <th>Retorno</th>
+                                            <th>Lucro</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="entriesTableBody">
+                                        <!-- Conteúdo da tabela será preenchido via JavaScript -->
+                                        <tr>
+                                            <td colspan="8" class="empty-state">
+                                                <div class="empty-state-content">
+                                                    <i class="fas fa-list"></i>
+                                                    <h3>Nenhuma entrada encontrada</h3>
+                                                    <p>Adicione uma nova entrada usando o botão "Nova Entrada".</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Aba de Oportunidades -->
+                        <div class="tab-pane" id="opportunitiesTab">
+                            <div class="opportunities-container">
+                                <div class="opportunities-header">
+                                    <h3>Oportunidades de Surebet</h3>
+                                    <p>Configure as fontes de dados em Configurações</p>
+                                </div>
+                                <div class="opportunities-grid" id="opportunitiesGrid">
+                                    <!-- Cards de oportunidades serão preenchidos via JavaScript -->
+                                    <div class="opportunity-card">
+                                        <div class="opportunity-header">
+                                            <span class="opportunity-date">26/07/2023 - 21:00</span>
+                                            <span class="opportunity-profit">Lucro: 2,5%</span>
+                                        </div>
+                                        <div class="opportunity-event">
+                                            <h4>Flamengo vs Palmeiras</h4>
+                                            <p>Campeonato Brasileiro</p>
+                                        </div>
+                                        <div class="opportunity-bets">
+                                            <div class="opportunity-bet">
+                                                <span class="bet-house">Bet365</span>
+                                                <span class="bet-market">Vitória Flamengo</span>
+                                                <span class="bet-odds">2.10</span>
+                                            </div>
+                                            <div class="opportunity-bet">
+                                                <span class="bet-house">Betano</span>
+                                                <span class="bet-market">Empate ou Palmeiras</span>
+                                                <span class="bet-odds">1.85</span>
+                                            </div>
+                                        </div>
+                                        <div class="opportunity-actions">
+                                            <button class="btn-outline btn-sm">Calcular</button>
+                                            <button class="btn-primary btn-sm">Registrar</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="empty-opportunities">
+                                        <i class="fas fa-bolt"></i>
+                                        <h3>Nenhuma oportunidade encontrada</h3>
+                                        <p>Configure suas fontes de dados ou verifique mais tarde</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aba da Calculadora -->
+                        <div class="tab-pane" id="calculatorTab">
+                            <div class="calculator-container">
+                                <div class="calculator-header">
+                                    <h3>Calculadora de Surebet</h3>
+                                    <p>Calcule valores para apostas de arbitragem</p>
+                                </div>
+                                <div class="calculator-form">
+                                    <div class="calculator-section">
+                                        <h4>Configuração da Aposta</h4>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="totalStake">Valor Total (R$)</label>
+                                                <input type="number" id="totalStake" placeholder="100,00" step="0.01" min="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="bookmakerCount">Número de Casas</label>
+                                                <select id="bookmakerCount">
+                                                    <option value="2">2 Casas</option>
+                                                    <option value="3">3 Casas</option>
+                                                    <option value="4">4 Casas</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="calculator-odds" id="oddsContainer">
+                                        <div class="odds-row">
+                                            <div class="form-group">
+                                                <label for="bookmaker1">Casa de Apostas 1</label>
+                                                <input type="text" id="bookmaker1" placeholder="Bet365">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="market1">Mercado</label>
+                                                <input type="text" id="market1" placeholder="Vitória Casa">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="odds1">Odds</label>
+                                                <input type="number" id="odds1" placeholder="2.00" step="0.01" min="1">
+                                            </div>
+                                        </div>
+                                        <div class="odds-row">
+                                            <div class="form-group">
+                                                <label for="bookmaker2">Casa de Apostas 2</label>
+                                                <input type="text" id="bookmaker2" placeholder="Betano">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="market2">Mercado</label>
+                                                <input type="text" id="market2" placeholder="Empate ou Fora">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="odds2">Odds</label>
+                                                <input type="number" id="odds2" placeholder="1.90" step="0.01" min="1">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="calculator-buttons">
+                                        <button id="calculateBtn" class="btn-primary">Calcular</button>
+                                        <button id="resetCalcBtn" class="btn-outline">Limpar</button>
+                                    </div>
+
+                                    <div class="calculator-results" id="calculatorResults">
+                                        <h4>Resultados</h4>
+                                        <div class="results-grid">
+                                            <div class="result-item">
+                                                <div class="result-label">Lucro Garantido</div>
+                                                <div class="result-value" id="guaranteedProfit">R$ 0,00</div>
+                                            </div>
+                                            <div class="result-item">
+                                                <div class="result-label">Retorno (%)</div>
+                                                <div class="result-value" id="returnPercentage">0%</div>
+                                            </div>
+                                            <div class="result-item">
+                                                <div class="result-label">Valor Casa 1</div>
+                                                <div class="result-value" id="stakeBookmaker1">R$ 0,00</div>
+                                            </div>
+                                            <div class="result-item">
+                                                <div class="result-label">Valor Casa 2</div>
+                                                <div class="result-value" id="stakeBookmaker2">R$ 0,00</div>
+                                            </div>
+                                        </div>
+                                        <div class="calculator-save">
+                                            <button id="saveCalcBtn" class="btn-primary btn-block">Salvar como Entrada</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aba de Estatísticas -->
+                        <div class="tab-pane" id="statisticsTab">
+                            <div class="statistics-container">
+                                <div class="statistics-header">
+                                    <h3>Estatísticas de Desempenho</h3>
+                                    <div class="statistics-period">
+                                        <label for="statsDateFilter">Período:</label>
+                                        <select id="statsDateFilter" class="filter-control">
+                                            <option value="30" selected>Últimos 30 dias</option>
+                                            <option value="90">Últimos 90 dias</option>
+                                            <option value="180">Últimos 6 meses</option>
+                                            <option value="365">Último ano</option>
+                                            <option value="all">Todo o período</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="statistics-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-card-header">
+                                            <h4>Desempenho Geral</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="stat-metrics">
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Total de Apostas</div>
+                                                    <div class="metric-value" id="totalBetsCount">0</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Lucro Total</div>
+                                                    <div class="metric-value" id="totalProfit">R$ 0,00</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">ROI Médio</div>
+                                                    <div class="metric-value" id="averageROI">0%</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Valor Médio</div>
+                                                    <div class="metric-value" id="averageStake">R$ 0,00</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stat-card chart-card">
+                                        <div class="stat-card-header">
+                                            <h4>Lucro por Período</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="chart-container" id="profitByPeriodChart">
+                                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                                <div class="no-data-message">
+                                                    <i class="fas fa-chart-line"></i>
+                                                    <p>Gráfico de lucro por período</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stat-card">
+                                        <div class="stat-card-header">
+                                            <h4>Casas de Apostas Mais Utilizadas</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="chart-container" id="bookmakerDistributionChart">
+                                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                                <div class="no-data-message">
+                                                    <i class="fas fa-chart-pie"></i>
+                                                    <p>Distribuição por casas de apostas</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stat-card">
+                                        <div class="stat-card-header">
+                                            <h4>Distribuição por Tipo de Mercado</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="chart-container" id="marketTypeChart">
+                                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                                <div class="no-data-message">
+                                                    <i class="fas fa-chart-pie"></i>
+                                                    <p>Distribuição por tipo de mercado</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Adicionar Nova Entrada -->
+    <div id="newEntryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Nova Entrada de Surebet</h3>
+            <form id="newEntryForm">
+                <div class="form-group">
+                    <label for="entryEvent">Evento</label>
+                    <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
+                </div>
+                <div class="form-group">
+                    <label for="entryCompetition">Competição</label>
+                    <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="entryDate">Data</label>
+                        <input type="date" id="entryDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryTime">Hora</label>
+                        <input type="time" id="entryTime" required>
+                    </div>
+                </div>
+
+                <div class="entry-bets" id="entryBetsContainer">
+                    <h4>Apostas</h4>
+                    <div class="entry-bet">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="betHouse1">Casa de Apostas</label>
+                                <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
+                            </div>
+                            <div class="form-group">
+                                <label for="betMarket1">Mercado</label>
+                                <input type="text" id="betMarket1" required placeholder="Ex: Vitória Mandante">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="betOdds1">Odds</label>
+                                <input type="number" id="betOdds1" required step="0.01" min="1" placeholder="2.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="betStake1">Valor Apostado (R$)</label>
+                                <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="entry-bet">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="betHouse2">Casa de Apostas</label>
+                                <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                            </div>
+                            <div class="form-group">
+                                <label for="betMarket2">Mercado</label>
+                                <input type="text" id="betMarket2" required placeholder="Ex: Empate ou Fora">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="betOdds2">Odds</label>
+                                <input type="number" id="betOdds2" required step="0.01" min="1" placeholder="1.90">
+                            </div>
+                            <div class="form-group">
+                                <label for="betStake2">Valor Apostado (R$)</label>
+                                <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="addMoreBetBtn" class="btn-outline btn-sm">
+                        <i class="fas fa-plus"></i> Adicionar Outra Aposta
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="entryNotes">Observações</label>
+                    <textarea id="entryNotes" rows="3" placeholder="Notas adicionais sobre esta surebet..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Salvar Entrada</button>
+                    <button type="button" id="cancelEntryBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicialização das tabs
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabTarget = button.dataset.tab;
+                    
+                    // Ativa o botão da tab e desativa os outros
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Mostra o conteúdo da tab selecionada e esconde os outros
+                    tabPanes.forEach(pane => {
+                        if (pane.id === tabTarget + 'Tab') {
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // Manipulação do modal de nova entrada
+            const newEntryModal = document.getElementById('newEntryModal');
+            const addSurebetEntryBtn = document.getElementById('addSurebetEntryBtn');
+            const closeModalBtn = document.querySelector('.modal .close-modal');
+            const cancelEntryBtn = document.getElementById('cancelEntryBtn');
+
+            addSurebetEntryBtn.addEventListener('click', () => {
+                newEntryModal.classList.add('active');
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                newEntryModal.classList.remove('active');
+            });
+
+            cancelEntryBtn.addEventListener('click', () => {
+                newEntryModal.classList.remove('active');
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === newEntryModal) {
+                    newEntryModal.classList.remove('active');
+                }
+            });
+
+            // Botão para adicionar mais apostas no formulário
+            const addMoreBetBtn = document.getElementById('addMoreBetBtn');
+            const entryBetsContainer = document.getElementById('entryBetsContainer');
+            let betCount = 2;
+
+            addMoreBetBtn.addEventListener('click', () => {
+                betCount++;
+                const newBet = document.createElement('div');
+                newBet.className = 'entry-bet';
+                newBet.innerHTML = `
+                    <div class="bet-header">
+                        <h5>Aposta ${betCount}</h5>
+                        <button type="button" class="btn-icon-small remove-bet"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="betHouse${betCount}">Casa de Apostas</label>
+                            <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet">
+                        </div>
+                        <div class="form-group">
+                            <label for="betMarket${betCount}">Mercado</label>
+                            <input type="text" id="betMarket${betCount}" required placeholder="Ex: Mais/Menos Gols">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="betOdds${betCount}">Odds</label>
+                            <input type="number" id="betOdds${betCount}" required step="0.01" min="1" placeholder="2.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="betStake${betCount}">Valor Apostado (R$)</label>
+                            <input type="number" id="betStake${betCount}" required step="0.01" min="0" placeholder="100.00">
+                        </div>
+                    </div>
+                `;
+                
+                // Insere antes do botão
+                entryBetsContainer.insertBefore(newBet, addMoreBetBtn);
+                
+                // Adiciona handler para remover aposta
+                const removeBtn = newBet.querySelector('.remove-bet');
+                removeBtn.addEventListener('click', function() {
+                    newBet.remove();
+                });
+            });
+
+            // Formulário de nova entrada
+            const newEntryForm = document.getElementById('newEntryForm');
+            
+            newEntryForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                // Aqui seria implementada a lógica para salvar a entrada
+                alert('Entrada salva com sucesso!');
+                newEntryModal.classList.remove('active');
+            });
+
+            // Calculadora
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resetCalcBtn = document.getElementById('resetCalcBtn');
+            
+            calculateBtn.addEventListener('click', function() {
+                const totalStake = parseFloat(document.getElementById('totalStake').value) || 0;
+                const odds1 = parseFloat(document.getElementById('odds1').value) || 0;
+                const odds2 = parseFloat(document.getElementById('odds2').value) || 0;
+                
+                if (totalStake <= 0 || odds1 <= 1 || odds2 <= 1) {
+                    alert('Por favor, preencha todos os campos corretamente.');
+                    return;
+                }
+                
+                // Cálculo de arbitragem simples
+                const totalImpliedProbability = (1/odds1) + (1/odds2);
+                
+                if (totalImpliedProbability >= 1) {
+                    // Não é uma surebet
+                    document.getElementById('guaranteedProfit').textContent = 'Não é Surebet';
+                    document.getElementById('returnPercentage').textContent = 'N/A';
+                    return;
+                }
+                
+                const profit = (totalStake / totalImpliedProbability) - totalStake;
+                const returnPercentage = (profit / totalStake) * 100;
+                
+                const stake1 = totalStake * (1/odds1) / totalImpliedProbability;
+                const stake2 = totalStake * (1/odds2) / totalImpliedProbability;
+                
+                document.getElementById('guaranteedProfit').textContent = `R$ ${profit.toFixed(2)}`;
+                document.getElementById('returnPercentage').textContent = `${returnPercentage.toFixed(2)}%`;
+                document.getElementById('stakeBookmaker1').textContent = `R$ ${stake1.toFixed(2)}`;
+                document.getElementById('stakeBookmaker2').textContent = `R$ ${stake2.toFixed(2)}`;
+            });
+            
+            resetCalcBtn.addEventListener('click', function() {
+                document.getElementById('totalStake').value = '';
+                document.getElementById('odds1').value = '';
+                document.getElementById('odds2').value = '';
+                document.getElementById('bookmaker1').value = '';
+                document.getElementById('bookmaker2').value = '';
+                document.getElementById('market1').value = '';
+                document.getElementById('market2').value = '';
+                
+                document.getElementById('guaranteedProfit').textContent = 'R$ 0,00';
+                document.getElementById('returnPercentage').textContent = '0%';
+                document.getElementById('stakeBookmaker1').textContent = 'R$ 0,00';
+                document.getElementById('stakeBookmaker2').textContent = 'R$ 0,00';
+            });
+
+            // Pré-carregar dados se vier de um bankroll específico
+            // Código simulado para fins de demonstração
+            const urlParams = new URLSearchParams(window.location.search);
+            const bankrollId = urlParams.get('id');
+            
+            if (bankrollId) {
+                // Aqui seria feita uma requisição para obter os dados do bankroll
+                // Exemplo simulado:
+                document.getElementById('bankrollName').textContent = 'Surebet #' + bankrollId;
+                document.getElementById('currentBalance').textContent = 'R$ 1.250,00';
+                document.getElementById('roiValue').textContent = '2,5%';
+            }
+        });
+    </script>
+    <script src="/js/main.js"></script>
+</body>
+</html> 

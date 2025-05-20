@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Bankrolls - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css"> <!-- Certifique-se que o caminho para style.css está correto -->
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li class="active"> <!-- Marcar como ativo -->
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://via.placeholder.com/40" alt="Profile">
+                        <span>Usuário</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-title">
+                    <h2>Gerenciar Bankrolls</h2>
+                    <button id="addBankrollBtn" class="btn-primary">Adicionar Novo Bankroll</button>
+                </div>
+
+                <!-- Formulário Modal para Adicionar/Editar Bankroll -->
+                <div id="bankrollModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal">&times;</span>
+                        <h3 id="modalTitle">Adicionar Bankroll</h3>
+                        <form id="bankrollForm">
+                            <input type="hidden" id="bankrollId" name="bankrollId">
+                            <div class="form-group">
+                                <label for="nome">Nome do Bankroll:</label>
+                                <input type="text" id="nome" name="nome" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="saldo_inicial">Saldo Inicial (R$):</label>
+                                <input type="number" id="saldo_inicial" name="saldo_inicial" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="categoria">Categoria:</label>
+                                <select id="categoria" name="categoria" required>
+                                    <option value="">Selecione uma categoria</option>
+                                    <option value="Surebet">Surebet</option>
+                                    <option value="Apostas Arriscadas">Apostas Arriscadas</option>
+                                    <option value="Longo Prazo">Longo Prazo</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Salvar Bankroll</button>
+                                <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabela de Bankrolls ANTERIORMENTE -->
+                <!-- <div class="section">
+                    <div class="section-header">
+                        <h3>Bankrolls Criados</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Categoria</th> 
+                                    <th>Saldo Atual (R$)</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankrollsTableBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-state-content">
+                                            <i class="fas fa-wallet"></i>
+                                            <h3>Nenhum bankroll encontrado</h3>
+                                            <p>Crie um novo bankroll para começar.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div> -->
+
+                <!-- Novo Layout de Cards para Bankrolls -->
+                <div class="section bankroll-section">
+                    <div id="bankrollCardsContainer" class="bankroll-cards-grid">
+                        <!-- Cards serão inseridos aqui pelo JavaScript -->
+                        <!-- Exemplo de estado vazio (será tratado pelo JS) -->
+                        <!-- 
+                        <div class="empty-state full-width-empty-state"> 
+                            <div class="empty-state-content">
+                                <i class="fas fa-wallet fa-3x"></i>
+                                <h3>Nenhum bankroll encontrado</h3>
+                                <p>Crie um novo bankroll para começar utilizando o botão "Adicionar Novo Bankroll".</p>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bankrollModal = document.getElementById('bankrollModal');
+            const addBankrollBtn = document.getElementById('addBankrollBtn');
+            const closeButton = document.querySelector('.modal .close-modal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const bankrollForm = document.getElementById('bankrollForm');
+            const bankrollCardsContainer = document.getElementById('bankrollCardsContainer');
+            const modalTitle = document.getElementById('modalTitle');
+
+            if (!addBankrollBtn) {
+                console.error("ERRO CRÍTICO: Botão 'Adicionar Novo Bankroll' (id: addBankrollBtn) não encontrado no DOM!");
+                return;
+            }
+            if (!bankrollModal) {
+                console.error("ERRO CRÍTICO: Elemento Modal (id: bankrollModal) não encontrado no DOM!");
+                return;
+            }
+
+            let editingBankrollId = null;
+
+            const formatCurrency = (value) => {
+                return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            };
+            
+            addBankrollBtn.addEventListener('click', () => {
+                if (bankrollForm) {
+                    bankrollForm.reset();
+                } else {
+                    console.error("bankrollForm não encontrado ao tentar resetar no clique.");
+                }
+                if (modalTitle) {
+                    modalTitle.textContent = 'Adicionar Bankroll';
+                } else {
+                    console.error("modalTitle não encontrado ao tentar definir texto no clique.");
+                }
+                editingBankrollId = null;
+                bankrollModal.classList.add('active');
+            });
+
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    bankrollModal.classList.remove('active');
+                });
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    bankrollModal.classList.remove('active');
+                });
+            }
+            
+            window.addEventListener('click', (event) => {
+                if (event.target == bankrollModal) {
+                    bankrollModal.classList.remove('active');
+                }
+            });
+
+            async function fetchBankrolls() {
+                try {
+                    const response = await fetch('/api/bankrolls');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const bankrolls = await response.json();
+                    renderBankrolls(bankrolls);
+                } catch (error) {
+                    console.error('Erro ao buscar bankrolls:', error);
+                    if (bankrollCardsContainer) {
+                        bankrollCardsContainer.innerHTML = `<div class="empty-state full-width-empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle fa-3x"></i><h3>Erro ao carregar bankrolls</h3><p>${error.message}</p></div></div>`;
+                    } else {
+                        console.error("bankrollCardsContainer não encontrado para mostrar mensagem de erro.");
+                    }
+                }
+            }
+
+            function renderBankrolls(bankrolls) {
+                if (!bankrollCardsContainer) {
+                    console.error("Elemento bankrollCardsContainer não encontrado para renderizar cards.");
+                    return;
+                }
+                bankrollCardsContainer.innerHTML = ''; 
+                if (bankrolls.length === 0) {
+                    bankrollCardsContainer.innerHTML = `
+                        <div class="empty-state full-width-empty-state">
+                            <div class="empty-state-content">
+                                <i class="fas fa-wallet fa-3x"></i>
+                                <h3>Nenhum bankroll encontrado</h3>
+                                <p>Crie um novo bankroll utilizando o botão "Adicionar Novo Bankroll".</p>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                bankrolls.forEach(bankroll => {
+                    // Seleção de ícone baseado na categoria
+                    let categoryIcon = 'fa-wallet';
+                    if (bankroll.categoria === 'Surebet') {
+                        categoryIcon = 'fa-chart-line';
+                    } else if (bankroll.categoria === 'Apostas Arriscadas') {
+                        categoryIcon = 'fa-dice';
+                    } else if (bankroll.categoria === 'Longo Prazo') {
+                        categoryIcon = 'fa-calendar-alt';
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'bankroll-card';
+                    
+                    // Adicionar classe específica para cards de surebet
+                    if (bankroll.categoria === 'Surebet') {
+                        card.classList.add('bankroll-card-surebet');
+                        card.style.cursor = 'pointer';
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3 class="bankroll-name">${bankroll.nome}</h3>
+                            <span class="bankroll-category tag tag-${bankroll.categoria ? bankroll.categoria.toLowerCase().replace(/\s+/g, '-') : 'outro'}">${bankroll.categoria}</span>
+                        </div>
+                        <div class="bankroll-icon">
+                            <i class="fas ${categoryIcon}"></i>
+                            <span>Bankroll</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="balance-label">Saldo Atual:</p>
+                            <p class="bankroll-balance">${formatCurrency(bankroll.saldo_atual)}</p>
+                        </div>
+                        <div class="card-footer actions">
+                            <div class="bankroll-info">
+                                <!-- Removido o ID conforme solicitado -->
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-edit" title="Editar Bankroll" data-id="${bankroll.id}"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-delete" title="Excluir Bankroll" data-id="${bankroll.id}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Adicionar evento de clique para Surebets
+                    if (bankroll.categoria === 'Surebet') {
+                        card.addEventListener('click', function(e) {
+                            // Não navegar se clicar nos botões de ação
+                            if (e.target.closest('.btn-icon')) {
+                                return;
+                            }
+                            window.location.href = `/surebet-detail?id=${bankroll.id}`;
+                        });
+                    }
+                    
+                    const editBtn = card.querySelector('.btn-edit');
+                    if (editBtn) {
+                        editBtn.addEventListener('click', () => loadBankrollForEdit(bankroll));
+                    }                    
+                    const deleteBtn = card.querySelector('.btn-delete');
+                    if (deleteBtn) {
+                        deleteBtn.addEventListener('click', () => deleteBankroll(bankroll.id));
+                    }
+                    bankrollCardsContainer.appendChild(card);
+                });
+            }
+
+            function loadBankrollForEdit(bankroll) {
+                if (!bankrollModal || !modalTitle || !bankrollForm) {
+                    console.error("Não é possível carregar bankroll para edição: elementos do modal ausentes.");
+                    return;
+                }
+                modalTitle.textContent = 'Editar Bankroll';
+                editingBankrollId = bankroll.id;
+                document.getElementById('bankrollId').value = bankroll.id;
+                document.getElementById('nome').value = bankroll.nome;
+                document.getElementById('saldo_inicial').value = bankroll.saldo_inicial;
+                document.getElementById('categoria').value = bankroll.categoria;
+                bankrollModal.classList.add('active');
+            }
+            
+            if (bankrollForm) {
+                bankrollForm.addEventListener('submit', async function(event) {
+                    event.preventDefault();
+                    const nome = document.getElementById('nome').value;
+                    const saldo_inicial = document.getElementById('saldo_inicial').value;
+                    const categoria = document.getElementById('categoria').value;
+                    
+                    const bankrollData = { nome, saldo_inicial: parseFloat(saldo_inicial), categoria };
+
+                    let url = '/api/bankrolls';
+                    let method = 'POST';
+
+                    if (editingBankrollId) {
+                        url = `/api/bankrolls/${editingBankrollId}`;
+                        method = 'PUT';
+                    }
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(bankrollData),
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
+                        }
+                        bankrollModal.classList.remove('active');
+                        fetchBankrolls(); 
+                    } catch (error) {
+                        console.error('Erro ao salvar bankroll:', error);
+                        alert(`Erro ao salvar bankroll: ${error.message}`);
+                    }
+                });
+            }
+
+            async function deleteBankroll(id) {
+                if (!confirm('Tem certeza que deseja excluir este bankroll?')) {
+                    return;
+                }
+                try {
+                    const response = await fetch(`/api/bankrolls/${id}`, {
+                        method: 'DELETE',
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
+                    }
+                    fetchBankrolls();
+                } catch (error) {
+                    console.error('Erro ao deletar bankroll:', error);
+                    alert(`Erro ao deletar bankroll: ${error.message}`);
+                }
+            }
+
+            fetchBankrolls();
+        });
+    </script>
+    <!-- Se você tiver um arquivo JS comum, como main.js, inclua-o aqui -->
+    <script src="/js/main.js"></script> 
+</body>
+</html> 
