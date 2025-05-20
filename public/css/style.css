@@ -1292,8 +1292,6 @@ table td {
     margin-bottom: 25px;
     margin-top: 0;
     text-align: center;
-    display: inline-block;
-    width: 100%;
 }
 
 /* Estilos para destacar elementos no modal de confirmação */
