@@ -76,10 +76,12 @@ const addTransacao = async (req, res) => {
     try {
       await client.query('BEGIN');
       
-      // Insert the transaction
+      // Insert the transaction com data ajustada para o fuso horário brasileiro
+      const dataAtualBrasil = new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' });
+      
       const transactionResult = await client.query(
-        'INSERT INTO transacoes (casa_id, tipo, valor, descricao, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-        [casa_id, tipo, valor, descricao, status]
+        'INSERT INTO transacoes (casa_id, tipo, valor, descricao, status, data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [casa_id, tipo, valor, descricao, status, new Date(dataAtualBrasil)]
       );
       
       const transacaoId = transactionResult.rows[0].id;

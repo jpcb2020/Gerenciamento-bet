@@ -69,8 +69,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatDate(dateString) {
         if (!dateString) return '-';
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleString('pt-BR', options);
+        
+        // Precisamos ajustar o fuso horário manualmente, pois o banco armazena as datas sem informação de fuso
+        // e o JavaScript interpreta como UTC por padrão
+        
+        // Primeiro, criamos um objeto Date a partir da string
+        const date = new Date(dateString);
+        
+        // Ajustamos para o fuso horário de Brasília (GMT-3 = -180 minutos)
+        const brasiliaDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+        
+        // Formatar a data no formato brasileiro
+        const options = { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit'
+        };
+        
+        return brasiliaDate.toLocaleString('pt-BR', options);
     }
     
     function formatCurrency(value) {

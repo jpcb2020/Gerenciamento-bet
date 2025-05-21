@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Format date
     function formatDate(dateString) {
         const date = new Date(dateString);
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' };
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Sao_Paulo' };
         return date.toLocaleDateString('pt-BR', options);
     }
     

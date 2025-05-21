@@ -1449,7 +1449,8 @@ table td {
     display: flex;
     flex-basis: 100%; /* Fazer cada linha ocupar a largura total */
     justify-content: center; /* MUDADO: Centralizar os botões na linha */
-    gap: 10px; /* AJUSTADO: Espaçamento entre botões na mesma linha */
+    gap: 5px; /* AJUSTADO: Espaçamento reduzido entre botões na mesma linha */
+    flex-wrap: nowrap; /* Evita quebra de linha */
 }
 
 .casa-actions-detailed .action-row:not(:last-child) {
@@ -1461,14 +1462,18 @@ table td {
     background-color: #f8f9fa; /* ADICIONADO: Fundo leve para os botões */
     border: 1px solid #dee2e6; /* ADICIONADO: Borda sutil */
     color: var(--primary-color); /* Primary action color */
-    padding: 8px 12px; /* AJUSTADO: Padding */
+    padding: 8px 10px; /* AJUSTADO: Padding reduzido */
     border-radius: 5px; /* AJUSTADO: Raio da borda */
     cursor: pointer;
-    font-size: 0.85em; /* AJUSTADO: Tamanho da fonte */
+    font-size: 0.8em; /* AJUSTADO: Tamanho da fonte reduzido */
     font-weight: 500; /* ADICIONADO: Peso da fonte */
     display: flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap; /* Impede quebra de linha no texto */
+    min-width: fit-content; /* Garante que o botão se expanda para acomodar o texto */
+    width: 100%; /* Faz o botão ocupar toda a largura disponível */
+    overflow: visible; /* Evita que o texto seja cortado */
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     line-height: 1.2;
     text-align: center;
@@ -2817,7 +2822,6 @@ table td {
 }
 
 .entry-bets {
-    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;

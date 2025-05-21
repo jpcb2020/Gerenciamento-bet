@@ -107,6 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn-icon btn-deposit" data-id="${casa.id}" data-nome="${casa.nome}" data-logo="${logoUrl}" title="Realizar Depósito"><i class="fas fa-plus"></i> Depósito</button>
                         <button class="btn-icon btn-withdraw" data-id="${casa.id}" data-nome="${casa.nome}" data-logo="${logoUrl}" title="Realizar Saque"><i class="fas fa-minus"></i> Saque</button>
                     </div>
+                    <div class="action-row">
+                        <button class="btn-icon btn-profit" data-id="${casa.id}" data-nome="${casa.nome}" data-logo="${logoUrl}" title="Adicionar Lucro"><i class="fas fa-chart-line"></i> Adicionar lucro</button>
+                    </div>
                 </div>
             `;
             casasGrid.appendChild(casaCard);
@@ -169,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(addHouseModal);
         closeModal(editHouseModal);
         closeModal(deleteConfirmModal);
+        closeModal(document.getElementById('profitModal'));
     });
 
     // Add Casa Form Submission
@@ -332,6 +336,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+        
+        // Adicionar event listeners para os botões de lucro
+        document.querySelectorAll('.btn-profit').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const casaId = e.currentTarget.dataset.id;
+                const casaNome = e.currentTarget.dataset.nome;
+                const casaLogo = e.currentTarget.dataset.logo;
+                
+                const profitModal = document.getElementById('profitModal');
+                const profitForm = document.getElementById('profitForm');
+                
+                if (profitModal && profitForm) {
+                    document.getElementById('profitHouseId').value = casaId;
+                    document.getElementById('profitHouseName').textContent = casaNome;
+                    document.getElementById('profitHouseLogo').src = casaLogo;
+                    document.getElementById('profitHouseLogo').onerror = function() {
+                        this.onerror = null;
+                        this.src = DEFAULT_LOGO;
+                    };
+                    
+                    profitForm.reset();
+                    openModal(profitModal);
+                }
+            });
+        });
     }
 
     // Search/Filter Casas
@@ -348,6 +377,85 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial fetch
     fetchCasas();
 
+    // Event listener for cancel profit button
+    const cancelProfitBtn = document.getElementById('cancelProfit');
+    if (cancelProfitBtn) {
+        cancelProfitBtn.addEventListener('click', () => {
+            closeModal(document.getElementById('profitModal'));
+        });
+    }
+    
+    // Handle profit form submission
+    const profitForm = document.getElementById('profitForm');
+    if (profitForm) {
+        profitForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = profitForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processando...';
+            
+            const casaId = document.getElementById('profitHouseId').value;
+            const valorLucro = document.getElementById('profitAmount').value;
+            const descricao = document.getElementById('profitDescription').value || 'Lucro adicionado';
+            
+            if (!casaId || !valorLucro) {
+                showToast('Informações incompletas', 'error');
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+                return;
+            }
+            
+            try {
+                // Busca o valor atual do saldo da casa
+                const casa = allCasas.find(c => c.id == casaId);
+                if (!casa) {
+                    throw new Error('Casa de apostas não encontrada');
+                }
+                
+                // 1. Primeiro, registrar a transação de lucro
+                const transacaoResponse = await fetch('/api/transacoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        casa_id: casaId,
+                        tipo: 'ganho',  // Tipo de transação para lucro
+                        valor: parseFloat(valorLucro),
+                        descricao: descricao || 'Lucro adicionado'
+                    })
+                });
+                
+                const transacaoData = await transacaoResponse.json();
+                if (!transacaoResponse.ok) {
+                    throw new Error(transacaoData.error || `Erro ao registrar transação: ${transacaoResponse.status}`);
+                }
+                
+                // A API de transações já atualiza o saldo da casa automaticamente, não precisamos fazer isso manualmente
+                
+                showToast(`Lucro de ${formatCurrency(valorLucro)} adicionado com sucesso!`, 'success');
+                fetchCasas(); // Re-fetch and render
+                closeModal(document.getElementById('profitModal'));
+                
+                // Dispatch event to notify other components about the transaction
+                document.dispatchEvent(new CustomEvent('transactionComplete', {
+                    detail: {
+                        type: 'ganho', // Usando o mesmo tipo utilizado na API
+                        casaId,
+                        valor: parseFloat(valorLucro),
+                        descricao
+                    }
+                }));
+                
+            } catch (error) {
+                console.error('Erro ao adicionar lucro:', error);
+                showToast(`Erro ao adicionar lucro: ${error.message}`, 'error');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
+        });
+    }
+    
     // Listen for successful transactions to refresh the casas grid
     document.addEventListener('transactionComplete', function(event) {
         console.log('Evento transactionComplete recebido em casas-de-apostas.js:', event.detail);
@@ -357,4 +465,4 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchCasas(); // Re-fetch and render the houses on this page
         }
     });
-}); 
+});
