@@ -59,6 +59,11 @@ app.get('/bankrolls', (req, res) => {
   res.render('bankrolls', { title: 'Gerenciar Bankrolls' });
 });
 
+// Rota para a página de casas regulamentadas
+app.get('/casas-regulamentadas', (req, res) => {
+  res.render('casas-regulamentadas', { title: 'Casas Regulamentadas' });
+});
+
 // Rota para a página de detalhes de surebet
 app.get('/surebet-detail', async (req, res) => { // Transformar em async
   const bankrollId = req.query.id;
