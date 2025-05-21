@@ -50,8 +50,9 @@
         .entries-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-            background-color: #fff;
+            border-spacing: 0 20px;
+            background-color: transparent;
+            table-layout: fixed;
         }
         
         .entries-table tbody tr:hover {
@@ -71,23 +72,119 @@
         .entries-table thead th {
             white-space: nowrap;
             font-size: 0.85rem;
+            text-align: left;
+            padding: 10px;
+        }
+        
+        /* Larguras e alinhamentos específicos das colunas */
+        .entries-table th:nth-child(1),
+        .entries-table td:nth-child(1) {
+            width: 15%;
+        }
+        
+        .entries-table th:nth-child(2),
+        .entries-table td:nth-child(2) {
+            width: 20%;
+        }
+        
+        .entries-table th:nth-child(3),
+        .entries-table td:nth-child(3) {
+            width: 25%;
+        }
+        
+        .entries-table th:nth-child(4),
+        .entries-table td:nth-child(4),
+        .entries-table th:nth-child(5),
+        .entries-table td:nth-child(5),
+        .entries-table th:nth-child(6),
+        .entries-table td:nth-child(6) {
+            width: 10%;
+            text-align: right;
+        }
+        
+        .entries-table th:nth-child(7),
+        .entries-table td:nth-child(7) {
+            width: 12%;
+            text-align: center;
+        }
+        
+        .entries-table th:nth-child(8),
+        .entries-table td:nth-child(8) {
+            width: 8%;
+            text-align: center;
         }
         
         .entries-table tbody tr.entry-row {
-            border-bottom: 1px solid #eee;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            background-color: white;
         }
         
         .entries-table tbody tr.entry-row td {
-            padding-top: 6px;
-            padding-bottom: 6px;
+            padding: 14px 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .entries-table tbody tr.entry-row td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+            padding-left: 16px;
+        }
+        
+        .entries-table tbody tr.entry-row td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding-right: 16px;
         }
         
         /* Subtle alternating background for better readability */
-        .entries-table tbody tr.entry-row:nth-child(odd) {
-            background-color: #fafafa;
+        .entries-table tbody tr.entry-row:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
         }
         
         /* Status da linha por cores */
+        /* Estilos para expandir/recolher */
+        .expand-toggle {
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 1rem;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+            background-color: rgba(0,0,0,0.03);
+        }
+        
+        .expand-toggle:hover {
+            background-color: rgba(0,0,0,0.08);
+            color: #374151;
+        }
+        
+        .entry-row.collapsed .entry-bets,
+        .entry-row.collapsed .event-competition,
+        .entry-row.collapsed .roi-badge {
+            display: none;
+        }
+        
+        .entry-row.collapsed td {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        
+        .entry-row.collapsed {
+            opacity: 0.85;
+        }
+        
+        .entry-row.collapsed:hover {
+            opacity: 1;
+        }
+        
         /* Status row indicators - simplified */
         .status-pendente-row {
             border-left: 2px solid #fed7aa;
@@ -105,6 +202,7 @@
         .status-dropdown {
             position: relative;
             display: inline-block;
+            z-index: 1500;
         }
         
         .dropdown-toggle {
@@ -130,7 +228,7 @@
             background-color: white;
             border: 1px solid #e5e7eb;
             border-radius: 3px;
-            z-index: 1000;
+            z-index: 2000;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             overflow: visible;
         }
@@ -146,8 +244,23 @@
             top: auto;
         }
         
+        /* Garantir que os menus fiquem acima de tudo */
+        .entry-row {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .entry-row:hover {
+            z-index: 5;
+        }
+        
+        .entry-row .status-dropdown.active {
+            z-index: 1500;
+        }
+        
         .status-menu.show {
             display: block;
+            position: absolute;
         }
         
         .status-option {
@@ -544,7 +657,7 @@
                                             <th>Retorno</th>
                                             <th>Lucro/ROI</th>
                                             <th>Status</th>
-                                            <th></th>
+                                            <th>Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="entriesTableBody">
@@ -1053,6 +1166,19 @@
                 }
             }
 
+            // Função para alternar o estado expandido/recolhido de uma linha
+            function toggleRowExpansion(row) {
+                row.classList.toggle('collapsed');
+                const expandIcon = row.querySelector('.expand-toggle i');
+                if (row.classList.contains('collapsed')) {
+                    expandIcon.classList.remove('fa-chevron-down');
+                    expandIcon.classList.add('fa-chevron-right');
+                } else {
+                    expandIcon.classList.remove('fa-chevron-right');
+                    expandIcon.classList.add('fa-chevron-down');
+                }
+            }
+            
             function renderEntriesTable(entries) {
                 const entriesTableBody = document.getElementById('entriesTableBody');
                 entriesTableBody.innerHTML = ''; // Limpar conteúdo
@@ -1101,10 +1227,11 @@
                     
                     // Criar linha da tabela
                     const row = document.createElement('tr');
-                    row.className = `entry-row status-${entry.status ? entry.status.toLowerCase() : 'pendente'}-row`;
+                    row.className = `entry-row collapsed status-${entry.status ? entry.status.toLowerCase() : 'pendente'}-row`;
                     
                     row.innerHTML = `
                         <td class="entry-date">
+                            <span class="expand-toggle" title="Expandir/Recolher detalhes"><i class="fas fa-chevron-right"></i></span>
                             ${formatDate(entry.data_evento)}
                         </td>
                         <td class="entry-event">
@@ -1151,6 +1278,15 @@
                     if (deleteButton) {
                         deleteButton.addEventListener('click', function() {
                             deleteSurebetEntry(entry.id);
+                        });
+                    }
+                    
+                    // Adicionar listener para o botão de expandir/recolher
+                    const expandToggle = row.querySelector('.expand-toggle');
+                    if (expandToggle) {
+                        expandToggle.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Impedir que o clique propague para a linha
+                            toggleRowExpansion(row);
                         });
                     }
                 });
