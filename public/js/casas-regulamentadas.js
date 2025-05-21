@@ -430,6 +430,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nome: "BET BUFFALOS", dominio: "betbuffalos.bet.br" },
                 { nome: "BET FALCONS", dominio: "betfalcons.bet.br" }
             ]
+        },
+        // A2FBR LTDA - EXCHANGE
+        {
+            empresa: "A2FBR LTDA",
+            cnpj: "56.147.145/0001-74",
+            requerimento: "0067/2024",
+            portaria: "SPA/MF nº 2.101, de 30 de dezembro de 2024",
+            casas: [
+                { nome: "BETBRA", dominio: "betbra-br.com", tipo: "exchange" },
+                { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" }
+            ]
+        },
+        // RKN Gaming N.V.
+        {
+            empresa: "RKN Gaming N.V.",
+            cnpj: "56.636.543/0001-54", // CNPJ temporário - substituir pelo real
+            requerimento: "0029/2024",
+            portaria: "SPA/MF nº 255, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "CASA DE APOSTAS", dominio: "casadeapostas.bet.br", tipo: "exchange" }
+            ]
         }
     ];
 
@@ -511,8 +532,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const casaCard = document.createElement('div');
         casaCard.className = 'casa-card';
         
+        // Verificar se é do tipo exchange para aplicar classe especial
+        if (casa.tipo === 'exchange') {
+            casaCard.classList.add('exchange-card');
+        }
+        
+        // Criar badge para exchange
+        const exchangeBadge = casa.tipo === 'exchange' ? 
+            `<span class="exchange-badge">Exchange</span>` : '';
+        
         casaCard.innerHTML = `
-            <div class="casa-card-header">
+            <div class="casa-card-header ${casa.tipo === 'exchange' ? 'exchange-header' : ''}">
                 <h4>${casa.nome}</h4>
                 <div class="casa-card-detail" data-casa="${casa.nome}" data-company="${company.empresa}">
                     <i class="fas fa-info-circle"></i>
@@ -522,9 +552,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="casa-card-info">
                     <p><i class="fas fa-building"></i> ${company.empresa}</p>
                     <p><i class="fas fa-globe"></i> ${casa.dominio}</p>
+                    ${casa.tipo === 'exchange' ? `<p><i class="fas fa-exchange-alt"></i> Tipo: Exchange</p>` : ''}
                 </div>
                 <a href="https://${casa.dominio}" class="casa-card-link" target="_blank">Visitar Site</a>
             </div>
+            ${exchangeBadge}
         `;
         
         // Adiciona listener para o botão de detalhes
@@ -617,6 +649,38 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCasas(sortedData);
     }
     
+    // Filtra apenas casas do tipo Exchange
+    function filterExchanges() {
+        const exchangesData = casasRegulamentadas.map(company => {
+            const exchangeCasas = company.casas.filter(casa => casa.tipo === 'exchange');
+            
+            if (exchangeCasas.length > 0) {
+                return {
+                    ...company,
+                    casas: exchangeCasas
+                };
+            }
+            
+            return null;
+        }).filter(company => company !== null);
+        
+        renderCasas(exchangesData);
+    }
+
+    // Função para alternar estado do botão de Exchange
+    function toggleExchangeFilter() {
+        const btn = document.getElementById('filterExchange');
+        const isActive = btn.classList.contains('active');
+        
+        if (isActive) {
+            btn.classList.remove('active');
+            renderCasas(); // Volta para visualização normal
+        } else {
+            btn.classList.add('active');
+            filterExchanges(); // Filtra apenas exchanges
+        }
+    }
+    
     // Event Listeners
     document.getElementById('companySelect').addEventListener('change', function() {
         filterByCompany(this.value);
@@ -628,6 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('sortByName').addEventListener('click', sortByName);
     document.getElementById('sortByCompany').addEventListener('click', sortByCompany);
+    document.getElementById('filterExchange').addEventListener('click', toggleExchangeFilter);
     
     // Manipulação do Modal
     document.querySelectorAll('.close-modal, [data-modal-id]').forEach(element => {
