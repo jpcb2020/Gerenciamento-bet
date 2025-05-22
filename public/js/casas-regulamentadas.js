@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0067/2024",
             portaria: "SPA/MF nº 2.101, de 30 de dezembro de 2024",
             casas: [
-                { nome: "BETBRA", dominio: "betbra-br.com", tipo: "exchange" },
+                { nome: "BETBRA", dominio: "betbra.bet.br", tipo: "exchange" },
                 { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" }
             ]
         },
