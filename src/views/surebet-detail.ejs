@@ -964,7 +964,12 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="betHouse1">Casa de Apostas</label>
-                                    <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
+                                    <div class="custom-dropdown">
+                                        <input type="text" id="betHouse1" required placeholder="Ex: Bet365" autocomplete="off">
+                                        <div class="dropdown-content" id="betHouse1Dropdown">
+                                            <!-- Lista será preenchida via JavaScript -->
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="betMarket1">Mercado</label>
@@ -986,7 +991,12 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="betHouse2">Casa de Apostas</label>
-                                    <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                                    <div class="custom-dropdown">
+                                        <input type="text" id="betHouse2" required placeholder="Ex: Betano" autocomplete="off">
+                                        <div class="dropdown-content" id="betHouse2Dropdown">
+                                            <!-- Lista será preenchida via JavaScript -->
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="betMarket2">Mercado</label>
@@ -1625,5 +1635,181 @@
         });
     </script>
     <script src="/js/main.js"></script>
+    
+    <!-- CSS para o dropdown personalizado -->
+    <style>
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin-top: 2px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+    
+    <!-- Script para o dropdown personalizado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lista de casas de apostas
+            const bettingHouses = [
+                "BETANO", "SUPERBET", "REI DO PITACO", "SPORTINGBET", "BETBOO", 
+                "BIG", "APOSTAR", "BETNACIONAL", "MR. JACK BET", "KTO", 
+                "BETSSON", "GALERA.BET", "F12.BET", "LUVA.BET", "BRASIBET", 
+                "SPORTYBET", "ESTRELABET", "REALS", "LIX", "NETPIX", 
+                "BETFAIR", "7GAMES", "BETÃO", "R7", "HIPERBET", 
+                "NOVIBET", "SEGURO BET", "KING PANDA", "9F", "BR", 
+                "BET APP", "IUGO", "FOGO777", "PB", "BET365", 
+                "APOSTA GANHA", "BRAZINO777", "4WIN", "4PLAY", "PAGOL", 
+                "SECBET", "H2.BET", "VBET", "VIVARO", "CASA DE APOSTAS", 
+                "BET SUL", "JOGO ONLINE", "ESPORTES DA SORTE", "ONABET", "BETFAST", 
+                "FAZABET", "RICO.BET", "BRXBET", "STAKE", "SPIN", 
+                "OLEYBET", "BETPARK", "MERIDIANBET", "VERSUSBET", "VS - VERSUS", 
+                "LUCK.BET", "1 PRA 1", "STARTBET", "ESPORTE 365", "BET AKI", 
+                "JOGO DE OURO", "LÍDERBET", "GERALBET", "B2XBET", "BULLSBET", 
+                "JOGÃO", "BET.BET", "DONALDBET", "RIVALO", "A247", 
+                "HILGARDO", "HILGARDO GAMING", "MCGAMES", "MONTECARLOSBET", "MONTECARLOS", 
+                "MEGAPOSTA"
+            ];
+            
+            // Função para inicializar um dropdown
+            function initializeDropdown(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                
+                if (!input || !dropdown) return;
+                
+                // Função para popular o dropdown
+                function populateDropdown(filter = '') {
+                    dropdown.innerHTML = '';
+                    
+                    const filteredHouses = filter
+                        ? bettingHouses.filter(house => house.toLowerCase().includes(filter.toLowerCase()))
+                        : bettingHouses;
+                    
+                    filteredHouses.forEach(house => {
+                        const item = document.createElement('div');
+                        item.className = 'dropdown-item';
+                        item.textContent = house;
+                        item.addEventListener('click', function() {
+                            input.value = house;
+                            hideDropdown();
+                        });
+                        dropdown.appendChild(item);
+                    });
+                    
+                    if (filteredHouses.length > 0) {
+                        showDropdown();
+                    } else {
+                        hideDropdown();
+                    }
+                }
+                
+                // Mostrar dropdown
+                function showDropdown() {
+                    dropdown.classList.add('show');
+                }
+                
+                // Esconder dropdown
+                function hideDropdown() {
+                    dropdown.classList.remove('show');
+                }
+                
+                // Mostrar dropdown quando o input recebe foco
+                input.addEventListener('focus', function() {
+                    populateDropdown(input.value);
+                });
+                
+                // Filtrar quando o usuário digita
+                input.addEventListener('input', function() {
+                    populateDropdown(input.value);
+                });
+                
+                // Esconder dropdown quando clicar fora
+                document.addEventListener('click', function(event) {
+                    if (!input.contains(event.target) && !dropdown.contains(event.target)) {
+                        hideDropdown();
+                    }
+                });
+                
+                // Prevenção de propagação para evitar que o dropdown feche quando clicar nele
+                dropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            }
+            
+            // Inicializar os dropdowns existentes
+            initializeDropdown('betHouse1', 'betHouse1Dropdown');
+            initializeDropdown('betHouse2', 'betHouse2Dropdown');
+            
+            // Adicionar suporte para campos adicionais que podem ser criados dinamicamente
+            const addMoreBetBtn = document.getElementById('addMoreBetBtn');
+            if (addMoreBetBtn) {
+                addMoreBetBtn.addEventListener('click', function() {
+                    // Aguarde a criação do novo campo e depois inicialize o dropdown
+                    setTimeout(() => {
+                        const bets = document.querySelectorAll('.entry-bet');
+                        const lastBet = bets[bets.length - 1];
+                        if (lastBet) {
+                            const houseInput = lastBet.querySelector('input[id^="betHouse"]');
+                            const dropdownId = houseInput.id + 'Dropdown';
+                            
+                            // Criar o dropdown se não existir
+                            if (!document.getElementById(dropdownId)) {
+                                const inputParent = houseInput.parentElement;
+                                
+                                // Criar a estrutura do dropdown
+                                const customDropdown = document.createElement('div');
+                                customDropdown.className = 'custom-dropdown';
+                                
+                                // Mover o input para dentro do dropdown
+                                houseInput.parentNode.insertBefore(customDropdown, houseInput);
+                                customDropdown.appendChild(houseInput);
+                                houseInput.setAttribute('autocomplete', 'off');
+                                
+                                // Criar o container da lista dropdown
+                                const dropdownContent = document.createElement('div');
+                                dropdownContent.className = 'dropdown-content';
+                                dropdownContent.id = dropdownId;
+                                customDropdown.appendChild(dropdownContent);
+                                
+                                // Inicializar o novo dropdown
+                                initializeDropdown(houseInput.id, dropdownId);
+                            }
+                        }
+                    }, 100);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

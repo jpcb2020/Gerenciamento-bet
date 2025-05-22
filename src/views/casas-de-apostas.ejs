@@ -97,7 +97,12 @@
                 <form id="addHouseForm">
                     <div class="form-group">
                         <label for="houseName">Nome da Casa</label>
-                        <input type="text" id="houseName" name="houseName" placeholder="Ex: Bet365" required>
+                        <div class="custom-dropdown">
+                            <input type="text" id="houseName" name="houseName" placeholder="Ex: Bet365" required autocomplete="off">
+                            <div class="dropdown-content" id="houseNameDropdown">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="houseLogo">URL do Logo (opcional)</label>
@@ -260,8 +265,136 @@
 
     <div id="toast-container"></div>
     
+    <!-- CSS para o dropdown personalizado -->
+    <style>
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin-top: 2px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+
     <script src="/js/casas-de-apostas.js"></script>
     <script src="/js/modalHandler.js"></script>
     <script src="/js/main.js"></script>
+    
+    <!-- Script para o dropdown personalizado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lista de casas de apostas
+            const bettingHouses = [
+                "BETANO", "SUPERBET", "REI DO PITACO", "SPORTINGBET", "BETBOO", 
+                "BIG", "APOSTAR", "BETNACIONAL", "MR. JACK BET", "KTO", 
+                "BETSSON", "GALERA.BET", "F12.BET", "LUVA.BET", "BRASIBET", 
+                "SPORTYBET", "ESTRELABET", "REALS", "LIX", "NETPIX", 
+                "BETFAIR", "7GAMES", "BETÃO", "R7", "HIPERBET", 
+                "NOVIBET", "SEGURO BET", "KING PANDA", "9F", "BR", 
+                "BET APP", "IUGO", "FOGO777", "PB", "BET365", 
+                "APOSTA GANHA", "BRAZINO777", "4WIN", "4PLAY", "PAGOL", 
+                "SECBET", "H2.BET", "VBET", "VIVARO", "CASA DE APOSTAS", 
+                "BET SUL", "JOGO ONLINE", "ESPORTES DA SORTE", "ONABET", "BETFAST", 
+                "FAZABET", "RICO.BET", "BRXBET", "STAKE", "SPIN", 
+                "OLEYBET", "BETPARK", "MERIDIANBET", "VERSUSBET", "VS - VERSUS", 
+                "LUCK.BET", "1 PRA 1", "STARTBET", "ESPORTE 365", "BET AKI", 
+                "JOGO DE OURO", "LÍDERBET", "GERALBET", "B2XBET", "BULLSBET", 
+                "JOGÃO", "BET.BET", "DONALDBET", "RIVALO", "A247", 
+                "HILGARDO", "HILGARDO GAMING", "MCGAMES", "MONTECARLOSBET", "MONTECARLOS", 
+                "MEGAPOSTA"
+            ];
+            
+            const input = document.getElementById('houseName');
+            const dropdown = document.getElementById('houseNameDropdown');
+            
+            // Função para popular o dropdown
+            function populateDropdown(filter = '') {
+                dropdown.innerHTML = '';
+                
+                const filteredHouses = filter
+                    ? bettingHouses.filter(house => house.toLowerCase().includes(filter.toLowerCase()))
+                    : bettingHouses;
+                
+                filteredHouses.forEach(house => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    item.textContent = house;
+                    item.addEventListener('click', function() {
+                        input.value = house;
+                        hideDropdown();
+                    });
+                    dropdown.appendChild(item);
+                });
+                
+                if (filteredHouses.length > 0) {
+                    showDropdown();
+                } else {
+                    hideDropdown();
+                }
+            }
+            
+            // Mostrar dropdown
+            function showDropdown() {
+                dropdown.classList.add('show');
+            }
+            
+            // Esconder dropdown
+            function hideDropdown() {
+                dropdown.classList.remove('show');
+            }
+            
+            // Mostrar dropdown quando o input recebe foco
+            input.addEventListener('focus', function() {
+                populateDropdown(input.value);
+            });
+            
+            // Filtrar quando o usuário digita
+            input.addEventListener('input', function() {
+                populateDropdown(input.value);
+            });
+            
+            // Esconder dropdown quando clicar fora
+            document.addEventListener('click', function(event) {
+                if (!input.contains(event.target) && !dropdown.contains(event.target)) {
+                    hideDropdown();
+                }
+            });
+            
+            // Prevenção de propagação para evitar que o dropdown feche quando clicar nele
+            dropdown.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    </script>
 </body>
-</html> 
+</html>
