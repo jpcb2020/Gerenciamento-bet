@@ -37,11 +37,15 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bankrolls', bankrollRoutes);
 app.use('/api/surebet', surebetRoutes);
 
-// Rota principal para renderizar o index.ejs da pasta views
+// Rota principal para renderizar o dashboard.ejs da pasta views
 app.get('/', (req, res) => {
   // Você pode passar dados para o template se necessário
-  // Exemplo: res.render('index', { title: 'Página Inicial BetManager' });
-  res.render('index', { title: 'Gerenciamento de Apostas' }); 
+  res.render('dashboard', { title: 'Dashboard - Gerenciamento de Apostas' }); 
+});
+
+// Rota específica para o dashboard
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard', { title: 'Dashboard - Gerenciamento de Apostas' });
 });
 
 // Rota para a nova página de casas detalhadas
