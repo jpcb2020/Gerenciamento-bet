@@ -29,11 +29,11 @@ router.get('/entries/:bankrollId', async (req, res) => {
                 ) AS bets
             FROM surebet_entries se
             LEFT JOIN surebet_entry_bets seb ON se.id = seb.surebet_entry_id
-            WHERE se.bankroll_id = $1
+            WHERE se.bankroll_id = $1 AND se.user_id = $2
         `;
 
-        const queryParams = [bankrollId];
-        let paramIndex = 2;
+        const queryParams = [bankrollId, req.user.id];
+        let paramIndex = 3;
 
         // Aplicar filtros (exemplos simples, podem ser expandidos)
         if (status && status !== 'all') {
@@ -86,8 +86,8 @@ router.post('/entries', async (req, res) => {
         // 1. Inserir na tabela surebet_entries
         const surebetEntryQuery = `
             INSERT INTO surebet_entries 
-                (bankroll_id, evento, competicao, data_evento, observacoes, status)
-            VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
+                (bankroll_id, evento, competicao, data_evento, observacoes, status, user_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
         `;
         const entryResult = await client.query(surebetEntryQuery, [
             bankrollId,
@@ -95,7 +95,8 @@ router.post('/entries', async (req, res) => {
             entryCompetition,
             dataEvento,
             entryNotes,
-            'Pendente' // Status inicial
+            'Pendente', // Status inicial
+            req.user.id
         ]);
         const surebetEntryId = entryResult.rows[0].id;
 
@@ -117,8 +118,8 @@ router.post('/entries', async (req, res) => {
 
             const surebetEntryBetQuery = `
                 INSERT INTO surebet_entry_bets
-                    (surebet_entry_id, casa_apostas, mercado, odds, valor_apostado, retorno_potencial, status_aposta)
-                VALUES ($1, $2, $3, $4, $5, $6, $7);
+                    (surebet_entry_id, casa_apostas, mercado, odds, valor_apostado, retorno_potencial, status_aposta, user_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
             `;
             await client.query(surebetEntryBetQuery, [
                 surebetEntryId,
@@ -127,7 +128,8 @@ router.post('/entries', async (req, res) => {
                 odds,
                 valorApostado,
                 retornoPotencialIndividual, // Armazena o retorno desta perna específica
-                'Pendente'
+                'Pendente',
+                req.user.id
             ]);
         }
         
@@ -172,14 +174,14 @@ router.delete('/entries/:bankrollId/:entryId', async (req, res) => {
 
         // 1. Primeiro excluir os registros da tabela surebet_entry_bets que dependem dessa entrada
         await client.query(
-            'DELETE FROM surebet_entry_bets WHERE surebet_entry_id = $1',
-            [entryId]
+            'DELETE FROM surebet_entry_bets WHERE surebet_entry_id = $1 AND user_id = $2',
+            [entryId, req.user.id]
         );
 
         // 2. Excluir a entrada principal da tabela surebet_entries
         const result = await client.query(
-            'DELETE FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 RETURNING id',
-            [entryId, bankrollId]
+            'DELETE FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 AND user_id = $3 RETURNING id',
+            [entryId, bankrollId, req.user.id]
         );
 
         // Verificar se algum registro foi excluído
@@ -222,8 +224,8 @@ router.patch('/entries/:bankrollId/:entryId/status', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'UPDATE surebet_entries SET status = $1 WHERE id = $2 AND bankroll_id = $3 RETURNING id',
-            [status, entryId, bankrollId]
+            'UPDATE surebet_entries SET status = $1 WHERE id = $2 AND bankroll_id = $3 AND user_id = $4 RETURNING id',
+            [status, entryId, bankrollId, req.user.id]
         );
 
         // Verificar se algum registro foi atualizado

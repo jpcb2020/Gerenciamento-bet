@@ -5,7 +5,7 @@ const { pool } = require('../config/db');
 // Get all betting houses
 const getAllCasas = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM casas_apostas ORDER BY saldo DESC');
+    const result = await pool.query('SELECT * FROM casas_apostas WHERE user_id = $1 ORDER BY saldo DESC', [req.user.id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -15,7 +15,7 @@ const getAllCasas = async (req, res) => {
 // Get a specific betting house
 const getCasaById = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM casas_apostas WHERE id = $1', [req.params.id]);
+    const result = await pool.query('SELECT * FROM casas_apostas WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     
     if (result.rows.length === 0) {
       res.status(404).json({ error: 'Casa de apostas não encontrada' });
@@ -39,8 +39,8 @@ const addCasa = async (req, res) => {
   
   try {
     const result = await pool.query(
-      'INSERT INTO casas_apostas (nome, logo, saldo) VALUES ($1, $2, $3) RETURNING *',
-      [nome, logo, saldo]
+      'INSERT INTO casas_apostas (nome, logo, saldo, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nome, logo, saldo, req.user.id]
     );
     
     res.status(201).json(result.rows[0]);
@@ -80,10 +80,11 @@ const updateCasa = async (req, res) => {
   }
   
   values.push(req.params.id);
+  values.push(req.user.id);
   
   try {
     const result = await pool.query(
-      `UPDATE casas_apostas SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE casas_apostas SET ${updates.join(', ')} WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING *`,
       values
     );
     
@@ -111,10 +112,10 @@ const deleteCasa = async (req, res) => {
       
       // Atualizar as transações relacionadas para preservar o histórico
       // Definir casa_id como NULL nas transações da casa excluída
-      await client.query('UPDATE transacoes SET casa_id = NULL WHERE casa_id = $1', [casaId]);
+      await client.query('UPDATE transacoes SET casa_id = NULL WHERE casa_id = $1 AND user_id = $2', [casaId, req.user.id]);
       
       // Agora remover a casa de apostas
-      const result = await client.query('DELETE FROM casas_apostas WHERE id = $1', [casaId]);
+      const result = await client.query('DELETE FROM casas_apostas WHERE id = $1 AND user_id = $2', [casaId, req.user.id]);
       
       if (result.rowCount === 0) {
         await client.query('ROLLBACK');
@@ -142,4 +143,4 @@ module.exports = {
   addCasa,
   updateCasa,
   deleteCasa
-}; 
+};

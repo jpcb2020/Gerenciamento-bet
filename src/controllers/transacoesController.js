@@ -12,10 +12,11 @@ const getAllTransacoes = async (req, res) => {
              COALESCE(c.logo, '/images/bet-default-icon.png') as casa_logo 
       FROM transacoes t
       LEFT JOIN casas_apostas c ON t.casa_id = c.id
+      WHERE t.user_id = $1
       ORDER BY t.data DESC
     `;
     
-    const params = [];
+    const params = [req.user.id];
     if (req.query.limit) {
       const limit = parseInt(req.query.limit, 10);
       console.log('Parsed limit:', limit); // Log parsed limit
@@ -44,11 +45,11 @@ const getTransacoesByCasaId = async (req, res) => {
              COALESCE(c.logo, '/images/bet-default-icon.png') as casa_logo 
       FROM transacoes t
       LEFT JOIN casas_apostas c ON t.casa_id = c.id
-      WHERE t.casa_id = $1
+      WHERE t.casa_id = $1 AND t.user_id = $2
       ORDER BY t.data DESC
     `;
     
-    const result = await pool.query(query, [req.params.id]);
+    const result = await pool.query(query, [req.params.id, req.user.id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -80,8 +81,8 @@ const addTransacao = async (req, res) => {
       const dataAtualBrasil = new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' });
       
       const transactionResult = await client.query(
-        'INSERT INTO transacoes (casa_id, tipo, valor, descricao, status, data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-        [casa_id, tipo, valor, descricao, status, new Date(dataAtualBrasil)]
+        'INSERT INTO transacoes (casa_id, tipo, valor, descricao, status, data, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+        [casa_id, tipo, valor, descricao, status, new Date(dataAtualBrasil), req.user.id]
       );
       
       const transacaoId = transactionResult.rows[0].id;
@@ -95,8 +96,8 @@ const addTransacao = async (req, res) => {
       }
       
       await client.query(
-        'UPDATE casas_apostas SET saldo = saldo + $1 WHERE id = $2',
-        [saldoAdjustment, casa_id]
+        'UPDATE casas_apostas SET saldo = saldo + $1 WHERE id = $2 AND user_id = $3',
+        [saldoAdjustment, casa_id, req.user.id]
       );
       
       await client.query('COMMIT');
@@ -138,8 +139,8 @@ const deleteTransacao = async (req, res) => {
       
       // Primeiro, vamos obter a informação da transação para ajustar o saldo
       const transacaoResult = await client.query(
-        'SELECT casa_id, tipo, valor FROM transacoes WHERE id = $1',
-        [transacaoId]
+        'SELECT casa_id, tipo, valor FROM transacoes WHERE id = $1 AND user_id = $2',
+        [transacaoId, req.user.id]
       );
       
       if (transacaoResult.rows.length === 0) {
@@ -160,25 +161,25 @@ const deleteTransacao = async (req, res) => {
           saldoAdjustment = transacao.valor; // positivo porque estamos revertendo
         }
         
-        // Verificar se a casa ainda existe
+        // Verificar se a casa ainda existe e pertence ao usuário
         const casaResult = await client.query(
-          'SELECT id FROM casas_apostas WHERE id = $1',
-          [transacao.casa_id]
+          'SELECT id FROM casas_apostas WHERE id = $1 AND user_id = $2',
+          [transacao.casa_id, req.user.id]
         );
         
         if (casaResult.rows.length > 0) {
           // Atualizar o saldo da casa, somente se a casa ainda existir
           await client.query(
-            'UPDATE casas_apostas SET saldo = saldo + $1 WHERE id = $2',
-            [saldoAdjustment, transacao.casa_id]
+            'UPDATE casas_apostas SET saldo = saldo + $1 WHERE id = $2 AND user_id = $3',
+            [saldoAdjustment, transacao.casa_id, req.user.id]
           );
         }
       }
       
       // Agora podemos excluir a transação
       const deleteResult = await client.query(
-        'DELETE FROM transacoes WHERE id = $1',
-        [transacaoId]
+        'DELETE FROM transacoes WHERE id = $1 AND user_id = $2',
+        [transacaoId, req.user.id]
       );
       
       if (deleteResult.rowCount === 0) {
@@ -201,22 +202,22 @@ const deleteTransacao = async (req, res) => {
   }
 };
 
-// Delete ALL transactions and reset balances
+// Delete ALL transactions and reset balances for the user
 const deleteAllTransacoes = async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // Deletar todas as transações
-    await client.query('DELETE FROM transacoes');
+    // Deletar todas as transações do usuário
+    await client.query('DELETE FROM transacoes WHERE user_id = $1', [req.user.id]);
 
-    // Resetar o saldo de todas as casas de apostas para 0
+    // Resetar o saldo de todas as casas de apostas do usuário para 0
     // É importante fazer isso porque os saldos são derivados das transações.
     // Se não houver transações, o saldo deve ser zero.
-    // await client.query('UPDATE casas_apostas SET saldo = 0');
+    // await client.query('UPDATE casas_apostas SET saldo = 0 WHERE user_id = $1', [req.user.id]);
 
     await client.query('COMMIT');
-    res.json({ message: 'Todas as transações foram excluídas com sucesso. Os saldos das casas não foram alterados.' });
+    res.json({ message: 'Todas as suas transações foram excluídas com sucesso. Os saldos das casas não foram alterados.' });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Erro ao deletar todas as transações:', err);
@@ -232,4 +233,4 @@ module.exports = {
   addTransacao,
   deleteTransacao,
   deleteAllTransacoes
-}; 
+};

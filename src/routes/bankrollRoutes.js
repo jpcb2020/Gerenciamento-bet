@@ -5,7 +5,7 @@ const { pool } = require('../config/db');
 // GET all bankrolls
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, nome, categoria, saldo_atual FROM bankrolls ORDER BY nome');
+    const result = await pool.query('SELECT id, nome, categoria, saldo_atual FROM bankrolls WHERE user_id = $1 ORDER BY nome', [req.user.id]);
     res.json(result.rows);
   } catch (err) {
     console.error('Erro na rota GET /api/bankrolls:', err.message);
@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1 AND user_id = $2', [id, req.user.id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ msg: 'Bankroll não encontrado' });
     }
@@ -38,8 +38,8 @@ router.post('/', async (req, res) => {
   }
   try {
     const newBankroll = await pool.query(
-      'INSERT INTO bankrolls (nome, saldo_inicial, categoria, saldo_atual, casa_apostas, descricao, moeda, publico) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [nome, parseFloat(saldo_inicial), categoria, parseFloat(saldo_inicial), casa_apostas, descricao, moeda, publico]
+      'INSERT INTO bankrolls (nome, saldo_inicial, categoria, saldo_atual, casa_apostas, descricao, moeda, publico, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [nome, parseFloat(saldo_inicial), categoria, parseFloat(saldo_inicial), casa_apostas, descricao, moeda, publico, req.user.id]
     );
     res.json(newBankroll.rows[0]);
   } catch (err) {
@@ -60,8 +60,8 @@ router.put('/:id', async (req, res) => {
 
   try {
     const updatedBankroll = await pool.query(
-      'UPDATE bankrolls SET nome = $1, saldo_inicial = $2, categoria = $3, saldo_atual = $4, casa_apostas = $5, descricao = $6, moeda = $7, publico = $8 WHERE id = $9 RETURNING *',
-      [nome, parseFloat(saldo_inicial), categoria, parseFloat(saldo_inicial), casa_apostas, descricao, moeda, publico, id]
+      'UPDATE bankrolls SET nome = $1, saldo_inicial = $2, categoria = $3, saldo_atual = $4, casa_apostas = $5, descricao = $6, moeda = $7, publico = $8 WHERE id = $9 AND user_id = $10 RETURNING *',
+      [nome, parseFloat(saldo_inicial), categoria, parseFloat(saldo_inicial), casa_apostas, descricao, moeda, publico, id, req.user.id]
     );
     if (updatedBankroll.rows.length === 0) {
       return res.status(404).json({ msg: 'Bankroll não encontrado' });
@@ -77,7 +77,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const deleteOp = await pool.query('DELETE FROM bankrolls WHERE id = $1 RETURNING *', [id]);
+    const deleteOp = await pool.query('DELETE FROM bankrolls WHERE id = $1 AND user_id = $2 RETURNING *', [id, req.user.id]);
     if (deleteOp.rows.length === 0) {
       return res.status(404).json({ msg: 'Bankroll não encontrado' });
     }
@@ -88,4 +88,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;
