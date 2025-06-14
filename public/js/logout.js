@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     
                     if (response.ok) {
+                        // Marcar que o usuário acabou de fazer logout
+                        sessionStorage.setItem('justLoggedOut', 'true');
+                        
                         // Redirecionar para a página de login
                         window.location.href = '/login';
                     } else {
