@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const session = require('express-session');
+require('dotenv').config();
 const { initDb, pool } = require('./src/config/db'); // Atualizado para o novo caminho
 const axios = require('axios'); // Adicionar axios
 
@@ -12,6 +14,10 @@ const transacoesRoutes = require('./src/routes/transacoesRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const bankrollRoutes = require('./src/routes/bankrollRoutes');
 const surebetRoutes = require('./src/routes/surebetRoutes');
+const authRoutes = require('./src/routes/auth');
+
+// Import middleware
+const { requireAuth } = require('./src/middleware/auth');
 
 // Initialize express app
 const app = express();
@@ -27,25 +33,83 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public'))); // Servir arquivos estáticos da pasta public
 
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
 // Initialize Database
 initDb();
 
-// API Endpoints - Usar as rotas importadas
-app.use('/api/casas', casasRoutes);
-app.use('/api/transacoes', transacoesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/bankrolls', bankrollRoutes);
-app.use('/api/surebet', surebetRoutes);
+// Auth routes (não protegidas)
+app.use('/', authRoutes);
 
-// Rota principal para renderizar o dashboard.ejs da pasta views
-app.get('/', (req, res) => {
+// API Endpoints - Usar as rotas importadas (protegidas por autenticação)
+app.use('/api/casas', requireAuth, casasRoutes);
+app.use('/api/transacoes', requireAuth, transacoesRoutes);
+app.use('/api/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/bankrolls', requireAuth, bankrollRoutes);
+app.use('/api/surebet', requireAuth, surebetRoutes);
+
+// Rota principal para renderizar o dashboard.ejs da pasta views (protegida)
+app.get('/', requireAuth, (req, res) => {
   // Você pode passar dados para o template se necessário
-  res.render('dashboard', { title: 'Dashboard - Gerenciamento de Apostas' }); 
+  res.render('dashboard', { 
+    title: 'Dashboard - Gerenciamento de Apostas',
+    user: req.user
+  }); 
 });
 
-// Rota específica para o dashboard
-app.get('/dashboard', (req, res) => {
-  res.render('dashboard', { title: 'Dashboard - Gerenciamento de Apostas' });
+// Rota específica para o dashboard (protegida)
+app.get('/dashboard', requireAuth, (req, res) => {
+  res.render('dashboard', { 
+    title: 'Dashboard - Gerenciamento de Apostas',
+    user: req.user
+  });
+});
+
+// Rotas protegidas para as páginas
+app.get('/casas-de-apostas', requireAuth, (req, res) => {
+  res.render('casas-de-apostas', { 
+    title: 'Casas de Apostas - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/transacoes', requireAuth, (req, res) => {
+  res.render('transacoes', { 
+    title: 'Transações - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/bankrolls', requireAuth, (req, res) => {
+  res.render('bankrolls', { 
+    title: 'Bankrolls - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/casas-regulamentadas', requireAuth, (req, res) => {
+  res.render('casas-regulamentadas', { 
+    title: 'Casas Regulamentadas - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/surebet/:id', requireAuth, (req, res) => {
+  res.render('surebet-detail', { 
+    title: 'Detalhes da Surebet - BetManager',
+    user: req.user,
+    surebetId: req.params.id
+  });
 });
 
 // Rota para a nova página de casas detalhadas

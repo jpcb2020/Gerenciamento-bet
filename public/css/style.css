@@ -133,6 +133,28 @@ button {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Logout Button Styles */
+.logout-item {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.logout-item a {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: var(--transition);
+}
+
+.logout-item a:hover {
+    background-color: rgba(231, 76, 60, 0.2) !important;
+    color: #e74c3c !important;
+    border-left: 3px solid #e74c3c !important;
+}
+
+.logout-item a i {
+    color: #e74c3c;
+}
+
 /* Main Content */
 .main-content {
     flex: 1;
