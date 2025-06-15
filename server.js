@@ -115,34 +115,35 @@ app.get('/surebet/:id', requireAuth, (req, res) => {
 // Rotas duplicadas removidas - mantendo apenas as rotas protegidas acima
 
 // Rota para a página de detalhes de surebet
-app.get('/surebet-detail', async (req, res) => { // Transformar em async
+app.get('/surebet-detail', requireAuth, async (req, res) => { // Transformar em async
   const bankrollId = req.query.id;
   if (!bankrollId) {
     return res.status(400).send('ID do Bankroll não fornecido');
   }
 
   try {
-    // Construir a URL completa para a API
-    const apiUrl = `${req.protocol}://${req.get('host')}/api/bankrolls/${bankrollId}`;
-    const response = await axios.get(apiUrl);
-    const bankroll = response.data;
-
-    if (!bankroll || bankroll.categoria !== 'Surebet') {
-      // Redirecionar ou mostrar erro se não for Surebet ou não encontrado
+    // Buscar diretamente no banco de dados
+    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1 AND user_id = $2', [bankrollId, req.user.id]);
+    
+    if (result.rows.length === 0) {
+      return res.redirect('/bankrolls?error=not_surebet_or_found');
+    }
+    
+    const bankroll = result.rows[0];
+    
+    if (bankroll.categoria !== 'Surebet') {
+      // Redirecionar ou mostrar erro se não for Surebet
       return res.redirect('/bankrolls?error=not_surebet_or_found');
     }
 
     // Passar os dados do bankroll para o template
     res.render('surebet-detail', { 
       title: `Detalhes Surebet: ${bankroll.nome}`,
-      bankroll: bankroll // Passa o objeto bankroll inteiro
+      bankroll: bankroll, // Passa o objeto bankroll inteiro
+      user: req.user
     });
   } catch (error) {
     console.error('Erro ao buscar dados do bankroll:', error);
-    // Verificar se o erro é da API ou da requisição
-    if (error.response && error.response.status === 404) {
-        return res.status(404).send('Bankroll não encontrado.');
-    }
     res.status(500).send('Erro ao carregar detalhes do bankroll');
   }
 });
