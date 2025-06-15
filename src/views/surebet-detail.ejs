@@ -573,7 +573,7 @@
                 }
 
                 entries.forEach(entry => {
-                    const casasApostas = entry.bets.map(b => b.casa_apostas).join(', ');
+                    const casasApostas = entry.bets.map(b => `<div style="margin-bottom: 4px;">${b.casa_apostas} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span><br><small style="color: var(--text-light); font-size: 0.75rem; margin-left: 0;">${b.mercado || 'Mercado não informado'}</small></div>`).join('');
                     const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
                     const lucro = parseFloat(entry.lucro_total);
                     
