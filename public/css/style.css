@@ -3059,49 +3059,377 @@ table td {
     grid-column: span 2;
 }
 
-/* Modal para Nova Entrada */
-#newEntryModal .modal-content {
-    max-width: 700px; /* Aumentar um pouco a largura para este modal específico */
-    max-height: 90vh; /* Limitar a altura a 90% da altura da viewport */
-    display: flex; /* Para permitir que o form cresça e o modal-body role */
+/* Modal de Nova Entrada - Design Moderno */
+.modern-modal {
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    display: flex;
     flex-direction: column;
+    margin: 20px auto;
 }
 
-#newEntryModal .modal-body-scrollable {
-    overflow-y: auto; /* Adicionar rolagem ao corpo do modal */
-    padding-right: 15px; /* Espaço para a barra de rolagem */
+.modern-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 24px;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.header-text h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.header-text p {
+    margin: 4px 0 0 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.modern-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.modern-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.modern-body {
+    padding: 24px 32px 32px 32px;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
     flex-grow: 1;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f1f3f4;
 }
 
-.entry-bets {
-    border-radius: 8px;
-    padding: 15px;
+.modern-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modern-body::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.modern-body::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 3px;
+}
+
+.modern-body::-webkit-scrollbar-thumb:hover {
+    background: #5a6fd8;
+}
+
+/* Seções do Formulário */
+.form-section {
+    margin-bottom: 32px;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+.section-header i {
+    color: #667eea;
+    font-size: 18px;
+}
+
+.section-header h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Inputs Modernos */
+.modern-input {
     margin-bottom: 20px;
 }
 
-.entry-bets h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
+.modern-input label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
 }
 
-.entry-bet {
-    padding: 15px;
-    background-color: var(--bg-color);
+.modern-input label i {
+    color: #6c757d;
+    font-size: 14px;
+    width: 16px;
+}
+
+.modern-input input,
+.modern-input textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
     border-radius: 8px;
-    margin-bottom: 15px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.modern-input input:focus,
+.modern-input textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.modern-input textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Cards de Apostas */
+.modern-bets {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modern-bet-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-bet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.modern-bet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
 }
 
 .bet-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    margin-bottom: 16px;
 }
 
-.bet-header h5 {
+.bet-number {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bet-badge {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.bet-number h5 {
     margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
 }
 
+.bet-content {
+    margin-top: 16px;
+}
+
+/* Botão Adicionar Aposta */
+.btn-add-bet {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.btn-add-bet:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-add-bet i {
+    font-size: 16px;
+}
+
+/* Ações do Formulário */
+.modern-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    padding-top: 24px;
+    border-top: 2px solid #f1f3f4;
+    margin-top: 32px;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .modern-modal {
+        max-width: 95%;
+        max-height: 95vh;
+        margin: 10px auto;
+        border-radius: 12px;
+    }
+    
+    .modern-header {
+        padding: 20px;
+    }
+    
+    .header-text h3 {
+        font-size: 20px;
+    }
+    
+    .modern-body {
+        padding: 16px 20px 20px 20px;
+        max-height: calc(95vh - 100px);
+    }
+    
+    .form-section {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .modern-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-row .form-group {
+        width: 100%;
+    }
+}
+
+/* Manter compatibilidade com estilos antigos */
 .btn-icon-small {
     width: 28px;
     height: 28px;

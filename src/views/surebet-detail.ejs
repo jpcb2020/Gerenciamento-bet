@@ -418,89 +418,195 @@
 
     <!-- Modal para Adicionar Nova Entrada -->
     <div id="newEntryModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>Nova Entrada de Surebet</h3>
-            <div class="modal-body-scrollable">
+        <div class="modal-content modern-modal">
+            <div class="modal-header modern-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3>Nova Entrada de Surebet</h3>
+                        <p>Configure uma nova oportunidade de arbitragem</p>
+                    </div>
+                </div>
+                <button class="close-modal modern-close" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body-scrollable modern-body">
                 <form id="newEntryForm">
-                    <div class="form-group">
-                        <label for="entryEvent">Evento</label>
-                        <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
-                    </div>
-                    <div class="form-group">
-                        <label for="entryCompetition">Competição</label>
-                        <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="entryDate">Data</label>
-                            <input type="date" id="entryDate" required>
+                    <!-- Seção de Informações do Evento -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h4>Informações do Evento</h4>
                         </div>
-                        <div class="form-group">
-                            <label for="entryTime">Hora</label>
-                            <input type="time" id="entryTime" required>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryEvent">
+                                <i class="fas fa-futbol"></i>
+                                Evento
+                            </label>
+                            <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryCompetition">
+                                <i class="fas fa-trophy"></i>
+                                Competição
+                            </label>
+                            <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="entryDate">
+                                    <i class="fas fa-calendar"></i>
+                                    Data
+                                </label>
+                                <input type="date" id="entryDate" required>
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="entryTime">
+                                    <i class="fas fa-clock"></i>
+                                    Hora
+                                </label>
+                                <input type="time" id="entryTime" required>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="entry-bets" id="entryBetsContainer">
-                        <h4>Apostas</h4>
-                        <div class="entry-bet">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="betHouse1">Casa de Apostas</label>
-                                    <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
-                                </div>
-                                <div class="form-group">
-                                    <label for="betMarket1">Mercado</label>
-                                    <input type="text" id="betMarket1" required placeholder="Ex: Vitória Mandante">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="betOdds1">Odds</label>
-                                    <input type="number" id="betOdds1" required step="0.01" min="1" placeholder="2.00">
-                                </div>
-                                <div class="form-group">
-                                    <label for="betStake1">Valor Apostado (R$)</label>
-                                    <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
-                                </div>
-                            </div>
+                    <!-- Seção de Apostas -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-dice"></i>
+                            <h4>Configuração das Apostas</h4>
                         </div>
-                        <div class="entry-bet">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="betHouse2">Casa de Apostas</label>
-                                    <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                        
+                        <div class="entry-bets modern-bets" id="entryBetsContainer">
+                            <div class="entry-bet modern-bet-card">
+                                <div class="bet-header">
+                                    <div class="bet-number">
+                                        <span class="bet-badge">1</span>
+                                        <h5>Primeira Aposta</h5>
+                                    </div>
+                                    <button type="button" class="btn-icon-small remove-bet"><i class="fas fa-times"></i></button>
                                 </div>
-                                <div class="form-group">
-                                    <label for="betMarket2">Mercado</label>
-                                    <input type="text" id="betMarket2" required placeholder="Ex: Empate ou Fora">
+                                
+                                <div class="bet-content">
+                                    <div class="form-row">
+                                        <div class="form-group modern-input">
+                                            <label for="betHouse1">
+                                                <i class="fas fa-home"></i>
+                                                Casa de Apostas
+                                            </label>
+                                            <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
+                                        </div>
+                                        <div class="form-group modern-input">
+                                            <label for="betMarket1">
+                                                <i class="fas fa-target"></i>
+                                                Mercado
+                                            </label>
+                                            <input type="text" id="betMarket1" required placeholder="Ex: Vitória Mandante">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group modern-input">
+                                            <label for="betOdds1">
+                                                <i class="fas fa-percentage"></i>
+                                                Odds
+                                            </label>
+                                            <input type="number" id="betOdds1" required step="0.01" min="1" placeholder="2.00">
+                                        </div>
+                                        <div class="form-group modern-input">
+                                            <label for="betStake1">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                Valor Apostado (R$)
+                                            </label>
+                                            <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="betOdds2">Odds</label>
-                                    <input type="number" id="betOdds2" required step="0.01" min="1" placeholder="1.90">
+                            
+                            <div class="entry-bet modern-bet-card">
+                                <div class="bet-header">
+                                    <div class="bet-number">
+                                        <span class="bet-badge">2</span>
+                                        <h5>Segunda Aposta</h5>
+                                    </div>
+                                    <button type="button" class="btn-icon-small remove-bet"><i class="fas fa-times"></i></button>
                                 </div>
-                                <div class="form-group">
-                                    <label for="betStake2">Valor Apostado (R$)</label>
-                                    <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                                
+                                <div class="bet-content">
+                                    <div class="form-row">
+                                        <div class="form-group modern-input">
+                                            <label for="betHouse2">
+                                                <i class="fas fa-home"></i>
+                                                Casa de Apostas
+                                            </label>
+                                            <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                                        </div>
+                                        <div class="form-group modern-input">
+                                            <label for="betMarket2">
+                                                <i class="fas fa-target"></i>
+                                                Mercado
+                                            </label>
+                                            <input type="text" id="betMarket2" required placeholder="Ex: Empate ou Fora">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group modern-input">
+                                            <label for="betOdds2">
+                                                <i class="fas fa-percentage"></i>
+                                                Odds
+                                            </label>
+                                            <input type="number" id="betOdds2" required step="0.01" min="1" placeholder="1.90">
+                                        </div>
+                                        <div class="form-group modern-input">
+                                            <label for="betStake2">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                Valor Apostado (R$)
+                                            </label>
+                                            <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <button type="button" id="addMoreBetBtn" class="btn-add-bet">
+                                <i class="fas fa-plus"></i>
+                                <span>Adicionar Outra Aposta</span>
+                            </button>
                         </div>
-                        <button type="button" id="addMoreBetBtn" class="btn-outline btn-sm">
-                            <i class="fas fa-plus"></i> Adicionar Outra Aposta
+                    </div>
+
+                    <!-- Seção de Observações -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-sticky-note"></i>
+                            <h4>Observações</h4>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryNotes">
+                                <i class="fas fa-comment"></i>
+                                Notas Adicionais
+                            </label>
+                            <textarea id="entryNotes" rows="3" placeholder="Adicione observações sobre esta surebet, estratégias ou informações importantes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions modern-actions">
+                        <button type="button" id="cancelEntryBtn" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
                         </button>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="entryNotes">Observações</label>
-                        <textarea id="entryNotes" rows="3" placeholder="Notas adicionais sobre esta surebet..."></textarea>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Salvar Entrada</button>
-                        <button type="button" id="cancelEntryBtn" class="btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i>
+                            Salvar Entrada
+                        </button>
                     </div>
                 </form>
             </div>
@@ -649,7 +755,37 @@
             const closeModalBtn = document.querySelector('.modal .close-modal');
             const cancelEntryBtn = document.getElementById('cancelEntryBtn');
 
+            // Função para limpar o modal
+            function clearModal() {
+                // Limpar campos de informações do evento
+                document.getElementById('entryEvent').value = '';
+                document.getElementById('entryCompetition').value = '';
+                document.getElementById('entryDate').value = '';
+                document.getElementById('entryTime').value = '';
+                
+                // Limpar campos das apostas
+                const betInputs = document.querySelectorAll('#newEntryModal input[type="text"], #newEntryModal input[type="number"]');
+                betInputs.forEach(input => {
+                    if (input.id !== 'entryEvent' && input.id !== 'entryCompetition' && input.id !== 'entryDate' && input.id !== 'entryTime') {
+                        input.value = '';
+                    }
+                });
+                
+                // Resetar contador de apostas para 2 (primeira e segunda aposta)
+                betCount = 2;
+                
+                // Remover apostas extras (manter apenas as duas primeiras)
+                const allBets = document.querySelectorAll('#newEntryModal .entry-bet');
+                for (let i = 2; i < allBets.length; i++) {
+                    allBets[i].remove();
+                }
+                
+                // Renumerar as apostas restantes
+                renumberBets();
+            }
+
             addSurebetEntryBtn.addEventListener('click', () => {
+                clearModal();
                 newEntryModal.classList.add('active');
             });
 
@@ -672,33 +808,101 @@
             const entryBetsContainer = document.getElementById('entryBetsContainer');
             let betCount = 2;
 
+            // Função para renumerar todas as apostas
+            function renumberBets() {
+                const betElements = entryBetsContainer.querySelectorAll('.entry-bet');
+                betElements.forEach((betElement, index) => {
+                    const betNumber = index + 1;
+                    
+                    // Atualiza o badge e título
+                    const badge = betElement.querySelector('.bet-badge');
+                    const title = betElement.querySelector('h5');
+                    if (badge) badge.textContent = betNumber;
+                    if (title) title.textContent = `Aposta ${betNumber}`;
+                    
+                    // Atualiza os IDs dos inputs
+                    const inputs = betElement.querySelectorAll('input');
+                    const labels = betElement.querySelectorAll('label');
+                    
+                    inputs.forEach(input => {
+                        const currentId = input.id;
+                        if (currentId.includes('betHouse')) {
+                            input.id = `betHouse${betNumber}`;
+                        } else if (currentId.includes('betMarket')) {
+                            input.id = `betMarket${betNumber}`;
+                        } else if (currentId.includes('betOdds')) {
+                            input.id = `betOdds${betNumber}`;
+                        } else if (currentId.includes('betStake')) {
+                            input.id = `betStake${betNumber}`;
+                        }
+                    });
+                    
+                    // Atualiza os labels
+                    labels.forEach(label => {
+                        const currentFor = label.getAttribute('for');
+                        if (currentFor && currentFor.includes('bet')) {
+                            if (currentFor.includes('betHouse')) {
+                                label.setAttribute('for', `betHouse${betNumber}`);
+                            } else if (currentFor.includes('betMarket')) {
+                                label.setAttribute('for', `betMarket${betNumber}`);
+                            } else if (currentFor.includes('betOdds')) {
+                                label.setAttribute('for', `betOdds${betNumber}`);
+                            } else if (currentFor.includes('betStake')) {
+                                label.setAttribute('for', `betStake${betNumber}`);
+                            }
+                        }
+                    });
+                });
+                
+                // Atualiza o contador global
+                betCount = betElements.length;
+            }
+
             addMoreBetBtn.addEventListener('click', () => {
                 betCount++;
                 const newBet = document.createElement('div');
-                newBet.className = 'entry-bet';
+                newBet.className = 'entry-bet modern-bet-card';
                 newBet.innerHTML = `
                     <div class="bet-header">
-                        <h5>Aposta ${betCount}</h5>
+                        <div class="bet-number">
+                            <span class="bet-badge">${betCount}</span>
+                            <h5>Aposta ${betCount}</h5>
+                        </div>
                         <button type="button" class="btn-icon-small remove-bet"><i class="fas fa-times"></i></button>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="betHouse${betCount}">Casa de Apostas</label>
-                            <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet">
+                    
+                    <div class="bet-content">
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="betHouse${betCount}">
+                                    <i class="fas fa-home"></i>
+                                    Casa de Apostas
+                                </label>
+                                <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet">
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="betMarket${betCount}">
+                                    <i class="fas fa-target"></i>
+                                    Mercado
+                                </label>
+                                <input type="text" id="betMarket${betCount}" required placeholder="Ex: Mais/Menos Gols">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="betMarket${betCount}">Mercado</label>
-                            <input type="text" id="betMarket${betCount}" required placeholder="Ex: Mais/Menos Gols">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="betOdds${betCount}">Odds</label>
-                            <input type="number" id="betOdds${betCount}" required step="0.01" min="1" placeholder="2.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="betStake${betCount}">Valor Apostado (R$)</label>
-                            <input type="number" id="betStake${betCount}" required step="0.01" min="0" placeholder="100.00">
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="betOdds${betCount}">
+                                    <i class="fas fa-percentage"></i>
+                                    Odds
+                                </label>
+                                <input type="number" id="betOdds${betCount}" required step="0.01" min="1" placeholder="2.00">
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="betStake${betCount}">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    Valor Apostado (R$)
+                                </label>
+                                <input type="number" id="betStake${betCount}" required step="0.01" min="0" placeholder="100.00">
+                            </div>
                         </div>
                     </div>
                 `;
@@ -710,6 +914,15 @@
                 const removeBtn = newBet.querySelector('.remove-bet');
                 removeBtn.addEventListener('click', function() {
                     newBet.remove();
+                    renumberBets(); // Renumera após remoção
+                });
+            });
+            
+            // Adiciona handler para apostas já existentes
+            document.querySelectorAll('.remove-bet').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    btn.closest('.entry-bet').remove();
+                    renumberBets(); // Renumera após remoção
                 });
             });
 
