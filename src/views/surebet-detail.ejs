@@ -1066,6 +1066,45 @@
                 fetchSurebetEntries();
             }
 
+            // Event listener para botões de deletar
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.action-btn.delete')) {
+                    e.preventDefault();
+                    const entryId = e.target.closest('.action-btn.delete').dataset.entryId;
+                    deleteSurebetEntry(entryId);
+                }
+            });
+
+            // Função para deletar entrada de surebet
+            async function deleteSurebetEntry(entryId) {
+                if (!confirm('Tem certeza que deseja excluir esta entrada de surebet? Esta ação não pode ser desfeita.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/surebet/entries/${bankrollId}/${entryId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Mostrar mensagem de sucesso
+                        alert('Entrada de surebet excluída com sucesso!');
+                        // Recarregar a tabela
+                        fetchSurebetEntries();
+                    } else {
+                        alert('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir entrada de surebet:', error);
+                    alert('Erro ao excluir entrada. Tente novamente.');
+                }
+            }
+
             // Lógica para filtros da tabela de entradas
             const dateFilterEntries = document.getElementById('dateFilterEntries');
             const statusFilterEntries = document.getElementById('statusFilterEntries');
