@@ -2485,24 +2485,254 @@ table td {
 
 .entries-table {
     width: 100%;
-    border-collapse: collapse;
-}
-
-.entries-table th, 
-.entries-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: var(--card-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
 }
 
 .entries-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-color);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid var(--border-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.entries-table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.entries-table th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.entries-table td {
+    padding: 18px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-light);
+    vertical-align: middle;
+    transition: var(--transition);
+}
+
+.entries-table tbody tr {
+    transition: var(--transition);
+    cursor: pointer;
 }
 
 .entries-table tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.01);
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.02) 0%, rgba(162, 155, 254, 0.02) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.entries-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.entries-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.entries-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+/* Estilos para células específicas */
+.entries-table .date-cell {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.entries-table .event-cell {
+    font-weight: 500;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entries-table .house-cell {
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.entries-table .house-cell img {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.entries-table .value-cell {
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.entries-table .profit-cell {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.entries-table .profit-positive {
+    color: var(--green-color);
+    background-color: rgba(0, 184, 148, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.entries-table .profit-negative {
+    color: var(--red-color);
+    background-color: rgba(231, 76, 60, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.entries-table .profit-zero {
+    color: var(--text-light);
+    background-color: rgba(99, 110, 114, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.entries-table .status-cell {
+    text-align: center;
+}
+
+.entries-table .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.entries-table .status-pending {
+    background-color: rgba(230, 126, 34, 0.15);
+    color: var(--orange-color);
+    border: 1px solid rgba(230, 126, 34, 0.3);
+}
+
+.entries-table .status-complete {
+    background-color: rgba(0, 184, 148, 0.15);
+    color: var(--green-color);
+    border: 1px solid rgba(0, 184, 148, 0.3);
+}
+
+.entries-table .actions-cell {
+    text-align: center;
+}
+
+.entries-table .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: white;
+    transition: var(--transition);
+    margin: 0 2px;
+}
+
+.entries-table .action-btn:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+}
+
+.entries-table .action-btn.edit {
+    background-color: var(--blue-color);
+}
+
+.entries-table .action-btn.edit:hover {
+    background-color: #74b9ff;
+    box-shadow: 0 4px 8px rgba(9, 132, 227, 0.3);
+}
+
+.entries-table .action-btn.delete {
+    background-color: var(--red-color);
+}
+
+.entries-table .action-btn.delete:hover {
+    background-color: #fd79a8;
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+/* Estados especiais da tabela */
+.entries-table .loading-state,
+.entries-table .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+}
+
+.entries-table .loading-state i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.entries-table .empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.entries-table .empty-state-content i {
+    font-size: 2rem;
+    color: var(--text-light);
+    opacity: 0.5;
+}
+
+.entries-table .empty-state-content h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.entries-table .empty-state-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+/* Responsividade melhorada */
+@media (max-width: 768px) {
+    .entries-table-container {
+        padding: 0 10px 20px;
+    }
+    
+    .entries-table th,
+    .entries-table td {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .entries-table .event-cell {
+        max-width: 120px;
+    }
+    
+    .entries-table .action-btn {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 /* Estilos para a Tab Opportunities */
