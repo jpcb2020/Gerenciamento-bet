@@ -112,25 +112,7 @@ app.get('/surebet/:id', requireAuth, (req, res) => {
   });
 });
 
-// Rota para a nova página de casas detalhadas
-app.get('/casas-de-apostas', (req, res) => {
-  res.render('casas-de-apostas', { title: 'Casas de Apostas' });
-});
-
-// Rota para a página de transações
-app.get('/transacoes', (req, res) => {
-  res.render('transacoes', { title: 'Transações' });
-});
-
-// Rota para a página de bankrolls
-app.get('/bankrolls', (req, res) => {
-  res.render('bankrolls', { title: 'Gerenciar Bankrolls' });
-});
-
-// Rota para a página de casas regulamentadas
-app.get('/casas-regulamentadas', (req, res) => {
-  res.render('casas-regulamentadas', { title: 'Casas Regulamentadas' });
-});
+// Rotas duplicadas removidas - mantendo apenas as rotas protegidas acima
 
 // Rota para a página de detalhes de surebet
 app.get('/surebet-detail', async (req, res) => { // Transformar em async
