@@ -974,6 +974,24 @@
                     }
                 });
                 
+                // Limpar checkboxes de exchange
+                const exchangeCheckboxes = document.querySelectorAll('#newEntryModal input[type="checkbox"]');
+                exchangeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Limpar selects de tipo de aposta
+                const betTypeSelects = document.querySelectorAll('#newEntryModal select');
+                betTypeSelects.forEach(select => {
+                    select.value = '';
+                });
+                
+                // Ocultar campos de exchange
+                const exchangeFields = document.querySelectorAll('#newEntryModal .exchange-fields');
+                exchangeFields.forEach(field => {
+                    field.style.display = 'none';
+                });
+                
                 // Resetar contador de apostas para 2 (primeira e segunda aposta)
                 betCount = 2;
                 
