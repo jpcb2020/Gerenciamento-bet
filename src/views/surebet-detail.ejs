@@ -6,6 +6,115 @@
     <title>Detalhes Surebet - BetManager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Estilos específicos para campos de exchange */
+        .exchange-fields {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .modern-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-color);
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .checkbox-container:hover {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .checkmark {
+            position: relative;
+            height: 20px;
+            width: 20px;
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .checkbox-container i {
+            margin-right: 8px;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+        
+        .checkbox-container input:checked ~ i {
+            color: var(--primary-color);
+        }
+        
+        .liability-row {
+            border-top: 1px solid #e9ecef;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .exchange-fields select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+        
+        .exchange-fields select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -527,6 +636,49 @@
                                             <input type="number" id="betStake1" required step="0.01" min="0" placeholder="100.00">
                                         </div>
                                     </div>
+                                    
+                                    <!-- Exchange Options -->
+                                    <div class="form-row">
+                                        <div class="form-group modern-checkbox">
+                                            <label class="checkbox-container">
+                                                <input type="checkbox" id="isExchange1" onchange="toggleExchangeFields(1)">
+                                                <span class="checkmark"></span>
+                                                <i class="fas fa-exchange-alt"></i>
+                                                É Exchange?
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="exchange-fields" id="exchangeFields1" style="display: none;">
+                                        <div class="form-row">
+                                            <div class="form-group modern-input">
+                                                <label for="betType1">
+                                                    <i class="fas fa-arrows-alt-h"></i>
+                                                    Tipo de Aposta
+                                                </label>
+                                                <select id="betType1" onchange="toggleLiabilityField(1)">
+                                                    <option value="back">Back (Apostar A Favor)</option>
+                                                    <option value="lay">Lay (Apostar Contra)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group modern-input">
+                                                <label for="commission1">
+                                                    <i class="fas fa-percent"></i>
+                                                    Comissão (%)
+                                                </label>
+                                                <input type="number" id="commission1" step="0.1" min="0" max="100" placeholder="5.0">
+                                            </div>
+                                        </div>
+                                        <div class="form-row liability-row" id="liabilityRow1" style="display: none;">
+                                            <div class="form-group modern-input">
+                                                <label for="liability1">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    Responsabilidade (R$)
+                                                </label>
+                                                <input type="number" id="liability1" step="0.01" min="0" placeholder="Calculado automaticamente" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -570,6 +722,49 @@
                                                 Valor Apostado (R$)
                                             </label>
                                             <input type="number" id="betStake2" required step="0.01" min="0" placeholder="100.00">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Exchange Options -->
+                                    <div class="form-row">
+                                        <div class="form-group modern-checkbox">
+                                            <label class="checkbox-container">
+                                                <input type="checkbox" id="isExchange2" onchange="toggleExchangeFields(2)">
+                                                <span class="checkmark"></span>
+                                                <i class="fas fa-exchange-alt"></i>
+                                                É Exchange?
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="exchange-fields" id="exchangeFields2" style="display: none;">
+                                        <div class="form-row">
+                                            <div class="form-group modern-input">
+                                                <label for="betType2">
+                                                    <i class="fas fa-arrows-alt-h"></i>
+                                                    Tipo de Aposta
+                                                </label>
+                                                <select id="betType2" onchange="toggleLiabilityField(2)">
+                                                    <option value="back">Back (Apostar A Favor)</option>
+                                                    <option value="lay">Lay (Apostar Contra)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group modern-input">
+                                                <label for="commission2">
+                                                    <i class="fas fa-percent"></i>
+                                                    Comissão (%)
+                                                </label>
+                                                <input type="number" id="commission2" step="0.1" min="0" max="100" placeholder="5.0">
+                                            </div>
+                                        </div>
+                                        <div class="form-row liability-row" id="liabilityRow2" style="display: none;">
+                                            <div class="form-group modern-input">
+                                                <label for="liability2">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    Responsabilidade (R$)
+                                                </label>
+                                                <input type="number" id="liability2" step="0.01" min="0" placeholder="Calculado automaticamente" readonly>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -679,7 +874,15 @@
                 }
 
                 entries.forEach(entry => {
-                    const casasApostas = entry.bets.map(b => `<div style="margin-bottom: 4px;">${b.casa_apostas} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span><br><small style="color: var(--text-light); font-size: 0.75rem; margin-left: 0;">${b.mercado || 'Mercado não informado'}</small></div>`).join('');
+                    const casasApostas = entry.bets.map(b => {
+                        let exchangeInfo = '';
+                        if (b.is_exchange) {
+                            const exchangeType = b.bet_type === 'lay' ? 'Lay' : 'Back';
+                            const commission = b.commission ? ` (${b.commission}%)` : '';
+                            exchangeInfo = ` <span style="background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem;">${exchangeType}${commission}</span>`;
+                        }
+                        return `<div style="margin-bottom: 4px;">${b.casa_apostas}${exchangeInfo} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span><br><small style="color: var(--text-light); font-size: 0.75rem; margin-left: 0;">${b.mercado || 'Mercado não informado'}</small></div>`;
+                    }).join('');
                     const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
                     const lucro = parseFloat(entry.lucro_total);
                     
@@ -904,6 +1107,49 @@
                                 <input type="number" id="betStake${betCount}" required step="0.01" min="0" placeholder="100.00">
                             </div>
                         </div>
+                        
+                        <!-- Exchange Options -->
+                        <div class="form-row">
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="isExchange${betCount}" onchange="toggleExchangeFields(${betCount})">
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-exchange-alt"></i>
+                                    É Exchange?
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="exchange-fields" id="exchangeFields${betCount}" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="betType${betCount}">
+                                        <i class="fas fa-arrows-alt-h"></i>
+                                        Tipo de Aposta
+                                    </label>
+                                    <select id="betType${betCount}" onchange="toggleLiabilityField(${betCount})">
+                                        <option value="back">Back (Apostar A Favor)</option>
+                                        <option value="lay">Lay (Apostar Contra)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group modern-input">
+                                    <label for="commission${betCount}">
+                                        <i class="fas fa-percent"></i>
+                                        Comissão (%)
+                                    </label>
+                                    <input type="number" id="commission${betCount}" step="0.1" min="0" max="100" placeholder="5.0">
+                                </div>
+                            </div>
+                            <div class="form-row liability-row" id="liabilityRow${betCount}" style="display: none;">
+                                <div class="form-group modern-input">
+                                    <label for="liability${betCount}">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Responsabilidade (R$)
+                                    </label>
+                                    <input type="number" id="liability${betCount}" step="0.01" min="0" placeholder="Calculado automaticamente" readonly>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
@@ -950,12 +1196,35 @@
                     const market = betElement.querySelector(`input[id^="betMarket"]`).value;
                     const odds = betElement.querySelector(`input[id^="betOdds"]`).value;
                     const stake = betElement.querySelector(`input[id^="betStake"]`).value;
+                    
+                    // Campos de exchange
+                    const isExchangeCheckbox = betElement.querySelector(`input[id^="isExchange"]`);
+                    const isExchange = isExchangeCheckbox ? isExchangeCheckbox.checked : false;
+                    const betTypeSelect = betElement.querySelector(`select[id^="betType"]`);
+                    const betType = betTypeSelect ? betTypeSelect.value : null;
+                    const commissionInput = betElement.querySelector(`input[id^="commission"]`);
+                    const commission = commissionInput ? parseFloat(commissionInput.value) || 0 : 0;
+                    const liabilityInput = betElement.querySelector(`input[id^="liability"]`);
+                    const liability = liabilityInput ? parseFloat(liabilityInput.value) || 0 : 0;
 
                     if (!house || !market || !odds || !stake) {
                         alert('Por favor, preencha todos os campos de todas as apostas.');
                         return;
                     }
-                    entryBetsData.push({ house, market, odds, stake });
+                    
+                    const betData = { house, market, odds, stake };
+                    
+                    // Adicionar campos de exchange se aplicável
+                    if (isExchange) {
+                        betData.isExchange = true;
+                        betData.betType = betType;
+                        betData.commission = commission;
+                        if (betType === 'lay') {
+                            betData.liability = liability;
+                        }
+                    }
+                    
+                    entryBetsData.push(betData);
                 }
 
                 if (entryBetsData.length === 0) {
@@ -1126,6 +1395,66 @@
                 clearTimeout(searchEntriesInput.timer);
                 searchEntriesInput.timer = setTimeout(applyFilters, 500);
             });
+        });
+
+        // Funções para controlar campos de exchange
+        function toggleExchangeFields(betNumber) {
+            const isExchangeCheckbox = document.getElementById(`isExchange${betNumber}`);
+            const exchangeFields = document.getElementById(`exchangeFields${betNumber}`);
+            
+            if (isExchangeCheckbox.checked) {
+                exchangeFields.style.display = 'block';
+                // Verificar se é lay para mostrar campo de responsabilidade
+                toggleLiabilityField(betNumber);
+            } else {
+                exchangeFields.style.display = 'none';
+            }
+        }
+
+        function toggleLiabilityField(betNumber) {
+            const betTypeSelect = document.getElementById(`betType${betNumber}`);
+            const liabilityRow = document.getElementById(`liabilityRow${betNumber}`);
+            const liabilityInput = document.getElementById(`liability${betNumber}`);
+            
+            if (betTypeSelect.value === 'lay') {
+                liabilityRow.style.display = 'block';
+                // Calcular responsabilidade automaticamente
+                calculateLiability(betNumber);
+            } else {
+                liabilityRow.style.display = 'none';
+                liabilityInput.value = '';
+            }
+        }
+
+        function calculateLiability(betNumber) {
+            const oddsInput = document.getElementById(`betOdds${betNumber}`);
+            const stakeInput = document.getElementById(`betStake${betNumber}`);
+            const liabilityInput = document.getElementById(`liability${betNumber}`);
+            
+            const odds = parseFloat(oddsInput.value) || 0;
+            const stake = parseFloat(stakeInput.value) || 0;
+            
+            if (odds > 1 && stake > 0) {
+                // Responsabilidade = (Odds - 1) * Stake
+                const liability = (odds - 1) * stake;
+                liabilityInput.value = liability.toFixed(2);
+            } else {
+                liabilityInput.value = '';
+            }
+        }
+
+        // Adicionar event listeners para recalcular responsabilidade quando odds ou stake mudarem
+        document.addEventListener('input', function(e) {
+            if (e.target.id.includes('betOdds') || e.target.id.includes('betStake')) {
+                const betNumber = e.target.id.match(/\d+/)[0];
+                const betTypeSelect = document.getElementById(`betType${betNumber}`);
+                const isExchangeCheckbox = document.getElementById(`isExchange${betNumber}`);
+                
+                if (isExchangeCheckbox && isExchangeCheckbox.checked && 
+                    betTypeSelect && betTypeSelect.value === 'lay') {
+                    calculateLiability(betNumber);
+                }
+            }
         });
     </script>
     <script src="/js/main.js"></script>

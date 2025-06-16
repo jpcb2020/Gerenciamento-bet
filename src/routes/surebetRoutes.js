@@ -109,17 +109,41 @@ router.post('/entries', async (req, res) => {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ msg: `Dados incompletos para uma das apostas: ${JSON.stringify(bet)}` });
             }
-            const valorApostado = parseFloat(bet.stake);
             const odds = parseFloat(bet.odds);
+            
+            // Para apostas Lay em exchange, o valor apostado considerado é a liability
+            let valorApostado;
+            if (bet.isExchange && bet.betType === 'lay') {
+                valorApostado = parseFloat(bet.liability) || 0;
+            } else {
+                valorApostado = parseFloat(bet.stake);
+            }
+            
             const retornoPotencialIndividual = valorApostado * odds;
 
             totalValorApostado += valorApostado;
-            retornosIndividuais.push(retornoPotencialIndividual);
+            // Calcular retorno potencial baseado no tipo de aposta
+            let retornoPotencial;
+            if (bet.isExchange && bet.betType === 'lay') {
+                // Para apostas Lay, o retorno é o valor apostado (liability) + stake
+                const stake = parseFloat(bet.stake);
+                retornoPotencial = valorApostado + stake;
+            } else if (bet.isExchange && bet.betType === 'back') {
+                // Para apostas Back em exchange, considerar comissão
+                const lucroSemComissao = (odds - 1) * valorApostado;
+                const comissao = lucroSemComissao * (bet.commission / 100);
+                retornoPotencial = valorApostado + lucroSemComissao - comissao;
+            } else {
+                // Aposta tradicional
+                retornoPotencial = retornoPotencialIndividual;
+            }
+            
+            retornosIndividuais.push(retornoPotencial);
 
             const surebetEntryBetQuery = `
-                INSERT INTO surebet_entry_bets
-                    (surebet_entry_id, casa_apostas, mercado, odds, valor_apostado, retorno_potencial, status_aposta, user_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+                INSERT INTO surebet_entry_bets 
+                    (surebet_entry_id, casa_apostas, mercado, odds, valor_apostado, retorno_potencial, status_aposta, user_id, is_exchange, bet_type, commission, liability)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
             `;
             await client.query(surebetEntryBetQuery, [
                 surebetEntryId,
@@ -127,9 +151,13 @@ router.post('/entries', async (req, res) => {
                 bet.market,
                 odds,
                 valorApostado,
-                retornoPotencialIndividual, // Armazena o retorno desta perna específica
+                retornoPotencial,
                 'Pendente',
-                req.user.id
+                req.user.id,
+                bet.isExchange || false,
+                bet.betType || null,
+                bet.commission || null,
+                bet.liability || null
             ]);
         }
         
