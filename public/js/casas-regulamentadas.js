@@ -18,9 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0002/2024",
             portaria: "SPA/MF nº 2.090, de 30 de dezembro de 2024",
             casas: [
-                { nome: "SUPERBET", dominio: "superbet.bet.br" },
-                { nome: "MAGICIACKPOT", dominio: "magicjackpot.bet.br" },
-                { nome: "SUPER", dominio: "super.bet.br" }
+                { nome: "SUPERBET", dominio: "superbet.bet.br" }
             ]
         },
         // MMD TECNOLOGIA, ENTRETENIMENTO E MARKETING LTDA
@@ -30,8 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0003/2024",
             portaria: "SPA/MF nº 2.091, de 30 de dezembro 2024",
             casas: [
-                { nome: "REI DO PITACO", dominio: "reidopitaco.bet.br" },
-                { nome: "PITACO", dominio: "pitaco.bet.br" }
+                { nome: "REI DO PITACO", dominio: "reidopitaco.bet.br" }
             ]
         },
         // VENTMEAR BRASIL S.A.
@@ -53,8 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 370, de 24 de fevereiro de 2025",
             casas: [
                 { nome: "BIG", dominio: "big.bet.br" },
-                { nome: "APOSTAR", dominio: "apostar.bet.br" },
-                { nome: "CAESARS", dominio: "caesars.bet.br" }
+                { nome: "APOSTAR", dominio: "apostar.bet.br" }
             ]
         },
         // NSX BRASIL S.A.
@@ -64,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0006/2024",
             portaria: "SPA/MF nº 2.092, de 30 de dezembro de 2024",
             casas: [
-                { nome: "BETNACIONAL", dominio: "betnacional.bet.br" },
-                { nome: "MR. JACK BET", dominio: "mrjack.bet.br" }
+                { nome: "BETNACIONAL", dominio: "betnacional.bet.br" }
             ]
         },
         // APOLLO OPERATIONS LTDA
@@ -106,8 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 319, de 17 de fevereiro de 2025",
             casas: [
                 { nome: "F12.BET", dominio: "f12.bet.br" },
-                { nome: "LUVA.BET", dominio: "luva.bet.br" },
-                { nome: "BRASILBET", dominio: "brasilbet.bet.br" }
+                { nome: "LUVA.BET", dominio: "luva.bet.br" }
             ]
         },
         // BLAC JOGOS LTDA
@@ -138,8 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 372, de 24 de fevereiro de 2025",
             casas: [
                 { nome: "REALS", dominio: "reals.bet.br" },
-                { nome: "UX", dominio: "ux.bet.br" },
-                { nome: "NETPIX", dominio: "não registrado" }
+                { nome: "UX", dominio: "ux.bet.br" }
             ]
         },
         // BETFAIR BRASIL LTDA
@@ -214,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0020/2024",
             portaria: "SPA/MF nº 465, de 10 de março de 2025",
             casas: [
-                { nome: "1JOGO", dominio: "1jogo.bet.br" },
                 { nome: "FOGO777", dominio: "fogo777.bet.br" },
                 { nome: "P9", dominio: "p9.bet.br" }
             ]
@@ -279,8 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0028/2024",
             portaria: "SPA/MF nº 254, de 07 de fevereiro de 2025",
             casas: [
-                { nome: "VBET", dominio: "vbet.bet.br" },
-                { nome: "VIVARO", dominio: "vivaro.bet.br" }
+                { nome: "VBET", dominio: "vbet.bet.br" }
             ]
         },
         // CDA GAMING LTDA
@@ -301,7 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0030/2024",
             portaria: "SPA/MF nº 136, de 22 de janeiro de 2025",
             casas: [
-                { nome: "JOGO ONLINE", dominio: "jogoonline.bet.br" },
                 { nome: "ESPORTES DA SORTE", dominio: "esportesdasorte.bet.br" },
                 { nome: "ONABET", dominio: "ona.bet.br" },
                 { nome: "BETFAST", dominio: "betfast.bet.br" }
@@ -348,20 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0036/2024",
             portaria: "SPA/MF nº 2.098, de 30 de dezembro de 2024",
             casas: [
-                { nome: "BETMGM", dominio: "betmgm.bet.br" },
-                { nome: "MGM", dominio: "mgm.bet.br" }
+                { nome: "BETMGM", dominio: "betmgm.bet.br" }
             ]
         },
-        // BETSPEED LTDA
-        {
-            empresa: "BETSPEED LTDA",
-            cnpj: "56.061.524/0001-47",
-            requerimento: "0037/2024",
-            portaria: "SPA/MF nº 258, de 07 de fevereiro de 2025",
-            casas: [
-                { nome: "BETSPEED", dominio: "betspeed.bet.br" }
-            ]
-        },
+
         // BLOW MARKETPLACE LTDA
         {
             empresa: "BLOW MARKETPLACE LTDA",
@@ -370,8 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 468, de 10 de março de 2025",
             casas: [
                 { nome: "BRAVO", dominio: "bravo.bet.br" },
-                { nome: "TRADICIONAL", dominio: "tradicional.bet.br" },
-                { nome: "APOSTALUDO", dominio: "apostaludo.bet.br" }
+                { nome: "TRADICIONAL", dominio: "tradicional.bet.br" }
             ]
         },
         // LEVANTE BRASIL LTDA
@@ -381,20 +360,10 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0040/2024",
             portaria: "SPA/MF nº 259, de 07 de fevereiro de 2025",
             casas: [
-                { nome: "SORTE ONLINE", dominio: "sorteonline.bet.br" },
-                { nome: "LOTOLAND", dominio: "lotoland.bet.br" }
+                { nome: "SORTE ONLINE", dominio: "sorteonline.bet.br" }
             ]
         },
-        // DIGIPLUS BRAZIL INTERACTIVE LTDA
-        {
-            empresa: "DIGIPLUS BRAZIL INTERACTIVE LTDA",
-            cnpj: "56.060.798/0001-11",
-            requerimento: "0041/2024",
-            portaria: "SPA/MF nº 2.099, de 30 de dezembro de 2024",
-            casas: [
-                { nome: "ARENAPLUS", dominio: "arenaplus.bet.br" }
-            ]
-        },
+
         // PIXBET SOLUÇÕES TECNOLÓGICAS LTDA.
         {
             empresa: "PIXBET SOLUÇÕES TECNOLÓGICAS LTDA.",
