@@ -1,0 +1,971 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const bankrollId = new URLSearchParams(window.location.search).get('id');
+
+    // Formatação de moeda e data
+    const formatCurrency = (value) => {
+        return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+               date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Função para buscar e renderizar entradas de surebet
+    async function fetchSurebetEntries(filters = {}) {
+        if (!bankrollId) return;
+
+        const entriesTableBody = document.getElementById('entriesTableBody');
+        entriesTableBody.innerHTML = '<tr><td colspan="8" class="loading-state"><i class="fas fa-spinner fa-spin"></i> Carregando entradas...</td></tr>';
+
+        try {
+            let apiUrl = `/api/surebet/entries/${bankrollId}`;
+            const queryParams = new URLSearchParams();
+            if (filters.period) queryParams.append('period', filters.period);
+            if (filters.status) queryParams.append('status', filters.status);
+            if (filters.search) queryParams.append('search', filters.search);
+            
+            if (queryParams.toString()) {
+                apiUrl += `?${queryParams.toString()}`;
+            }
+
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.msg || 'Erro ao buscar entradas de surebet');
+            }
+            const entries = await response.json();
+            renderEntriesTable(entries);
+        } catch (error) {
+            console.error('Erro ao buscar entradas:', error);
+            entriesTableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar entradas</h3><p>${error.message}</p></div></td></tr>`;
+        }
+    }
+
+    function renderEntriesTable(entries) {
+        const entriesTableBody = document.getElementById('entriesTableBody');
+        entriesTableBody.innerHTML = ''; // Limpar tabela
+
+        if (entries.length === 0) {
+            entriesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <div class="empty-state-content">
+                            <i class="fas fa-list"></i>
+                            <h3>Nenhuma entrada encontrada</h3>
+                            <p>Adicione uma nova entrada usando o botão "Nova Entrada" ou ajuste os filtros.</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        entries.forEach(entry => {
+            const casasApostas = entry.bets.map(b => {
+                let exchangeInfo = '';
+                if (b.is_exchange) {
+                    const exchangeType = b.bet_type === 'lay' ? 'Lay' : 'Back';
+                    const commission = b.commission ? ` (${b.commission}%)` : '';
+                    exchangeInfo = ` <span style="background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem;">${exchangeType}${commission}</span>`;
+                }
+                const logoPath = getLogoPath(b.casa_apostas);
+                return `<div style="margin-bottom: 4px; display: flex; align-items: flex-start; gap: 8px;"><img src="${logoPath}" alt="${b.casa_apostas}" style="width: 20px; height: 20px; object-fit: contain; border-radius: 3px; margin-top: 2px;"><div><div>${b.casa_apostas}${exchangeInfo} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span></div><small style="color: var(--text-light); font-size: 0.75rem;">${b.mercado || 'Mercado não informado'}</small></div></div>`;
+            }).join('');
+            const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
+            const lucro = parseFloat(entry.lucro_total);
+            
+            // Determinar classe do lucro
+            let profitClass = 'profit-zero';
+            if (lucro > 0) profitClass = 'profit-positive';
+            else if (lucro < 0) profitClass = 'profit-negative';
+            
+            // Determinar status
+            const status = entry.status ? entry.status.toLowerCase() : 'pendente';
+            const statusText = entry.status || 'Pendente';
+
+            const row = entriesTableBody.insertRow();
+            row.innerHTML = `
+                <td class="date-cell">${formatDate(entry.data_evento)}</td>
+                <td class="event-cell">
+                    <div style="font-weight: 500; margin-bottom: 2px;">${entry.evento}</div>
+                    <small style="color: var(--text-light); font-size: 0.8rem;">${entry.competicao || ''}</small>
+                </td>
+                <td class="house-cell">
+                    <span style="font-weight: 500;">${casasApostas}</span>
+                </td>
+                <td class="value-cell">${formatCurrency(valorTotalApostado)}</td>
+                <td class="value-cell">${formatCurrency(entry.retorno_total)}</td>
+                <td class="profit-cell">
+                    <span class="${profitClass}">${formatCurrency(entry.lucro_total)}</span>
+                </td>
+                <td class="status-cell">
+                    <span class="status-badge status-${status}">
+                        <i class="fas fa-${status === 'complete' ? 'check-circle' : 'clock'}"></i>
+                        ${statusText}
+                    </span>
+                </td>
+                <td class="actions-cell">
+                    <a href="#" class="action-btn" title="Ver Detalhes" data-entry-id="${entry.id}">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="#" class="action-btn edit" title="Editar" data-entry-id="${entry.id}">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="#" class="action-btn delete" title="Excluir" data-entry-id="${entry.id}">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            `;
+        });
+    }
+
+    // Inicialização das tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabTarget = button.dataset.tab;
+            
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            tabPanes.forEach(pane => {
+                pane.classList.toggle('active', pane.id === tabTarget + 'Tab');
+            });
+
+            if (tabTarget === 'entries') {
+                fetchSurebetEntries(); // Carregar entradas ao abrir a aba
+            }
+        });
+    });
+
+    // Manipulação do modal de nova entrada
+    const newEntryModal = document.getElementById('newEntryModal');
+    const addSurebetEntryBtn = document.getElementById('addSurebetEntryBtn');
+    const closeModalBtn = document.querySelector('.modal .close-modal');
+    const cancelEntryBtn = document.getElementById('cancelEntryBtn');
+
+    // Função para limpar o modal
+    function clearModal() {
+        // Limpar campos de informações do evento
+        document.getElementById('entryEvent').value = '';
+        document.getElementById('entryCompetition').value = '';
+        document.getElementById('entryDate').value = '';
+        document.getElementById('entryTime').value = '';
+        
+        // Limpar campos das apostas
+        const betInputs = document.querySelectorAll('#newEntryModal input[type="text"], #newEntryModal input[type="number"]');
+        betInputs.forEach(input => {
+            if (input.id !== 'entryEvent' && input.id !== 'entryCompetition' && input.id !== 'entryDate' && input.id !== 'entryTime') {
+                input.value = '';
+            }
+        });
+        
+        // Limpar checkboxes de exchange
+        const exchangeCheckboxes = document.querySelectorAll('#newEntryModal input[type="checkbox"]');
+        exchangeCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Limpar selects de tipo de aposta
+        const betTypeSelects = document.querySelectorAll('#newEntryModal select');
+        betTypeSelects.forEach(select => {
+            select.value = '';
+        });
+        
+        // Ocultar campos de exchange
+        const exchangeFields = document.querySelectorAll('#newEntryModal .exchange-fields');
+        exchangeFields.forEach(field => {
+            field.style.display = 'none';
+        });
+        
+        // Resetar contador de apostas para 2 (primeira e segunda aposta)
+        betCount = 2;
+        
+        // Remover apostas extras (manter apenas as duas primeiras)
+        const allBets = document.querySelectorAll('#newEntryModal .entry-bet');
+        for (let i = 2; i < allBets.length; i++) {
+            allBets[i].remove();
+        }
+        
+        // Renumerar as apostas restantes
+        renumberBets();
+    }
+
+    if (addSurebetEntryBtn) {
+        addSurebetEntryBtn.addEventListener('click', () => {
+            clearModal();
+            newEntryModal.classList.add('active');
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            newEntryModal.classList.remove('active');
+        });
+    }
+
+    if (cancelEntryBtn) {
+        cancelEntryBtn.addEventListener('click', () => {
+            newEntryModal.classList.remove('active');
+        });
+    }
+
+    window.addEventListener('click', (event) => {
+        if (event.target === newEntryModal) {
+            newEntryModal.classList.remove('active');
+        }
+    });
+
+    // Botão para adicionar mais apostas no formulário
+    const addMoreBetBtn = document.getElementById('addMoreBetBtn');
+    const entryBetsContainer = document.getElementById('entryBetsContainer');
+    let betCount = 2;
+
+    // Função para renumerar todas as apostas
+    function renumberBets() {
+        const betElements = entryBetsContainer.querySelectorAll('.entry-bet');
+        betElements.forEach((betElement, index) => {
+            const betNumber = index + 1;
+            
+            // Atualiza o badge e título
+            const badge = betElement.querySelector('.bet-badge');
+            const title = betElement.querySelector('h5');
+            if (badge) badge.textContent = betNumber;
+            if (title) title.textContent = `Aposta ${betNumber}`;
+            
+            // Atualiza os IDs dos inputs e labels
+            const inputsAndSelects = betElement.querySelectorAll('input, select');
+            const labels = betElement.querySelectorAll('label');
+
+            inputsAndSelects.forEach(el => {
+                const oldId = el.id;
+                if (oldId) {
+                    const newId = oldId.replace(/\d+$/, '') + betNumber;
+                    el.id = newId;
+                }
+            });
+
+            labels.forEach(label => {
+                const oldFor = label.getAttribute('for');
+                if (oldFor) {
+                    const newFor = oldFor.replace(/\d+$/, '') + betNumber;
+                    label.setAttribute('for', newFor);
+                }
+            });
+        });
+        
+        // Atualiza o contador global
+        betCount = betElements.length;
+        
+        // Reconfigura autocomplete para todos os campos após renumeração
+        betElements.forEach((betElement, index) => {
+            const betNumber = index + 1;
+            const betHouseInput = document.getElementById(`betHouse${betNumber}`);
+            if (betHouseInput) {
+                setupBettingHouseAutocomplete(betHouseInput);
+            }
+        });
+    }
+
+    if (addMoreBetBtn) {
+        addMoreBetBtn.addEventListener('click', () => {
+            betCount++;
+            const newBet = document.createElement('div');
+            newBet.className = 'entry-bet modern-bet-card';
+            newBet.innerHTML = `
+                <div class="bet-header">
+                    <div class="bet-number">
+                        <span class="bet-badge">${betCount}</span>
+                        <h5>Aposta ${betCount}</h5>
+                    </div>
+                    <button type="button" class="btn-icon-small remove-bet"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="bet-content">
+                    <div class="form-row">
+                        <div class="form-group modern-input">
+                            <label for="betHouse${betCount}">
+                                <i class="fas fa-home"></i>
+                                Casa de Apostas
+                            </label>
+                            <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet" autocomplete="off">
+                        </div>
+                        <div class="form-group modern-input">
+                            <label for="betMarket${betCount}">
+                                <i class="fas fa-target"></i>
+                                Mercado
+                            </label>
+                            <input type="text" id="betMarket${betCount}" required placeholder="Ex: Mais/Menos Gols">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group modern-input">
+                            <label for="betOdds${betCount}">
+                                <i class="fas fa-percentage"></i>
+                                Odds
+                            </label>
+                            <input type="number" id="betOdds${betCount}" required step="0.01" min="1" placeholder="2.00">
+                        </div>
+                        <div class="form-group modern-input">
+                            <label for="betStake${betCount}">
+                                <i class="fas fa-dollar-sign"></i>
+                                Valor Apostado (R$)
+                            </label>
+                            <input type="number" id="betStake${betCount}" required step="0.01" min="0" placeholder="100.00">
+                        </div>
+                    </div>
+                    
+                    <!-- Exchange Options -->
+                    <div class="form-row">
+                        <div class="form-group modern-checkbox">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="isExchange${betCount}" onchange="toggleExchangeFields(${betCount})">
+                                <span class="checkmark"></span>
+                                <i class="fas fa-exchange-alt"></i>
+                                É Exchange?
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="exchange-fields" id="exchangeFields${betCount}" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="betType${betCount}">
+                                    <i class="fas fa-arrows-alt-h"></i>
+                                    Tipo de Aposta
+                                </label>
+                                <select id="betType${betCount}" onchange="toggleLiabilityField(${betCount})">
+                                    <option value="back">Back (Apostar A Favor)</option>
+                                    <option value="lay">Lay (Apostar Contra)</option>
+                                </select>
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="commission${betCount}">
+                                    <i class="fas fa-percent"></i>
+                                    Comissão (%)
+                                </label>
+                                <input type="number" id="commission${betCount}" step="0.1" min="0" max="100" placeholder="5.0">
+                            </div>
+                        </div>
+                        <div class="form-row liability-row" id="liabilityRow${betCount}" style="display: none;">
+                            <div class="form-group modern-input">
+                                <label for="liability${betCount}">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Responsabilidade (R$)
+                                </label>
+                                <input type="number" id="liability${betCount}" step="0.01" min="0" placeholder="Calculado automaticamente" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insere antes do botão
+            entryBetsContainer.insertBefore(newBet, addMoreBetBtn);
+            
+            // Configura autocomplete para o novo campo de casa de apostas
+            const newBetHouseInput = document.getElementById(`betHouse${betCount}`);
+            if (newBetHouseInput) {
+                setupBettingHouseAutocomplete(newBetHouseInput);
+            }
+            
+            // Adiciona handler para remover aposta
+            const removeBtn = newBet.querySelector('.remove-bet');
+            removeBtn.addEventListener('click', function() {
+                newBet.remove();
+                renumberBets(); // Renumera após remoção
+            });
+        });
+    }
+    
+    // Adiciona handler para apostas já existentes (se houver)
+    document.querySelectorAll('.remove-bet').forEach(btn => {
+        btn.addEventListener('click', function() {
+            btn.closest('.entry-bet').remove();
+            renumberBets(); // Renumera após remoção
+        });
+    });
+
+    // Formulário de nova entrada
+    const newEntryForm = document.getElementById('newEntryForm');
+    if (newEntryForm) {
+        newEntryForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const bankrollId = new URLSearchParams(window.location.search).get('id');
+            const entryEvent = document.getElementById('entryEvent').value;
+            const entryCompetition = document.getElementById('entryCompetition').value;
+            const entryDate = document.getElementById('entryDate').value;
+            const entryTime = document.getElementById('entryTime').value;
+            const entryNotes = document.getElementById('entryNotes').value;
+
+            const entryBetsData = [];
+            const betElements = entryBetsContainer.querySelectorAll('.entry-bet');
+            
+            for (let i = 0; i < betElements.length; i++) {
+                const betElement = betElements[i];
+                const betNumber = i + 1; // Os IDs são baseados em 1-indexed
+
+                const house = betElement.querySelector(`#betHouse${betNumber}`).value;
+                const market = betElement.querySelector(`#betMarket${betNumber}`).value;
+                const odds = betElement.querySelector(`#betOdds${betNumber}`).value;
+                const stake = betElement.querySelector(`#betStake${betNumber}`).value;
+                
+                const isExchangeCheckbox = betElement.querySelector(`#isExchange${betNumber}`);
+                const isExchange = isExchangeCheckbox ? isExchangeCheckbox.checked : false;
+                const betTypeSelect = betElement.querySelector(`#betType${betNumber}`);
+                const betType = betTypeSelect ? betTypeSelect.value : null;
+                const commissionInput = betElement.querySelector(`#commission${betNumber}`);
+                const commission = commissionInput ? parseFloat(commissionInput.value) || 0 : 0;
+                const liabilityInput = betElement.querySelector(`#liability${betNumber}`);
+                const liability = liabilityInput ? parseFloat(liabilityInput.value) || 0 : 0;
+
+                if (!house || !market || !odds || !stake) {
+                    alert('Por favor, preencha todos os campos de todas as apostas.');
+                    return;
+                }
+                
+                const betData = { house, market, odds, stake };
+                
+                if (isExchange) {
+                    betData.isExchange = true;
+                    betData.betType = betType;
+                    betData.commission = commission;
+                    if (betType === 'lay') {
+                        betData.liability = liability;
+                    }
+                }
+                
+                entryBetsData.push(betData);
+            }
+
+            if (entryBetsData.length === 0) {
+                alert('Adicione pelo menos uma aposta para a entrada.');
+                return;
+            }
+
+            const formData = {
+                bankrollId,
+                entryEvent,
+                entryCompetition,
+                entryDate,
+                entryTime,
+                entryNotes,
+                entryBets: entryBetsData
+            };
+
+            try {
+                const response = await fetch('/api/surebet/entries', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.msg || `Erro HTTP: ${response.status}`);
+                }
+
+                alert(result.msg || 'Entrada salva com sucesso!');
+                newEntryForm.reset();
+                clearModal(); // Limpa e reseta o modal
+                newEntryModal.classList.remove('active');
+                fetchSurebetEntries(); // Atualizar a tabela após salvar
+
+            } catch (error) {
+                console.error('Erro ao salvar entrada:', error);
+                alert(`Erro ao salvar entrada: ${error.message}`);
+            }
+        });
+    }
+
+    // Calculadora
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetCalcBtn = document.getElementById('resetCalcBtn');
+    
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const totalStake = parseFloat(document.getElementById('totalStake').value) || 0;
+            const odds1 = parseFloat(document.getElementById('odds1').value) || 0;
+            const odds2 = parseFloat(document.getElementById('odds2').value) || 0;
+            
+            if (totalStake <= 0 || odds1 <= 1 || odds2 <= 1) {
+                alert('Por favor, preencha todos os campos corretamente.');
+                return;
+            }
+            
+            const totalImpliedProbability = (1/odds1) + (1/odds2);
+            
+            if (totalImpliedProbability >= 1) {
+                document.getElementById('guaranteedProfit').textContent = 'Não é Surebet';
+                document.getElementById('returnPercentage').textContent = 'N/A';
+                document.getElementById('stakeBookmaker1').textContent = 'R$ 0,00';
+                document.getElementById('stakeBookmaker2').textContent = 'R$ 0,00';
+                return;
+            }
+            
+            const profit = (totalStake / totalImpliedProbability) - totalStake;
+            const returnPercentage = (profit / totalStake) * 100;
+            
+            const stake1 = totalStake * (1/odds1) / totalImpliedProbability;
+            const stake2 = totalStake * (1/odds2) / totalImpliedProbability;
+            
+            document.getElementById('guaranteedProfit').textContent = `R$ ${profit.toFixed(2)}`;
+            document.getElementById('returnPercentage').textContent = `${returnPercentage.toFixed(2)}%`;
+            document.getElementById('stakeBookmaker1').textContent = `R$ ${stake1.toFixed(2)}`;
+            document.getElementById('stakeBookmaker2').textContent = `R$ ${stake2.toFixed(2)}`;
+        });
+    }
+    
+    if (resetCalcBtn) {
+        resetCalcBtn.addEventListener('click', function() {
+            document.getElementById('totalStake').value = '';
+            document.getElementById('odds1').value = '';
+            document.getElementById('odds2').value = '';
+            document.getElementById('bookmaker1').value = '';
+            document.getElementById('bookmaker2').value = '';
+            document.getElementById('market1').value = '';
+            document.getElementById('market2').value = '';
+            
+            document.getElementById('guaranteedProfit').textContent = 'R$ 0,00';
+            document.getElementById('returnPercentage').textContent = '0%';
+            document.getElementById('stakeBookmaker1').textContent = 'R$ 0,00';
+            document.getElementById('stakeBookmaker2').textContent = 'R$ 0,00';
+        });
+    }
+
+    // Carregar entradas inicialmente se a aba "Entries" estiver ativa por padrão
+    if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
+        fetchSurebetEntries();
+    }
+
+    // Event listener para botões de deletar
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.action-btn.delete')) {
+            e.preventDefault();
+            const entryId = e.target.closest('.action-btn.delete').dataset.entryId;
+            deleteSurebetEntry(entryId);
+        }
+    });
+
+    // Função para deletar entrada de surebet
+    async function deleteSurebetEntry(entryId) {
+        if (!confirm('Tem certeza que deseja excluir esta entrada de surebet? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/surebet/entries/${bankrollId}/${entryId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Entrada de surebet excluída com sucesso!');
+                fetchSurebetEntries();
+            } else {
+                alert('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
+            }
+        } catch (error) {
+            console.error('Erro ao excluir entrada de surebet:', error);
+            alert('Erro ao excluir entrada. Tente novamente.');
+        }
+    }
+
+    // Lógica para filtros da tabela de entradas
+    const dateFilterEntries = document.getElementById('dateFilterEntries');
+    const statusFilterEntries = document.getElementById('statusFilterEntries');
+    const searchEntriesInput = document.getElementById('searchEntries');
+
+    function applyFilters() {
+        const filters = {
+            period: dateFilterEntries.value,
+            status: statusFilterEntries.value,
+            search: searchEntriesInput.value.trim()
+        };
+        fetchSurebetEntries(filters);
+    }
+
+    if (dateFilterEntries) dateFilterEntries.addEventListener('change', applyFilters);
+    if (statusFilterEntries) statusFilterEntries.addEventListener('change', applyFilters);
+    if (searchEntriesInput) {
+        searchEntriesInput.addEventListener('input', () => {
+            clearTimeout(searchEntriesInput.timer);
+            searchEntriesInput.timer = setTimeout(applyFilters, 500);
+        });
+    }
+});
+
+// Funções globais para onchange nos inputs HTML
+function toggleExchangeFields(betNumber) {
+    const isExchangeCheckbox = document.getElementById(`isExchange${betNumber}`);
+    const exchangeFields = document.getElementById(`exchangeFields${betNumber}`);
+    
+    if (!isExchangeCheckbox || !exchangeFields) return;
+
+    if (isExchangeCheckbox.checked) {
+        exchangeFields.style.display = 'block';
+        toggleLiabilityField(betNumber);
+    } else {
+        exchangeFields.style.display = 'none';
+    }
+}
+
+function toggleLiabilityField(betNumber) {
+    const betTypeSelect = document.getElementById(`betType${betNumber}`);
+    const liabilityRow = document.getElementById(`liabilityRow${betNumber}`);
+    const liabilityInput = document.getElementById(`liability${betNumber}`);
+    
+    if (!betTypeSelect || !liabilityRow || !liabilityInput) return;
+
+    if (betTypeSelect.value === 'lay') {
+        liabilityRow.style.display = 'block';
+        calculateLiability(betNumber);
+    } else {
+        liabilityRow.style.display = 'none';
+        liabilityInput.value = '';
+    }
+}
+
+function calculateLiability(betNumber) {
+    const oddsInput = document.getElementById(`betOdds${betNumber}`);
+    const stakeInput = document.getElementById(`betStake${betNumber}`);
+    const liabilityInput = document.getElementById(`liability${betNumber}`);
+    
+    if (!oddsInput || !stakeInput || !liabilityInput) return;
+
+    const odds = parseFloat(oddsInput.value) || 0;
+    const stake = parseFloat(stakeInput.value) || 0;
+    
+    if (odds > 1 && stake > 0) {
+        const liability = (odds - 1) * stake;
+        liabilityInput.value = liability.toFixed(2);
+    } else {
+        liabilityInput.value = '';
+    }
+}
+
+// Lista de casas de apostas para autocomplete
+const bettingHouses = [
+    "BETANO", "SUPERBET", "REI DO PITACO", "SPORTINGBET", "BETBOO",
+    "BIG", "APOSTAR", "BETNACIONAL", "KTO", "BETSSON",
+    "GALERA.BET", "F12.BET", "LUVA.BET", "SPORTYBET", "ESTRELABET",
+    "REALS", "UX", "BETFAIR", "7GAMES", "BETAO",
+    "R7", "HIPERBET", "NOVIBET", "SEGURO BET", "KING PANDA",
+    "9F", "6R", "BET.APP", "FOGO777", "P9",
+    "BET365", "APOSTA GANHA", "BRAZINO777", "4WIN", "4PLAY",
+    "PAGOL", "SEUBET", "H2 BET", "VBET", "CASA DE APOSTAS",
+    "BETSUL", "ESPORTES DA SORTE", "ONABET", "BETFAST", "FAZ1BET",
+    "TIVOBET", "SUPREMABET", "MAXIMABET", "XPBET", "BETESPORTE",
+    "LANCE DE SORTE", "BETMGM", "BRAVO", "TRADICIONAL", "SORTE ONLINE",
+    "PIXBET", "FLABET", "BET DA SORTE", "APOSTOU", "B1.BET",
+    "BRBET", "BET GORILLAS", "BET BUFFALOS", "BET FALCONS", "BETBRA",
+    "BOLSA DE APOSTA", "CASA DE APOSTAS", "FULLTBET", "STAKE", "BATEU BET",
+    "HANZBET", "ESPORTIVA BET", "BETWARRIOR", "SORTENABET", "BETOU",
+    "BETFUSION", "BANDBET", "AFUN", "6Z", "BLAZE",
+    "JONBET", "7K", "CASSINO", "VERA", "UPBETBR",
+    "9D", "WJCASINO", "ALFA.BET", "MMA", "BETVIP",
+    "PAPIGAMES", "BET4", "APOSTA BET", "FAZ O BET", "ESPORTIVAVIP",
+    "CBESPORTES", "DONOSDABOLA", "BR4BET", "GOL DE BET", "LOTOGREEN",
+    "PINNACLE", "MATCHBOOK", "APOSTA1", "APOSTAMAX", "GINGABET",
+    "QGBET", "VIVASORTE", "BACANAPLAY", "PLAYUZU", "BRASIL DA SORTE",
+    "MULTIBET", "RICOBET", "BRXBET", "SPIN", "OLEYBET",
+    "BETPARK", "MERIDIANBET", "LUCK.BET", "1 PRA 1", "STARTBET",
+    "ESPORTE 365", "BET AKI", "JOGO DE OURO", "LÍDERBET", "GERALBET",
+    "B2XBET", "BULLSBET", "JOGÃO", "BET.BET", "DONALDBET",
+    "RIVALO", "A247", "MCGAMES"
+];
+
+// Mapeamento de logos das casas de apostas
+const logoMapping = {
+    "BET365": "bet365.png",
+    "BETANO": "betano.png",
+    "SPORTINGBET": "sportingbet.png",
+    "BETFAIR": "betfair.png",
+    "RIVALO": "rivalo.png",
+    "BETWAY": "betway.png",
+    "PINNACLE": "pinnacle.png",
+    "BETSSON": "betsson.png",
+    "BWIN": "bwin.png",
+    "UNIBET": "unibet.png",
+    "PAGOL": "Pagol.png",
+    "SEUBET": "SEUBET.jpg",
+    "H2 BET": "H2 BET.jpg",
+    "VBET": "VBET.png",
+    "CASA DE APOSTAS": "CASA DE APOSTAS.jpg",
+    "BETSUL": "BETSUL.png",
+    "ESPORTES DA SORTE": "ESPORTES DA SORTE.png",
+    "ONABET": "ONABET.png",
+    "BETFAST": "BETFAST.jpg",
+    "FAZ1BET": "FAZ1BET.png",
+    "TIVOBET": "tivobet.png",
+    "SUPREMABET": "SUPREMABET.png",
+    "MAXIMABET": "MAXIMABET.png",
+    "XPBET": "XPBET.jpg",
+    "BETESPORTE": "BETESPORTE.jpg",
+    "LANCE DE SORTE": "LANCE DE SORTE.png",
+    "BETMGM": "BETMGM.jpg",
+    "BRAVO": "BRAVO.png",
+    "TRADICIONAL": "TRADICIONAL.jpg",
+    "BETBOO": "betboo.png",
+    "BETNACIONAL": "betnacional.png",
+    "SUPERBET": "superbet.png",
+    "GALERA.BET": "galerabet.png",
+    "F12.BET": "f12bet.png",
+    "LUVA.BET": "luvabet.png",
+    "PIXBET": "pixbet.png",
+    "BLAZE": "blaze.png",
+    "STAKE": "stake.png",
+    "KTO": "kto.png",
+    "NOVIBET": "novibet.png",
+    "APOSTA GANHA": "apostaganha.png",
+    "BRAZINO777": "brazino777.png",
+    "ESTRELABET": "estrelabet.png",
+    "REALS": "reals.png",
+    "MATCHBOOK": "matchbook.png",
+    "REI DO PITACO": "reidopitaco.png",
+    "BIG": "big.png",
+    "APOSTAR": "apostar.png",
+    "SPORTYBET": "sportybet.png",
+    "UX": "ux.png",
+    "7GAMES": "7games.png",
+    "BETAO": "betao.png",
+    "R7": "r7.png",
+    "HIPERBET": "hiperbet.png",
+    "SEGURO BET": "segurobet.png",
+    "KING PANDA": "kingpanda.png",
+    "9F": "9f.png",
+    "6R": "6r.png",
+    "BET.APP": "betapp.png",
+    "FOGO777": "fogo777.png",
+    "P9": "p9.png",
+    "4WIN": "4win.png",
+    "4PLAY": "4play.png",
+    "SORTE ONLINE": "sorteonline.png",
+    "FLABET": "flabet.png",
+    "BET DA SORTE": "betdasorte.png",
+    "APOSTOU": "apostou.png",
+    "B1.BET": "b1bet.png",
+    "BRBET": "brbet.png",
+    "BET GORILLAS": "betgorillas.png",
+    "BET BUFFALOS": "betbuffalos.png",
+    "BET FALCONS": "betfalcons.png",
+    "BETBRA": "betbra.png",
+    "BOLSA DE APOSTA": "bolsadeaposta.png",
+    "FULLTBET": "fulltbet.png",
+    "BATEU BET": "bateubet.png",
+    "HANZBET": "hanzbet.png",
+    "ESPORTIVA BET": "esportivabet.png",
+    "BETWARRIOR": "betwarrior.png",
+    "SORTENABET": "sortenabet.png",
+    "BETOU": "betou.png",
+    "BETFUSION": "betfusion.png",
+    "BANDBET": "bandbet.png",
+    "AFUN": "afun.png",
+    "6Z": "6z.png",
+    "JONBET": "jonbet.png",
+    "7K": "7k.png",
+    "CASSINO": "cassino.png",
+    "VERA": "vera.png",
+    "UPBETBR": "upbetbr.png",
+    "9D": "9d.png",
+    "WJCASINO": "wjcasino.png",
+    "ALFA.BET": "alfabet.png",
+    "MMA": "mma.png",
+    "BETVIP": "betvip.png",
+    "PAPIGAMES": "papigames.png",
+    "BET4": "bet4.png",
+    "APOSTA BET": "apostabet.png",
+    "FAZ O BET": "fazobet.png",
+    "ESPORTIVAVIP": "esportivavip.png",
+    "CBESPORTES": "cbesportes.png",
+    "DONOSDABOLA": "donosdabola.png",
+    "BR4BET": "br4bet.png",
+    "GOL DE BET": "goldebet.png",
+    "LOTOGREEN": "lotogreen.png",
+    "APOSTA1": "aposta1.png",
+    "APOSTAMAX": "apostamax.png",
+    "GINGABET": "gingabet.png",
+    "QGBET": "qgbet.png",
+    "VIVASORTE": "vivasorte.png",
+    "BACANAPLAY": "bacanaplay.png",
+    "PLAYUZU": "playuzu.png",
+    "BRASIL DA SORTE": "brasildasorte.png",
+    "MULTIBET": "multibet.png",
+    "RICOBET": "ricobet.png",
+    "BRXBET": "brxbet.png",
+    "SPIN": "spin.png",
+    "OLEYBET": "oleybet.png",
+    "BETPARK": "betpark.png",
+    "MERIDIANBET": "meridianbet.png",
+    "LUCK.BET": "luckbet.png",
+    "1 PRA 1": "1pra1.png",
+    "STARTBET": "startbet.png",
+    "ESPORTE 365": "esporte365.png",
+    "BET AKI": "betaki.png",
+    "JOGO DE OURO": "jogodeouro.png",
+    "LÍDERBET": "liderbet.png",
+    "GERALBET": "geralbet.png",
+    "B2XBET": "b2xbet.png",
+    "BULLSBET": "bullsbet.png",
+    "JOGÃO": "jogao.png",
+    "BET.BET": "betbet.png",
+    "DONALDBET": "donaldbet.png",
+    "A247": "a247.png",
+    "MCGAMES": "mcgames.png"
+};
+
+// Função para obter o caminho do logo
+function getLogoPath(houseName) {
+    if (!houseName) return '/images/bet-default-icon.png';
+    const logoFile = logoMapping[houseName.toUpperCase()];
+    return logoFile ? `/images/logos/${logoFile}` : '/images/bet-default-icon.png';
+}
+
+// Função para configurar autocomplete em campos de casa de apostas
+function setupBettingHouseAutocomplete(inputElement) {
+    if (!inputElement) return;
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'autocomplete-dropdown';
+    dropdown.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    `;
+    
+    inputElement.parentElement.style.position = 'relative';
+    inputElement.parentElement.appendChild(dropdown);
+    
+    function populateDropdown(filterValue = '') {
+        dropdown.innerHTML = '';
+        
+        const filteredHouses = filterValue.length === 0 
+            ? bettingHouses
+            : bettingHouses.filter(house => 
+                house.toLowerCase().startsWith(filterValue.toLowerCase())
+            ).slice(0, 10);
+        
+        if (filteredHouses.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        filteredHouses.forEach(house => {
+            const option = document.createElement('div');
+            option.textContent = house;
+            option.style.cssText = `
+                padding: 12px 16px;
+                cursor: pointer;
+                border-bottom: 1px solid #f0f0f0;
+                transition: background-color 0.2s;
+            `;
+            
+            option.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            
+            option.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'white';
+            });
+            
+            option.addEventListener('click', function() {
+                inputElement.value = house;
+                dropdown.style.display = 'none';
+                inputElement.focus();
+            });
+            
+            dropdown.appendChild(option);
+        });
+        
+        dropdown.style.display = 'block';
+    }
+    
+    inputElement.addEventListener('focus', function() {
+        populateDropdown(this.value);
+    });
+    
+    inputElement.addEventListener('input', function() {
+        populateDropdown(this.value);
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (inputElement.parentElement && !inputElement.parentElement.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+    
+    inputElement.addEventListener('keydown', function(e) {
+        const options = dropdown.querySelectorAll('div');
+        let selectedIndex = Array.from(options).findIndex(option => 
+            option.style.backgroundColor === 'rgb(248, 249, 250)' || 
+            option.style.backgroundColor === '#f8f9fa'
+        );
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = selectedIndex < options.length - 1 ? selectedIndex + 1 : 0;
+            updateSelection(options, selectedIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : options.length - 1;
+            updateSelection(options, selectedIndex);
+        } else if (e.key === 'Enter' && selectedIndex >= 0 && options[selectedIndex]) {
+            e.preventDefault();
+            options[selectedIndex].click();
+        } else if (e.key === 'Escape') {
+            dropdown.style.display = 'none';
+        }
+    });
+    
+    function updateSelection(options, selectedIndex) {
+        options.forEach((option, index) => {
+            option.style.backgroundColor = index === selectedIndex ? '#f8f9fa' : 'white';
+        });
+    }
+}
+
+// Configurar autocomplete para campos existentes no DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    setupBettingHouseAutocomplete(document.getElementById('betHouse1'));
+    setupBettingHouseAutocomplete(document.getElementById('betHouse2'));
+    setupBettingHouseAutocomplete(document.getElementById('bookmaker1'));
+    setupBettingHouseAutocomplete(document.getElementById('bookmaker2'));
+});
+
+// Adicionar event listeners para recalcular responsabilidade quando odds ou stake mudarem
+document.addEventListener('input', function(e) {
+    if (e.target && (e.target.id.includes('betOdds') || e.target.id.includes('betStake'))) {
+        const betNumberMatch = e.target.id.match(/\d+/);
+        if (betNumberMatch) {
+            const betNumber = betNumberMatch[0];
+            const betTypeSelect = document.getElementById(`betType${betNumber}`);
+            const isExchangeCheckbox = document.getElementById(`isExchange${betNumber}`);
+            
+            if (isExchangeCheckbox && isExchangeCheckbox.checked && 
+                betTypeSelect && betTypeSelect.value === 'lay') {
+                calculateLiability(betNumber);
+            }
+        }
+    }
+});
