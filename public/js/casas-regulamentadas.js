@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
             casas: [
                 { nome: "BETBRA", dominio: "betbra.bet.br", tipo: "exchange" },
                 { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" },
-                { nome: "FULLTBET", dominio: "fulltbet.bet.br" }
+                { nome: "FULLTBET", dominio: "fulltbet.bet.br", tipo: "exchange" }
             ]
         },
         // RKN Gaming N.V.
