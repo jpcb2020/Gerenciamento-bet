@@ -360,7 +360,8 @@ document.addEventListener('DOMContentLoaded', function() {
             requerimento: "0040/2024",
             portaria: "SPA/MF nº 259, de 07 de fevereiro de 2025",
             casas: [
-                { nome: "SORTE ONLINE", dominio: "sorteonline.bet.br" }
+                { nome: "SORTE ONLINE", dominio: "sorteonline.bet.br" },
+                { nome: "LOTTOLAND", dominio: "lottoland.bet.br" }
             ]
         },
 
@@ -408,7 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 2.101, de 30 de dezembro de 2024",
             casas: [
                 { nome: "BETBRA", dominio: "betbra.bet.br", tipo: "exchange" },
-                { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" }
+                { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" },
+                { nome: "FULLTBET", dominio: "fulltbet.bet.br" }
             ]
         },
         // RKN Gaming N.V.
