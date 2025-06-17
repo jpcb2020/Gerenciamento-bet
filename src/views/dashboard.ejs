@@ -373,7 +373,20 @@
                 "LANCE DE SORTE", "BETMGM", "BRAVO", "TRADICIONAL", "SORTE ONLINE",
                 "PIXBET", "FLABET", "BET DA SORTE", "APOSTOU", "B1.BET",
                 "BRBET", "BET GORILLAS", "BET BUFFALOS", "BET FALCONS", "BETBRA",
-                "BOLSA DE APOSTA", "CASA DE APOSTAS", "FULLTBET"
+                "BOLSA DE APOSTA", "CASA DE APOSTAS", "FULLTBET", "STAKE", "BATEU BET",
+                "HANZBET", "ESPORTIVA BET", "BETWARRIOR", "SORTENABET", "BETOU",
+                "BETFUSION", "BANDBET", "AFUN", "6Z", "BLAZE",
+                "JONBET", "7K", "CASSINO", "VERA", "UPBETBR",
+                "9D", "WJCASINO", "ALFA.BET", "MMA", "BETVIP",
+                "PAPIGAMES", "BET4", "APOSTA BET", "FAZ O BET", "ESPORTIVAVIP",
+                "CBESPORTES", "DONOSDABOLA", "BR4BET", "GOL DE BET", "LOTOGREEN",
+                "PINNACLE", "MATCHBOOK", "APOSTA1", "APOSTAMAX", "GINGABET",
+                "QGBET", "VIVASORTE", "BACANAPLAY", "PLAYUZU", "BRASIL DA SORTE",
+                "MULTIBET", "RICOBET", "BRXBET", "SPIN", "OLEYBET",
+                "BETPARK", "MERIDIANBET", "LUCK.BET", "1 PRA 1", "STARTBET",
+                "ESPORTE 365", "BET AKI", "JOGO DE OURO", "LÍDERBET", "GERALBET",
+                "B2XBET", "BULLSBET", "JOGÃO", "BET.BET", "DONALDBET",
+                "RIVALO", "A247", "MCGAMES"
             ];
             
             const input = document.getElementById('houseName');
@@ -445,7 +458,72 @@
                 "BET GORILLAS": "BET GORILLAS.png",
                 "BETBRA": "BETBRA.png",
                 "BOLSA DE APOSTA": "BOLSA DE APOSTA.jpg",
-                "FULLTBET": "FULLTBET.jpg"
+                "FULLTBET": "FULLTBET.jpg",
+                "STAKE": "STAKE.png",
+                "BATEU BET": "BATEU BET.png",
+                "HANZBET": "HANZBET.png",
+                "ESPORTIVA BET": "ESPORTIVA BET.png",
+                "BETWARRIOR": "BETWARRIOR.png",
+                "SORTENABET": "SORTENABET.png",
+                "BETOU": "BETOU.png",
+                "BETFUSION": "BETFUSION.png",
+                "BANDBET": "BANDBET.png",
+                "AFUN": "AFUN.jpg",
+                "6Z": "6Z.png",
+                "BLAZE": "BLAZE.png",
+                "JONBET": "JONBET.png",
+                "7K": "7K.jpg",
+                "CASSINO": "CASSINO.jpg",
+                "VERA": "VERA.png",
+                "UPBETBR": "UPBETBR.jpg",
+                "9D": "9D.png",
+                "WJCASINO": "WJCASINO.jpg",
+                "ALFA.BET": "ALFA.BET.png",
+                "MMA": "MMA.png",
+                "BETVIP": "BETVIP.png",
+                "PAPIGAMES": "PAPIGAMES.png",
+                "BET4": "BET4.png",
+                "APOSTA BET": "APOSTA BET.svg",
+                "FAZ O BET": "FAZ O BET.png",
+                "ESPORTIVAVIP": "ESPORTIVAVIP.jpg",
+                "CBESPORTES": "CBESPORTES.png",
+                "DONOSDABOLA": "DONOSDABOLA.png",
+                "BR4BET": "BR4BET.jpg",
+                "GOL DE BET": "GOL DE BET.png",
+                "LOTOGREEN": "LOTOGREEN.jpg",
+                "PINNACLE": "PINNACLE.webp",
+                "MATCHBOOK": "MATCHBOOK.jpg",
+                "APOSTA1": "APOSTA1.png",
+                "APOSTAMAX": "APOSTAMAX.png",
+                "GINGABET": "GINGABET.jpg",
+                "QGBET": "QGBET.png",
+                "VIVASORTE": "VIVASORTE.jpg",
+                "BACANAPLAY": "BACANAPLAY.png",
+                "PLAYUZU": "PLAYUZU.png",
+                "BRASIL DA SORTE": "BRASIL DA SORTE.jpg",
+                "MULTIBET": "MULTIBET.png",
+                "RICOBET": "RICOBET.png",
+                "BRXBET": "BRXBET.png",
+                "SPIN": "SPIN.jpg",
+                "OLEYBET": "OLEYBET.png",
+                "BETPARK": "BETPARK.png",
+                "MERIDIANBET": "MERIDIANBET.jpg",
+                "LUCK.BET": "LUCK.BET.png",
+                "1 PRA 1": "1 PRA 1.png",
+                "STARTBET": "STARTBET.png",
+                "ESPORTE 365": "ESPORTE 365.png",
+                "BET AKI": "BET AKI.png",
+                "JOGO DE OURO": "JOGO DE OURO.png",
+                "LÍDERBET": "LÍDERBET.jpg",
+                "GERALBET": "GERALBET.jpg",
+                "B2XBET": "B2XBET.png",
+                "BULLSBET": "BULLSBET.png",
+                "JOGÃO": "JOGÃO.png",
+                "BET.BET": "BET.BET.png",
+                "DONALDBET": "DONALDBET.png",
+                "RIVALO": "RIVALO.png",
+                "A247": "A247.png",
+                "MCGAMES": "MCGAMES.png"
             };
             
             // Função para obter o caminho do logo
@@ -460,7 +538,7 @@
                     dropdown.innerHTML = '';
                     
                     const filteredHouses = filter
-                        ? bettingHouses.filter(house => house.toLowerCase().includes(filter.toLowerCase()))
+                        ? bettingHouses.filter(house => house.toLowerCase().startsWith(filter.toLowerCase()))
                         : bettingHouses;
                     
                     filteredHouses.forEach(house => {

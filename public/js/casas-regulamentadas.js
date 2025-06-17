@@ -410,7 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
             casas: [
                 { nome: "BETBRA", dominio: "betbra.bet.br", tipo: "exchange" },
                 { nome: "BOLSA DE APOSTA", dominio: "bolsadeaposta.bet.br", tipo: "exchange" },
-                { nome: "FULLTBET", dominio: "fulltbet.bet.br", tipo: "exchange" }
+                { nome: "FULLTBET", dominio: "fulltbet.bet.br", tipo: "exchange" },
+                { nome: "PINNACLE", dominio: "pinnacle.bet.br", tipo: "exchange" },
+                { nome: "MATCHBOOK", dominio: "matchbook.bet.br", tipo: "exchange" }
             ]
         },
         // RKN Gaming N.V.
@@ -421,6 +423,330 @@ document.addEventListener('DOMContentLoaded', function() {
             portaria: "SPA/MF nº 255, de 07 de fevereiro de 2025",
             casas: [
                 { nome: "CASA DE APOSTAS", dominio: "casadeapostas.bet.br", tipo: "exchange" }
+            ]
+        },
+        // STAKE BRAZIL LTDA
+        {
+            empresa: "STAKE BRAZIL LTDA",
+            cnpj: "56.525.936/0001-90",
+            requerimento: "0079/2024",
+            portaria: "SPA/MF nº 263, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "STAKE", dominio: "stake.bet.br" }
+            ]
+        },
+        // EA ENTRETENIMENTO E ESPORTES LTDA
+        {
+            empresa: "EA ENTRETENIMENTO E ESPORTES LTDA",
+            cnpj: "53.570.592/0001-43",
+            requerimento: "0047/2024",
+            portaria: "SPA/MF nº 523, de 14 de março de 2025",
+            casas: [
+                { nome: "BATEU BET", dominio: "bateu.bet.br" },
+                { nome: "HANZBET", dominio: "hanz.bet.br" },
+                { nome: "ESPORTIVA BET", dominio: "esportiva.bet.br" }
+            ]
+        },
+        // TRACK GAMING BRASIL LTDA
+        {
+            empresa: "TRACK GAMING BRASIL LTDA",
+            cnpj: "56.706.701/0001-03",
+            requerimento: "0049/2024",
+            portaria: "SPA/MF nº 470, de 10 de março de 2025",
+            casas: [
+                { nome: "BETWARRIOR", dominio: "betwarrior.bet.br" }
+            ]
+        },
+        // SORTENABET GAMING BRASIL S.A.
+        {
+            empresa: "SORTENABET GAMING BRASIL S.A.",
+            cnpj: "54.989.030/0001-00",
+            requerimento: "0050/2024",
+            portaria: "SPA/MF nº 260, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "SORTENABET", dominio: "sortenabet.bet.br" },
+                { nome: "BETOU", dominio: "betou.bet.br" },
+                { nome: "BETFUSION", dominio: "betfusion.bet.br" }
+            ]
+        },
+        // BELL VENTURES DIGITAL LTDA
+        {
+            empresa: "BELL VENTURES DIGITAL LTDA",
+            cnpj: "56.638.458/0001-25",
+            requerimento: "0051/2024",
+            portaria: "SPA/MF nº 270, de 10 de fevereiro de 2025",
+            casas: [
+                { nome: "BANDBET", dominio: "bandbet.bet.br" }
+            ]
+        },
+        // BRILLIANT GAMING LTDA
+        {
+            empresa: "BRILLIANT GAMING LTDA",
+            cnpj: "56.259.060/0001-88",
+            requerimento: "0052/2024",
+            portaria: "SPA/MF nº 261, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "AFUN", dominio: "afun.bet.br" },
+                { nome: "6Z", dominio: "6z.bet.br" }
+            ]
+        },
+        // FOGGO ENTERTAINMENT LTDA
+        {
+            empresa: "FOGGO ENTERTAINMENT LTDA",
+            cnpj: "56.431.248/0001-61",
+            requerimento: "0053/2024",
+            portaria: "SPA/MF nº 471, de 10 de março de 2025",
+            casas: [
+                { nome: "BLAZE", dominio: "blaze.bet.br" },
+                { nome: "JONBET", dominio: "jonbet.bet.br" }
+            ]
+        },
+        // ANA GAMING BRASIL S.A.
+        {
+            empresa: "ANA GAMING BRASIL S.A.",
+            cnpj: "55.933.850/0001-34",
+            requerimento: "0054/2024",
+            portaria: "SPA/MF nº 322, de 17 de fevereiro de 2025",
+            casas: [
+                { nome: "7K", dominio: "7k.bet.br" },
+                { nome: "CASSINO", dominio: "cassino.bet.br" },
+                { nome: "VERA", dominio: "vera.bet.br" }
+            ]
+        },
+        // UPBET BRASIL LTDA
+        {
+            empresa: "UPBET BRASIL LTDA",
+            cnpj: "56.236.761/0001-00",
+            requerimento: "0057/2024",
+            portaria: "SPA/MF nº 323, de 17 de fevereiro de 2025",
+            casas: [
+                { nome: "UPBETBR", dominio: "up.bet.br" },
+                { nome: "9D", dominio: "9d.bet.br" },
+                { nome: "WJCASINO", dominio: "wjcasino.bet.br" }
+            ]
+        },
+        // ALFA ENTRETENIMENTO S.A.
+        {
+            empresa: "ALFA ENTRETENIMENTO S.A.",
+            cnpj: "55.359.927/0001-04",
+            requerimento: "0060/2024",
+            portaria: "SPA/MF nº 2.100, de 30 de dezembro de 2024",
+            casas: [
+                { nome: "ALFA.BET", dominio: "alfa.bet.br" }
+            ]
+        },
+        // SELECT OPERATIONS LTDA
+        {
+            empresa: "SELECT OPERATIONS LTDA",
+            cnpj: "56.875.122/0001-86",
+            requerimento: "0062/2024",
+            portaria: "SPA/MF nº 1.112, de 21 de maio de 2025",
+            casas: [
+                { nome: "MMA", dominio: "mmabet.bet.br" },
+                { nome: "BETVIP", dominio: "betvip.bet.br" },
+                { nome: "PAPIGAMES", dominio: "papigames.bet.br" }
+            ]
+        },
+        // B3T4 INTERNATIONAL GROUP LTDA
+        {
+            empresa: "B3T4 INTERNATIONAL GROUP LTDA",
+            cnpj: "56.706.644/0001-54",
+            requerimento: "0063/2024",
+            portaria: "SPA/MF nº 472, de 10 de março de 2025",
+            casas: [
+                { nome: "BET4", dominio: "bet4.bet.br" },
+                { nome: "APOSTA BET", dominio: "aposta.bet.br" },
+                { nome: "FAZ O BET", dominio: "fazo.bet.br" }
+            ]
+        },
+        // SPORTVIP GROUP INTERNATIONAL APOSTAS LTDA
+        {
+            empresa: "SPORTVIP GROUP INTERNATIONAL APOSTAS LTDA",
+            cnpj: "56.257.966/0001-63",
+            requerimento: "0065/2024",
+            portaria: "SPA/MF nº 1.055, de 14 de maio de 2025",
+            casas: [
+                { nome: "ESPORTIVAVIP", dominio: "esportivavip.bet.br" },
+                { nome: "CBESPORTES", dominio: "cbesportes.bet.br" },
+                { nome: "DONOSDABOLA", dominio: "donosdabola.bet.br" }
+            ]
+        },
+        // SABIA ADMINISTRACAO LTDA
+        {
+            empresa: "SABIA ADMINISTRACAO LTDA",
+            cnpj: "04.426.418/0001-16",
+            requerimento: "0066/2024",
+            portaria: "SPA/MF nº 399, de 24 de fevereiro de 2025",
+            casas: [
+                { nome: "BR4BET", dominio: "br4.bet.br" },
+                { nome: "GOL DE BET", dominio: "goldebet.bet.br" },
+                { nome: "LOTOGREEN", dominio: "lotogreen.bet.br" }
+            ]
+        },
+        // APOSTA 1 LTDA
+        {
+            empresa: "APOSTA 1 LTDA",
+            cnpj: "55.258.645/0001-10",
+            requerimento: "0072/2024",
+            portaria: "SPA/MF nº 524, de 14 de março de 2025",
+            casas: [
+                { nome: "APOSTA1", dominio: "aposta1.bet.br" },
+                { nome: "APOSTAMAX", dominio: "apostamax.bet.br" }
+            ]
+        },
+        // JOGO PRINCIPAL LTDA
+        {
+            empresa: "JOGO PRINCIPAL LTDA",
+            cnpj: "56.302.709/0001-04",
+            requerimento: "0073/2024",
+            portaria: "SPA/MF nº 262, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "GINGABET", dominio: "ginga.bet.br" },
+                { nome: "QGBET", dominio: "qg.bet.br" },
+                { nome: "VIVASORTE", dominio: "vivasorte.bet.br" }
+            ]
+        },
+        // SKILL ON NET LTDA
+        {
+            empresa: "SKILL ON NET LTDA",
+            cnpj: "55.927.219/0001-22",
+            requerimento: "0074/2024",
+            portaria: "SPA/MF nº 374, de 24 de fevereiro de 2025",
+            casas: [
+                { nome: "BACANAPLAY", dominio: "bacanaplay.bet.br" },
+                { nome: "PLAYUZU", dominio: "playuzu.bet.br" }
+            ]
+        },
+        // WORLD SPORTS TECHNOLOGY DO BRASIL S.A.
+        {
+            empresa: "WORLD SPORTS TECHNOLOGY DO BRASIL S.A.",
+            cnpj: "55.822.818/0001-81",
+            requerimento: "0075/2024",
+            portaria: "SPA/MF nº 473, de 10 de março de 2025",
+            casas: [
+                { nome: "BRASIL DA SORTE", dominio: "brasildasorte.bet.br" }
+            ]
+        },
+        // Rr Participacoes e Intermediacoes de Negocios LTDA
+        {
+            empresa: "Rr Participacoes e Intermediacoes de Negocios LTDA",
+            cnpj: "23.159.703/0001-62",
+            requerimento: "0077/2024",
+            portaria: "SPA/MF nº 525, de 14 de março de 2025",
+            casas: [
+                { nome: "MULTIBET", dominio: "multi.bet.br" },
+                { nome: "RICOBET", dominio: "rico.bet.br" },
+                { nome: "BRXBET", dominio: "brx.bet.br" }
+            ]
+        },
+        // LINDAU GAMING BRASIL S.A.
+        {
+            empresa: "LINDAU GAMING BRASIL S.A.",
+            cnpj: "50.550.511/0001-55",
+            requerimento: "0085/2024",
+            portaria: "SPA/MF nº 2.105, de 30 de dezembro de 2024",
+            casas: [
+                { nome: "SPIN", dominio: "spin.bet.br" },
+                { nome: "OLEYBET", dominio: "oleybet.bet.br" },
+                { nome: "BETPARK", dominio: "betpark.bet.br" }
+            ]
+        },
+        // MERIDIAN GAMING BRASIL SPE LTDA
+        {
+            empresa: "MERIDIAN GAMING BRASIL SPE LTDA",
+            cnpj: "56.195.600/0001-07",
+            requerimento: "0086/2024",
+            portaria: "SPA/MF nº 526, de 14 de março de 2025",
+            casas: [
+                { nome: "MERIDIANBET", dominio: "meridianbet.bet.br" }
+            ]
+        },
+        // LBBR APOSTAS DE QUOTA FIXA LIMITADA
+        {
+            empresa: "LBBR APOSTAS DE QUOTA FIXA LIMITADA",
+            cnpj: "56.441.713/0001-45",
+            requerimento: "0090/2024",
+            portaria: "SPA/MF nº 527, de 14 de março de 2025",
+            casas: [
+                { nome: "LUCK.BET", dominio: "luck.bet.br" },
+                { nome: "1 PRA 1", dominio: "1pra1.bet.br" },
+                { nome: "STARTBET", dominio: "start.bet.br" }
+            ]
+        },
+        // VANGUARD ENTRETENIMENTO BRASIL LTDA
+        {
+            empresa: "VANGUARD ENTRETENIMENTO BRASIL LTDA",
+            cnpj: "56.885.537/0001-30",
+            requerimento: "0092/2024",
+            portaria: "SPA/MF nº 693, de 1º de abril de 2025",
+            casas: [
+                { nome: "ESPORTE 365", dominio: "esporte365.bet.br" },
+                { nome: "BET AKI", dominio: "betaki.bet.br" },
+                { nome: "JOGO DE OURO", dominio: "jogodeouro.bet.br" }
+            ]
+        },
+        // LOGAME DO BRASIL LTDA
+        {
+            empresa: "LOGAME DO BRASIL LTDA",
+            cnpj: "56.349.116/0001-95",
+            requerimento: "0096/2024",
+            portaria: "SPA/MF nº 324, de 17 fevereiro de 2025",
+            casas: [
+                { nome: "LÍDERBET", dominio: "lider.bet.br" },
+                { nome: "GERALBET", dominio: "geralbet.bet.br" },
+                { nome: "B2XBET", dominio: "b2x.bet.br" }
+            ]
+        },
+        // SEVENX GAMING LTDA
+        {
+            empresa: "SEVENX GAMING LTDA",
+            cnpj: "56.504.413/0001-68",
+            requerimento: "0097/2024",
+            portaria: "SPA/MF nº 325, de 17 fevereiro de 2025",
+            casas: [
+                { nome: "BULLSBET", dominio: "bullsbet.bet.br" },
+                { nome: "JOGÃO", dominio: "jogao.bet.br" }
+            ]
+        },
+        // BET.BET SOLUÇÕES TECNOLÓGICAS S.A.
+        {
+            empresa: "BET.BET SOLUÇÕES TECNOLÓGICAS S.A.",
+            cnpj: "53.274.124/0001-21",
+            requerimento: "0103/2024",
+            portaria: "SPA/MF nº 326, de 17 fevereiro de 2025",
+            casas: [
+                { nome: "BET.BET", dominio: "betpontobet.bet.br" },
+                { nome: "DONALDBET", dominio: "donald.bet.br" }
+            ]
+        },
+        // OLAVIR LTDA
+        {
+            empresa: "OLAVIR LTDA",
+            cnpj: "56.873.267/0001-48",
+            requerimento: "0105/2024",
+            portaria: "SPA/MF nº 264, de 07 de fevereiro de 2025",
+            casas: [
+                { nome: "RIVALO", dominio: "rivalo.bet.br" }
+            ]
+        },
+        // HILGARDO GAMING LTDA
+        {
+            empresa: "HILGARDO GAMING LTDA",
+            cnpj: "54.362.120/0001-68",
+            requerimento: "0106/2024",
+            portaria: "SPA/MF nº 475, de 10 de março de 2025",
+            casas: [
+                { nome: "A247", dominio: "a247.bet.br" }
+            ]
+        },
+        // SISTEMA LOTÉRICO DE PERNAMBUCO LTDA
+        {
+            empresa: "SISTEMA LOTÉRICO DE PERNAMBUCO LTDA",
+            cnpj: "06.023.798/0001-73",
+            requerimento: "0109/2024",
+            portaria: "SPA/MF nº 528, de 14 de março de 2025",
+            casas: [
+                { nome: "MCGAMES", dominio: "mcgames.bet.br" }
             ]
         }
     ];

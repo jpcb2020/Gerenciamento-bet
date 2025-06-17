@@ -368,7 +368,7 @@
                                         <div class="odds-row">
                                             <div class="form-group">
                                                 <label for="bookmaker1">Casa de Apostas 1</label>
-                                                <input type="text" id="bookmaker1" placeholder="Bet365">
+                                                <input type="text" id="bookmaker1" placeholder="Bet365" autocomplete="off">
                                             </div>
                                             <div class="form-group">
                                                 <label for="market1">Mercado</label>
@@ -382,7 +382,7 @@
                                         <div class="odds-row">
                                             <div class="form-group">
                                                 <label for="bookmaker2">Casa de Apostas 2</label>
-                                                <input type="text" id="bookmaker2" placeholder="Betano">
+                                                <input type="text" id="bookmaker2" placeholder="Betano" autocomplete="off">
                                             </div>
                                             <div class="form-group">
                                                 <label for="market2">Mercado</label>
@@ -610,7 +610,7 @@
                                                 <i class="fas fa-home"></i>
                                                 Casa de Apostas
                                             </label>
-                                            <input type="text" id="betHouse1" required placeholder="Ex: Bet365">
+                                            <input type="text" id="betHouse1" required placeholder="Ex: Bet365" autocomplete="off">
                                         </div>
                                         <div class="form-group modern-input">
                                             <label for="betMarket1">
@@ -698,7 +698,7 @@
                                                 <i class="fas fa-home"></i>
                                                 Casa de Apostas
                                             </label>
-                                            <input type="text" id="betHouse2" required placeholder="Ex: Betano">
+                                            <input type="text" id="betHouse2" required placeholder="Ex: Betano" autocomplete="off">
                                         </div>
                                         <div class="form-group modern-input">
                                             <label for="betMarket2">
@@ -1077,6 +1077,15 @@
                 
                 // Atualiza o contador global
                 betCount = betElements.length;
+                
+                // Reconfigura autocomplete para todos os campos após renumeração
+                betElements.forEach((betElement, index) => {
+                    const betNumber = index + 1;
+                    const betHouseInput = document.getElementById(`betHouse${betNumber}`);
+                    if (betHouseInput) {
+                        setupBettingHouseAutocomplete(betHouseInput);
+                    }
+                });
             }
 
             addMoreBetBtn.addEventListener('click', () => {
@@ -1099,7 +1108,7 @@
                                     <i class="fas fa-home"></i>
                                     Casa de Apostas
                                 </label>
-                                <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet">
+                                <input type="text" id="betHouse${betCount}" required placeholder="Ex: Sportingbet" autocomplete="off">
                             </div>
                             <div class="form-group modern-input">
                                 <label for="betMarket${betCount}">
@@ -1173,6 +1182,12 @@
                 
                 // Insere antes do botão
                 entryBetsContainer.insertBefore(newBet, addMoreBetBtn);
+                
+                // Configura autocomplete para o novo campo de casa de apostas
+                const newBetHouseInput = document.getElementById(`betHouse${betCount}`);
+                if (newBetHouseInput) {
+                    setupBettingHouseAutocomplete(newBetHouseInput);
+                }
                 
                 // Adiciona handler para remover aposta
                 const removeBtn = newBet.querySelector('.remove-bet');
@@ -1460,6 +1475,166 @@
                 liabilityInput.value = '';
             }
         }
+
+        // Lista de casas de apostas para autocomplete
+        const bettingHouses = [
+            "BETANO", "SUPERBET", "REI DO PITACO", "SPORTINGBET", "BETBOO",
+            "BIG", "APOSTAR", "BETNACIONAL", "KTO", "BETSSON",
+            "GALERA.BET", "F12.BET", "LUVA.BET", "SPORTYBET", "ESTRELABET",
+            "REALS", "UX", "BETFAIR", "7GAMES", "BETAO",
+            "R7", "HIPERBET", "NOVIBET", "SEGURO BET", "KING PANDA",
+            "9F", "6R", "BET.APP", "FOGO777", "P9",
+            "BET365", "APOSTA GANHA", "BRAZINO777", "4WIN", "4PLAY",
+            "PAGOL", "SEUBET", "H2 BET", "VBET", "CASA DE APOSTAS",
+            "BETSUL", "ESPORTES DA SORTE", "ONABET", "BETFAST", "FAZ1BET",
+            "TIVOBET", "SUPREMABET", "MAXIMABET", "XPBET", "BETESPORTE",
+            "LANCE DE SORTE", "BETMGM", "BRAVO", "TRADICIONAL", "SORTE ONLINE",
+            "PIXBET", "FLABET", "BET DA SORTE", "APOSTOU", "B1.BET",
+            "BRBET", "BET GORILLAS", "BET BUFFALOS", "BET FALCONS", "BETBRA",
+            "BOLSA DE APOSTA", "CASA DE APOSTAS", "FULLTBET", "STAKE", "BATEU BET",
+            "HANZBET", "ESPORTIVA BET", "BETWARRIOR", "SORTENABET", "BETOU",
+            "BETFUSION", "BANDBET", "AFUN", "6Z", "BLAZE",
+            "JONBET", "7K", "CASSINO", "VERA", "UPBETBR",
+            "9D", "WJCASINO", "ALFA.BET", "MMA", "BETVIP",
+            "PAPIGAMES", "BET4", "APOSTA BET", "FAZ O BET", "ESPORTIVAVIP",
+            "CBESPORTES", "DONOSDABOLA", "BR4BET", "GOL DE BET", "LOTOGREEN",
+            "PINNACLE", "MATCHBOOK", "APOSTA1", "APOSTAMAX", "GINGABET",
+            "QGBET", "VIVASORTE", "BACANAPLAY", "PLAYUZU", "BRASIL DA SORTE",
+            "MULTIBET", "RICOBET", "BRXBET", "SPIN", "OLEYBET",
+            "BETPARK", "MERIDIANBET", "LUCK.BET", "1 PRA 1", "STARTBET",
+            "ESPORTE 365", "BET AKI", "JOGO DE OURO", "LÍDERBET", "GERALBET",
+            "B2XBET", "BULLSBET", "JOGÃO", "BET.BET", "DONALDBET",
+            "RIVALO", "A247", "MCGAMES"
+        ];
+
+        // Função para configurar autocomplete em campos de casa de apostas
+        function setupBettingHouseAutocomplete(inputElement) {
+            if (!inputElement) return;
+            
+            // Criar dropdown para sugestões
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            dropdown.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                display: none;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            `;
+            
+            // Posicionar o input como relativo para o dropdown
+            inputElement.parentElement.style.position = 'relative';
+            inputElement.parentElement.appendChild(dropdown);
+            
+            // Função para popular o dropdown
+            function populateDropdown(filterValue = '') {
+                dropdown.innerHTML = '';
+                
+                const filteredHouses = filterValue.length === 0 
+                    ? bettingHouses // Mostra todas as casas quando não há filtro
+                    : bettingHouses.filter(house => 
+                        house.toLowerCase().startsWith(filterValue.toLowerCase())
+                    ).slice(0, 10); // Limita a 10 apenas quando há filtro
+                
+                if (filteredHouses.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                filteredHouses.forEach(house => {
+                    const option = document.createElement('div');
+                    option.textContent = house;
+                    option.style.cssText = `
+                        padding: 12px 16px;
+                        cursor: pointer;
+                        border-bottom: 1px solid #f0f0f0;
+                        transition: background-color 0.2s;
+                    `;
+                    
+                    option.addEventListener('mouseenter', function() {
+                        this.style.backgroundColor = '#f8f9fa';
+                    });
+                    
+                    option.addEventListener('mouseleave', function() {
+                        this.style.backgroundColor = 'white';
+                    });
+                    
+                    option.addEventListener('click', function() {
+                        inputElement.value = house;
+                        dropdown.style.display = 'none';
+                        inputElement.focus();
+                    });
+                    
+                    dropdown.appendChild(option);
+                });
+                
+                dropdown.style.display = 'block';
+            }
+            
+            // Event listener para focus - mostra todas as opções
+            inputElement.addEventListener('focus', function() {
+                populateDropdown(this.value);
+            });
+            
+            // Event listener para input
+            inputElement.addEventListener('input', function() {
+                populateDropdown(this.value);
+            });
+            
+            // Fechar dropdown ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!inputElement.parentElement.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+            
+            // Navegação por teclado
+            inputElement.addEventListener('keydown', function(e) {
+                const options = dropdown.querySelectorAll('div');
+                let selectedIndex = Array.from(options).findIndex(option => 
+                    option.style.backgroundColor === 'rgb(248, 249, 250)' || 
+                    option.style.backgroundColor === '#f8f9fa'
+                );
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = selectedIndex < options.length - 1 ? selectedIndex + 1 : 0;
+                    updateSelection(options, selectedIndex);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : options.length - 1;
+                    updateSelection(options, selectedIndex);
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    options[selectedIndex].click();
+                } else if (e.key === 'Escape') {
+                    dropdown.style.display = 'none';
+                }
+            });
+            
+            function updateSelection(options, selectedIndex) {
+                options.forEach((option, index) => {
+                    option.style.backgroundColor = index === selectedIndex ? '#f8f9fa' : 'white';
+                });
+            }
+        }
+
+        // Configurar autocomplete para campos existentes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar para campos iniciais
+            setupBettingHouseAutocomplete(document.getElementById('betHouse1'));
+            setupBettingHouseAutocomplete(document.getElementById('betHouse2'));
+            setupBettingHouseAutocomplete(document.getElementById('bookmaker1'));
+            setupBettingHouseAutocomplete(document.getElementById('bookmaker2'));
+        });
 
         // Adicionar event listeners para recalcular responsabilidade quando odds ou stake mudarem
         document.addEventListener('input', function(e) {
