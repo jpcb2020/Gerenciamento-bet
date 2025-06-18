@@ -1,3 +1,52 @@
+/* Estilos específicos para surebet-detail */
+
+/* Estilo para a coluna de data de criação */
+.creation-date-cell {
+    min-width: 120px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+/* Estilos para paginação */
+.pagination-wrapper {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pagination-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.pagination-btn:hover {
+    background: #0056b3;
+}
+
+.pagination-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: #6c757d;
+    padding: 0 15px;
+}
+
 /* Estilos específicos para campos de exchange */
 .exchange-fields {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);

@@ -5,7 +5,7 @@ const { pool } = require('../config/db');
 // GET all surebet entries for a specific bankroll
 router.get('/entries/:bankrollId', async (req, res) => {
     const { bankrollId } = req.params;
-    const { period, status, search } = req.query; // Filtros opcionais
+    const { period, status, search, page = 1, limit = 5 } = req.query; // Filtros opcionais e paginação
 
     try {
         let query = `
@@ -45,14 +45,65 @@ router.get('/entries/:bankrollId', async (req, res) => {
             query += ` AND se.data_evento >= NOW() - INTERVAL '${parseInt(period)} days'`;
         }
         if (search) {
-            query += ` AND (se.evento ILIKE $${paramIndex} OR se.competicao ILIKE $${paramIndex} OR EXISTS (SELECT 1 FROM json_array_elements(COALESCE(json_agg(seb.casa_apostas) FILTER (WHERE seb.id IS NOT NULL), '[]'::json)) el WHERE el::text ILIKE $${paramIndex}))`;
+            query += ` AND (se.evento ILIKE $${paramIndex} OR se.competicao ILIKE $${paramIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${paramIndex}))`;
             queryParams.push(`%${search}%`);
+            paramIndex++;
         }
 
         query += " GROUP BY se.id ORDER BY se.data_evento DESC, se.id DESC";
 
-        const result = await pool.query(query, queryParams);
-        res.json(result.rows);
+        // Adicionar paginação
+        const pageNumber = parseInt(page) || 1;
+        const limitNumber = parseInt(limit) || 5;
+        const offset = (pageNumber - 1) * limitNumber;
+        
+        query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+        queryParams.push(limitNumber, offset);
+
+        // Consulta para contar o total de registros
+        let countQuery = `
+            SELECT COUNT(DISTINCT se.id) as total
+            FROM surebet_entries se
+            LEFT JOIN surebet_entry_bets seb ON se.id = seb.surebet_entry_id
+            WHERE se.bankroll_id = $1 AND se.user_id = $2
+        `;
+        
+        const countParams = [bankrollId, req.user.id];
+        let countParamIndex = 3;
+        
+        // Aplicar os mesmos filtros na consulta de contagem
+        if (status && status !== 'all') {
+            countQuery += ` AND se.status = $${countParamIndex++}`;
+            countParams.push(status);
+        }
+        if (period && period !== 'all') {
+            countQuery += ` AND se.data_evento >= NOW() - INTERVAL '${parseInt(period)} days'`;
+        }
+        if (search) {
+            countQuery += ` AND (se.evento ILIKE $${countParamIndex} OR se.competicao ILIKE $${countParamIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${countParamIndex}))`;
+            countParams.push(`%${search}%`);
+            countParamIndex++;
+        }
+
+        const [result, countResult] = await Promise.all([
+            pool.query(query, queryParams),
+            pool.query(countQuery, countParams)
+        ]);
+        
+        const total = parseInt(countResult.rows[0].total);
+        const totalPages = Math.ceil(total / limitNumber);
+        
+        res.json({
+            entries: result.rows,
+            pagination: {
+                currentPage: pageNumber,
+                totalPages,
+                totalEntries: total,
+                entriesPerPage: limitNumber,
+                hasNextPage: pageNumber < totalPages,
+                hasPreviousPage: pageNumber > 1
+            }
+        });
 
     } catch (err) {
         console.error(`Erro na rota GET /api/surebet/entries/${bankrollId}:`, err.message, err.stack);
@@ -206,21 +257,49 @@ router.delete('/entries/:bankrollId/:entryId', async (req, res) => {
             [entryId, req.user.id]
         );
 
-        // 2. Excluir a entrada principal da tabela surebet_entries
-        const result = await client.query(
-            'DELETE FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 AND user_id = $3 RETURNING id',
+        // 2. Verificar se a entrada existe e obter informações antes de excluir
+        const entryResult = await client.query(
+            'SELECT id, status, lucro_total FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 AND user_id = $3',
             [entryId, bankrollId, req.user.id]
         );
 
-        // Verificar se algum registro foi excluído
-        if (result.rowCount === 0) {
+        if (entryResult.rowCount === 0) {
             await client.query('ROLLBACK');
             return res.status(404).json({ msg: 'Entrada não encontrada ou não pertence a este bankroll.' });
         }
 
+        const entry = entryResult.rows[0];
+        const isResolved = entry.status && entry.status.toLowerCase() === 'resolvido';
+        const lucroTotal = parseFloat(entry.lucro_total) || 0;
+
+        // 3. Se a entrada estava resolvida, atualizar o saldo do bankroll
+        if (isResolved) {
+            await client.query(
+                'UPDATE bankrolls SET saldo_atual = saldo_atual - $1 WHERE id = $2 AND user_id = $3',
+                [lucroTotal, bankrollId, req.user.id]
+            );
+        }
+
+        // 4. Excluir a entrada principal da tabela surebet_entries
+        const deleteResult = await client.query(
+            'DELETE FROM surebet_entries WHERE id = $1 AND bankroll_id = $2 AND user_id = $3 RETURNING id',
+            [entryId, bankrollId, req.user.id]
+        );
+
         // Confirmar transação
         await client.query('COMMIT');
-        res.json({ msg: 'Entrada de surebet excluída com sucesso!', entryId });
+        
+        // Preparar mensagem de resposta
+        let message = 'Entrada de surebet excluída com sucesso!';
+        if (isResolved) {
+            if (lucroTotal > 0) {
+                message += ` O saldo foi reduzido em ${lucroTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} devido ao lucro da entrada resolvida.`;
+            } else if (lucroTotal < 0) {
+                message += ` O saldo foi aumentado em ${Math.abs(lucroTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} devido ao prejuízo da entrada resolvida.`;
+            }
+        }
+        
+        res.json({ msg: message, entryId });
 
     } catch (err) {
         await client.query('ROLLBACK'); // Em caso de erro, fazer rollback

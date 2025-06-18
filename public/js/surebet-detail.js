@@ -12,12 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
                date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     };
 
+    // Variável global para controlar a página atual
+    let currentPage = 1;
+    const entriesPerPage = 5;
+
     // Função para buscar e renderizar entradas de surebet
-    async function fetchSurebetEntries(filters = {}) {
+    async function fetchSurebetEntries(filters = {}, page = 1) {
         if (!bankrollId) return;
 
         const entriesTableBody = document.getElementById('entriesTableBody');
-        entriesTableBody.innerHTML = '<tr><td colspan="8" class="loading-state"><i class="fas fa-spinner fa-spin"></i> Carregando entradas...</td></tr>';
+        entriesTableBody.innerHTML = '<tr><td colspan="9" class="loading-state"><i class="fas fa-spinner fa-spin"></i> Carregando entradas...</td></tr>';
 
         try {
             let apiUrl = `/api/surebet/entries/${bankrollId}`;
@@ -25,21 +29,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (filters.period) queryParams.append('period', filters.period);
             if (filters.status) queryParams.append('status', filters.status);
             if (filters.search) queryParams.append('search', filters.search);
+            queryParams.append('page', page);
+            queryParams.append('limit', entriesPerPage);
             
-            if (queryParams.toString()) {
-                apiUrl += `?${queryParams.toString()}`;
-            }
+            apiUrl += `?${queryParams.toString()}`;
 
             const response = await fetch(apiUrl);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.msg || 'Erro ao buscar entradas de surebet');
             }
-            const entries = await response.json();
-            renderEntriesTable(entries);
+            const data = await response.json();
+            currentPage = page;
+            renderEntriesTable(data.entries);
+            renderPagination(data.pagination);
         } catch (error) {
             console.error('Erro ao buscar entradas:', error);
-            entriesTableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar entradas</h3><p>${error.message}</p></div></td></tr>`;
+            entriesTableBody.innerHTML = `<tr><td colspan="9" class="empty-state"><div class="empty-state-content"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar entradas</h3><p>${error.message}</p></div></td></tr>`;
         }
     }
 
@@ -50,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (entries.length === 0) {
             entriesTableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="empty-state">
+                    <td colspan="9" class="empty-state">
                         <div class="empty-state-content">
                             <i class="fas fa-list"></i>
                             <h3>Nenhuma entrada encontrada</h3>
@@ -87,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = entriesTableBody.insertRow();
             row.innerHTML = `
                 <td class="date-cell">${formatDate(entry.data_evento)}</td>
+                <td class="creation-date-cell">${formatDate(entry.data_criacao)}</td>
                 <td class="event-cell">
                     <div style="font-weight: 500; margin-bottom: 2px;">${entry.evento}</div>
                     <small style="color: var(--text-light); font-size: 0.8rem;">${entry.competicao || ''}</small>
@@ -119,6 +126,61 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
     }
+
+    // Função para renderizar controles de paginação
+    function renderPagination(pagination) {
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (!paginationContainer) return;
+
+        if (pagination.totalPages <= 1) {
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        let paginationHTML = '<div class="pagination-controls">';
+        
+        // Botão Anterior
+        if (pagination.hasPreviousPage) {
+            paginationHTML += `<button class="pagination-btn" onclick="changePage(${pagination.currentPage - 1})">
+                Anterior
+            </button>`;
+        }
+        
+        // Informações da página
+        paginationHTML += `<span class="pagination-info">
+            Página ${pagination.currentPage} de ${pagination.totalPages}
+        </span>`;
+        
+        // Botão Próximo
+        if (pagination.hasNextPage) {
+            paginationHTML += `<button class="pagination-btn" onclick="changePage(${pagination.currentPage + 1})">
+                Próximo
+            </button>`;
+        }
+        
+        paginationHTML += '</div>';
+        paginationContainer.innerHTML = paginationHTML;
+    }
+
+    // Função para mudar de página
+    window.changePage = function(page) {
+        const filters = getCurrentFilters();
+        fetchSurebetEntries(filters, page);
+    };
+
+    // Função para obter filtros atuais
+    function getCurrentFilters() {
+        const filters = {};
+        const dateFilter = document.getElementById('dateFilterEntries');
+        const statusFilter = document.getElementById('statusFilterEntries');
+        const searchInput = document.getElementById('searchEntries');
+        
+        if (dateFilter && dateFilter.value !== 'all') filters.period = dateFilter.value;
+        if (statusFilter && statusFilter.value !== 'all') filters.status = statusFilter.value;
+        if (searchInput && searchInput.value.trim()) filters.search = searchInput.value.trim();
+        
+        return filters;
+     }
 
     // Inicialização das tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -572,8 +634,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                toast.success('Entrada de surebet excluída com sucesso!');
+                toast.success(data.msg || 'Entrada de surebet excluída com sucesso!');
                 fetchSurebetEntries();
+                // Atualizar o saldo na interface
+                await updateBalanceDisplay();
             } else {
                 toast.error('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
             }
@@ -588,13 +652,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusFilterEntries = document.getElementById('statusFilterEntries');
     const searchEntriesInput = document.getElementById('searchEntries');
 
+    // Função para aplicar filtros e resetar para página 1
     function applyFilters() {
-        const filters = {
-            period: dateFilterEntries.value,
-            status: statusFilterEntries.value,
-            search: searchEntriesInput.value.trim()
-        };
-        fetchSurebetEntries(filters);
+        const filters = getCurrentFilters();
+        currentPage = 1;
+        fetchSurebetEntries(filters, 1);
     }
 
     if (dateFilterEntries) dateFilterEntries.addEventListener('change', applyFilters);
@@ -689,14 +751,14 @@ const bettingHouses = [
 
 // Mapeamento de logos das casas de apostas
 const logoMapping = {
-    "BET365": "bet365.png",
-    "BETANO": "betano.png",
+    "BET365": "BET365.png",
+    "BETANO": "Betano.png",
     "SPORTINGBET": "sportingbet.png",
-    "BETFAIR": "betfair.png",
-    "RIVALO": "rivalo.png",
+    "BETFAIR": "BETFAIR.png",
+    "RIVALO": "RIVALO.png",
     "BETWAY": "betway.png",
-    "PINNACLE": "pinnacle.png",
-    "BETSSON": "betsson.png",
+    "PINNACLE": "PINNACLE.webp",
+    "BETSSON": "Betsson.png",
     "BWIN": "bwin.png",
     "UNIBET": "unibet.png",
     "PAGOL": "Pagol.png",
@@ -718,112 +780,112 @@ const logoMapping = {
     "BETMGM": "BETMGM.jpg",
     "BRAVO": "BRAVO.png",
     "TRADICIONAL": "TRADICIONAL.jpg",
-    "BETBOO": "betboo.png",
-    "BETNACIONAL": "betnacional.png",
-    "SUPERBET": "superbet.png",
-    "GALERA.BET": "galerabet.png",
-    "F12.BET": "f12bet.png",
+    "BETBOO": "Betboo.jpg",
+    "BETNACIONAL": "Betnacional.png",
+    "SUPERBET": "Superbet.png",
+    "GALERA.BET": "Galera.bet.png",
+    "F12.BET": "F12.bet.png",
     "LUVA.BET": "luvabet.png",
-    "PIXBET": "pixbet.png",
-    "BLAZE": "blaze.png",
-    "STAKE": "stake.png",
-    "KTO": "kto.png",
-    "NOVIBET": "novibet.png",
-    "APOSTA GANHA": "apostaganha.png",
-    "BRAZINO777": "brazino777.png",
-    "ESTRELABET": "estrelabet.png",
-    "REALS": "reals.png",
-    "MATCHBOOK": "matchbook.png",
-    "REI DO PITACO": "reidopitaco.png",
-    "BIG": "big.png",
-    "APOSTAR": "apostar.png",
-    "SPORTYBET": "sportybet.png",
-    "UX": "ux.png",
-    "7GAMES": "7games.png",
-    "BETAO": "betao.png",
-    "R7": "r7.png",
-    "HIPERBET": "hiperbet.png",
-    "SEGURO BET": "segurobet.png",
-    "KING PANDA": "kingpanda.png",
-    "9F": "9f.png",
-    "6R": "6r.png",
+    "PIXBET": "PIXBET.png",
+    "BLAZE": "BLAZE.png",
+    "STAKE": "STAKE.png",
+    "KTO": "KTO.png",
+    "NOVIBET": "NOVIBET.png",
+    "APOSTA GANHA": "APOSTA GANHA.png",
+    "BRAZINO777": "BRAZINO777.png",
+    "ESTRELABET": "ESTRELABET.png",
+    "REALS": "Reals.jpg",
+    "MATCHBOOK": "MATCHBOOK.jpg",
+    "REI DO PITACO": "Reidopitaco.png",
+    "BIG": "Big.png",
+    "APOSTAR": "Apostar.webp",
+    "SPORTYBET": "SPORTYBET.png",
+    "UX": "UX.png",
+    "7GAMES": "7GAMES.jpg",
+    "BETAO": "BETAO.png",
+    "R7": "R7.jpg",
+    "HIPERBET": "HIPERBET.jpg",
+    "SEGURO BET": "SEGURO BET.jpg",
+    "KING PANDA": "KING PANDA.jpg",
+    "9F": "9F bet.png",
+    "6R": "6R bet.jpg",
     "BET.APP": "betapp.png",
-    "FOGO777": "fogo777.png",
-    "P9": "p9.png",
-    "4WIN": "4win.png",
-    "4PLAY": "4play.png",
-    "SORTE ONLINE": "sorteonline.png",
-    "FLABET": "flabet.png",
-    "BET DA SORTE": "betdasorte.png",
-    "APOSTOU": "apostou.png",
-    "B1.BET": "b1bet.png",
-    "BRBET": "brbet.png",
-    "BET GORILLAS": "betgorillas.png",
+    "FOGO777": "FOGO777.png",
+    "P9": "P9 bet.jpg",
+    "4WIN": "4win bet.jpg",
+    "4PLAY": "4PLAY bet.png",
+    "SORTE ONLINE": "SORTE ONLINE.png",
+    "FLABET": "FLABET.png",
+    "BET DA SORTE": "BET DA SORTE.webp",
+    "APOSTOU": "APOSTOU.jpg",
+    "B1.BET": "B1.BET.png",
+    "BRBET": "BRBET.jpg",
+    "BET GORILLAS": "BET GORILLAS.png",
     "BET BUFFALOS": "betbuffalos.png",
     "BET FALCONS": "betfalcons.png",
-    "BETBRA": "betbra.png",
-    "BOLSA DE APOSTA": "bolsadeaposta.png",
-    "FULLTBET": "fulltbet.png",
-    "BATEU BET": "bateubet.png",
-    "HANZBET": "hanzbet.png",
-    "ESPORTIVA BET": "esportivabet.png",
-    "BETWARRIOR": "betwarrior.png",
-    "SORTENABET": "sortenabet.png",
-    "BETOU": "betou.png",
-    "BETFUSION": "betfusion.png",
-    "BANDBET": "bandbet.png",
-    "AFUN": "afun.png",
+    "BETBRA": "BETBRA.png",
+    "BOLSA DE APOSTA": "BOLSA DE APOSTA.jpg",
+    "FULLTBET": "FULLTBET.jpg",
+    "BATEU BET": "BATEU BET.png",
+    "HANZBET": "HANZBET.png",
+    "ESPORTIVA BET": "ESPORTIVA BET.png",
+    "BETWARRIOR": "BETWARRIOR.png",
+    "SORTENABET": "SORTENABET.png",
+    "BETOU": "BETOU.png",
+    "BETFUSION": "BETFUSION.png",
+    "BANDBET": "BANDBET.png",
+    "AFUN": "AFUN.jpg",
     "6Z": "6z.png",
-    "JONBET": "jonbet.png",
-    "7K": "7k.png",
-    "CASSINO": "cassino.png",
-    "VERA": "vera.png",
-    "UPBETBR": "upbetbr.png",
-    "9D": "9d.png",
-    "WJCASINO": "wjcasino.png",
-    "ALFA.BET": "alfabet.png",
-    "MMA": "mma.png",
-    "BETVIP": "betvip.png",
-    "PAPIGAMES": "papigames.png",
-    "BET4": "bet4.png",
-    "APOSTA BET": "apostabet.png",
-    "FAZ O BET": "fazobet.png",
-    "ESPORTIVAVIP": "esportivavip.png",
-    "CBESPORTES": "cbesportes.png",
-    "DONOSDABOLA": "donosdabola.png",
-    "BR4BET": "br4bet.png",
-    "GOL DE BET": "goldebet.png",
-    "LOTOGREEN": "lotogreen.png",
-    "APOSTA1": "aposta1.png",
-    "APOSTAMAX": "apostamax.png",
-    "GINGABET": "gingabet.png",
-    "QGBET": "qgbet.png",
-    "VIVASORTE": "vivasorte.png",
-    "BACANAPLAY": "bacanaplay.png",
-    "PLAYUZU": "playuzu.png",
-    "BRASIL DA SORTE": "brasildasorte.png",
-    "MULTIBET": "multibet.png",
-    "RICOBET": "ricobet.png",
-    "BRXBET": "brxbet.png",
-    "SPIN": "spin.png",
-    "OLEYBET": "oleybet.png",
-    "BETPARK": "betpark.png",
-    "MERIDIANBET": "meridianbet.png",
-    "LUCK.BET": "luckbet.png",
-    "1 PRA 1": "1pra1.png",
-    "STARTBET": "startbet.png",
-    "ESPORTE 365": "esporte365.png",
-    "BET AKI": "betaki.png",
-    "JOGO DE OURO": "jogodeouro.png",
-    "LÍDERBET": "liderbet.png",
-    "GERALBET": "geralbet.png",
-    "B2XBET": "b2xbet.png",
-    "BULLSBET": "bullsbet.png",
-    "JOGÃO": "jogao.png",
-    "BET.BET": "betbet.png",
-    "DONALDBET": "donaldbet.png",
-    "A247": "a247.png",
-    "MCGAMES": "mcgames.png"
+    "JONBET": "JONBET.png",
+    "7K": "7K.jpg",
+    "CASSINO": "CASSINO.jpg",
+    "VERA": "VERA.png",
+    "UPBETBR": "UPBETBR.jpg",
+    "9D": "9D.png",
+    "WJCASINO": "WJCASINO.jpg",
+    "ALFA.BET": "ALFA.BET.png",
+    "MMA": "MMA.png",
+    "BETVIP": "BETVIP.png",
+    "PAPIGAMES": "PAPIGAMES.png",
+    "BET4": "BET4.png",
+    "APOSTA BET": "APOSTA BET.svg",
+    "FAZ O BET": "FAZ O BET.png",
+    "ESPORTIVAVIP": "ESPORTIVAVIP.jpg",
+    "CBESPORTES": "CBESPORTES.png",
+    "DONOSDABOLA": "DONOSDABOLA.png",
+    "BR4BET": "BR4BET.jpg",
+    "GOL DE BET": "GOL DE BET.png",
+    "LOTOGREEN": "LOTOGREEN.jpg",
+    "APOSTA1": "APOSTA1.png",
+    "APOSTAMAX": "APOSTAMAX.png",
+    "GINGABET": "GINGABET.jpg",
+    "QGBET": "QGBET.png",
+    "VIVASORTE": "VIVASORTE.jpg",
+    "BACANAPLAY": "BACANAPLAY.png",
+    "PLAYUZU": "PLAYUZU.png",
+    "BRASIL DA SORTE": "BRASIL DA SORTE.jpg",
+    "MULTIBET": "MULTIBET.png",
+    "RICOBET": "RICOBET.png",
+    "BRXBET": "BRXBET.png",
+    "SPIN": "SPIN.jpg",
+    "OLEYBET": "OLEYBET.png",
+    "BETPARK": "BETPARK.png",
+    "MERIDIANBET": "MERIDIANBET.jpg",
+    "LUCK.BET": "LUCK.BET.png",
+    "1 PRA 1": "1 PRA 1.png",
+    "STARTBET": "STARTBET.png",
+    "ESPORTE 365": "ESPORTE 365.png",
+    "BET AKI": "BET AKI.png",
+    "JOGO DE OURO": "JOGO DE OURO.png",
+    "LÍDERBET": "LÍDERBET.jpg",
+    "GERALBET": "GERALBET.jpg",
+    "B2XBET": "B2XBET.png",
+    "BULLSBET": "BULLSBET.png",
+    "JOGÃO": "JOGÃO.png",
+    "BET.BET": "BET.BET.png",
+    "DONALDBET": "DONALDBET.png",
+    "A247": "A247.png",
+    "MCGAMES": "MCGAMES.png"
 };
 
 // Função para obter o caminho do logo
