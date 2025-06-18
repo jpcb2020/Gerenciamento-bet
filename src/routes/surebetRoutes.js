@@ -42,7 +42,7 @@ router.get('/entries/:bankrollId', async (req, res) => {
         }
         if (period && period !== 'all') {
             // Lógica de período (ex: '7', '30', '90')
-            query += ` AND se.data_evento >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            query += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
         }
         if (search) {
             query += ` AND (se.evento ILIKE $${paramIndex} OR se.competicao ILIKE $${paramIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${paramIndex}))`;
@@ -77,7 +77,7 @@ router.get('/entries/:bankrollId', async (req, res) => {
             countParams.push(status);
         }
         if (period && period !== 'all') {
-            countQuery += ` AND se.data_evento >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            countQuery += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
         }
         if (search) {
             countQuery += ` AND (se.evento ILIKE $${countParamIndex} OR se.competicao ILIKE $${countParamIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${countParamIndex}))`;
