@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     exchangeInfo = ` <span style="background: var(--accent-color); color: white; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem;">${exchangeType}${commission}</span>`;
                 }
                 const logoPath = getLogoPath(b.casa_apostas);
-                return `<div style="margin-bottom: 4px; display: flex; align-items: flex-start; gap: 8px;"><img src="${logoPath}" alt="${b.casa_apostas}" style="width: 20px; height: 20px; object-fit: contain; border-radius: 3px; margin-top: 2px;"><div><div>${b.casa_apostas}${exchangeInfo} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span></div><small style="color: var(--text-light); font-size: 0.75rem;">${b.mercado || 'Mercado não informado'}</small></div></div>`;
+                return `<div style="margin-bottom: 4px; display: flex; align-items: flex-start; gap: 8px;"><img src="${logoPath}" alt="${b.casa_apostas}" style="width: 20px; height: 20px; object-fit: contain; border-radius: 3px; margin-top: 2px;"><div><div>${b.casa_apostas}${exchangeInfo} <span style="color: var(--primary-color); font-weight: 500;">(${formatCurrency(b.valor_apostado)})</span></div><small style="color: var(--text-light); font-size: 0.75rem;">${b.mercado || 'Mercado não informado'} - <span style="color: var(--accent-color); font-weight: 600;">${parseFloat(b.odds || 0).toFixed(2)}</span></small></div></div>`;
             }).join('');
             const valorTotalApostado = entry.bets.reduce((sum, b) => sum + parseFloat(b.valor_apostado), 0);
             const lucro = parseFloat(entry.lucro_total);
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const liability = liabilityInput ? parseFloat(liabilityInput.value) || 0 : 0;
 
                 if (!house || !market || !odds || !stake) {
-                    alert('Por favor, preencha todos os campos de todas as apostas.');
+                    toast.warning('Por favor, preencha todos os campos de todas as apostas.');
                     return;
                 }
                 
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (entryBetsData.length === 0) {
-                alert('Adicione pelo menos uma aposta para a entrada.');
+                toast.warning('Adicione pelo menos uma aposta para a entrada.');
                 return;
             }
 
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.msg || `Erro HTTP: ${response.status}`);
                 }
 
-                alert(result.msg || 'Entrada salva com sucesso!');
+                toast.success(result.msg || 'Entrada salva com sucesso!');
                 newEntryForm.reset();
                 clearModal(); // Limpa e reseta o modal
                 newEntryModal.classList.remove('active');
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } catch (error) {
                 console.error('Erro ao salvar entrada:', error);
-                alert(`Erro ao salvar entrada: ${error.message}`);
+                toast.error(`Erro ao salvar entrada: ${error.message}`);
             }
         });
     }
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const odds2 = parseFloat(document.getElementById('odds2').value) || 0;
             
             if (totalStake <= 0 || odds1 <= 1 || odds2 <= 1) {
-                alert('Por favor, preencha todos os campos corretamente.');
+                toast.warning('Por favor, preencha todos os campos corretamente.');
                 return;
             }
             
@@ -556,7 +556,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para deletar entrada de surebet
     async function deleteSurebetEntry(entryId) {
-        if (!confirm('Tem certeza que deseja excluir esta entrada de surebet? Esta ação não pode ser desfeita.')) {
+        const confirmed = await confirmModal.delete('Tem certeza que deseja excluir esta entrada de surebet? Esta ação não pode ser desfeita.');
+        if (!confirmed) {
             return;
         }
 
@@ -571,14 +572,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                alert('Entrada de surebet excluída com sucesso!');
+                toast.success('Entrada de surebet excluída com sucesso!');
                 fetchSurebetEntries();
             } else {
-                alert('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
+                toast.error('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
             }
         } catch (error) {
             console.error('Erro ao excluir entrada de surebet:', error);
-            alert('Erro ao excluir entrada. Tente novamente.');
+            toast.error('Erro ao excluir entrada. Tente novamente.');
         }
     }
 
