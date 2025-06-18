@@ -2883,111 +2883,49 @@ table td {
     margin-bottom: 5px;
 }
 
-/* Estilos para Tab Calculadora */
-.calculator-container {
+/* Estilos para Tab Bonus */
+.bonus-container {
     padding: 20px;
 }
 
-.calculator-header {
+.bonus-header {
     margin-bottom: 25px;
 }
 
-.calculator-header h3 {
+.bonus-header h3 {
     margin-bottom: 5px;
+    color: var(--dark-color);
 }
 
-.calculator-header p {
+.bonus-header p {
     color: var(--text-light);
     font-size: 0.9rem;
 }
 
-.calculator-form {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.calculator-section {
-    margin-bottom: 25px;
-}
-
-.calculator-section h4 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.form-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-.calculator-odds {
-    margin-bottom: 25px;
-}
-
-.odds-row {
-    padding: 15px;
+.bonus-content {
     background-color: var(--bg-color);
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.calculator-buttons {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.calculator-results {
-    background-color: var(--bg-color);
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 30px;
-}
-
-.calculator-results h4 {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.result-item {
-    background-color: var(--card-color);
-    padding: 15px;
+    padding: 30px;
     border-radius: 8px;
     text-align: center;
+    border: 2px dashed var(--border-color);
 }
 
-.result-label {
-    font-size: 0.85rem;
+.bonus-content::before {
+    content: "\f06b";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 3rem;
     color: var(--text-light);
-    margin-bottom: 5px;
-}
-
-.result-value {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--dark-color);
-}
-
-.calculator-save {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.btn-block {
     display: block;
-    width: 100%;
+    margin-bottom: 15px;
+}
+
+.bonus-content::after {
+    content: "Área em desenvolvimento";
+    display: block;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
 /* Estilos para Tab Estatísticas */

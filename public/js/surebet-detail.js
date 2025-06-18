@@ -577,60 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Calculadora
-    const calculateBtn = document.getElementById('calculateBtn');
-    const resetCalcBtn = document.getElementById('resetCalcBtn');
-    
-    if (calculateBtn) {
-        calculateBtn.addEventListener('click', function() {
-            const totalStake = parseFloat(document.getElementById('totalStake').value) || 0;
-            const odds1 = parseFloat(document.getElementById('odds1').value) || 0;
-            const odds2 = parseFloat(document.getElementById('odds2').value) || 0;
-            
-            if (totalStake <= 0 || odds1 <= 1 || odds2 <= 1) {
-                toast.warning('Por favor, preencha todos os campos corretamente.');
-                return;
-            }
-            
-            const totalImpliedProbability = (1/odds1) + (1/odds2);
-            
-            if (totalImpliedProbability >= 1) {
-                document.getElementById('guaranteedProfit').textContent = 'Não é Surebet';
-                document.getElementById('returnPercentage').textContent = 'N/A';
-                document.getElementById('stakeBookmaker1').textContent = 'R$ 0,00';
-                document.getElementById('stakeBookmaker2').textContent = 'R$ 0,00';
-                return;
-            }
-            
-            const profit = (totalStake / totalImpliedProbability) - totalStake;
-            const returnPercentage = (profit / totalStake) * 100;
-            
-            const stake1 = totalStake * (1/odds1) / totalImpliedProbability;
-            const stake2 = totalStake * (1/odds2) / totalImpliedProbability;
-            
-            document.getElementById('guaranteedProfit').textContent = `R$ ${profit.toFixed(2)}`;
-            document.getElementById('returnPercentage').textContent = `${returnPercentage.toFixed(2)}%`;
-            document.getElementById('stakeBookmaker1').textContent = `R$ ${stake1.toFixed(2)}`;
-            document.getElementById('stakeBookmaker2').textContent = `R$ ${stake2.toFixed(2)}`;
-        });
-    }
-    
-    if (resetCalcBtn) {
-        resetCalcBtn.addEventListener('click', function() {
-            document.getElementById('totalStake').value = '';
-            document.getElementById('odds1').value = '';
-            document.getElementById('odds2').value = '';
-            document.getElementById('bookmaker1').value = '';
-            document.getElementById('bookmaker2').value = '';
-            document.getElementById('market1').value = '';
-            document.getElementById('market2').value = '';
-            
-            document.getElementById('guaranteedProfit').textContent = 'R$ 0,00';
-            document.getElementById('returnPercentage').textContent = '0%';
-            document.getElementById('stakeBookmaker1').textContent = 'R$ 0,00';
-            document.getElementById('stakeBookmaker2').textContent = 'R$ 0,00';
-        });
-    }
+
 
     // Carregar entradas inicialmente se a aba "Entries" estiver ativa por padrão
     if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
