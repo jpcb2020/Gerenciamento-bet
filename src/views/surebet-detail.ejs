@@ -83,7 +83,7 @@
                         <div class="tag tag-surebet">Surebet</div>
                         <div class="surebet-balance">
                             <span class="balance-label">Saldo Atual:</span>
-                            <h3 id="currentBalance"><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
+                            <h3 id="currentBalance"<% if (parseFloat(bankroll.saldo_atual) < 0) { %> class="negative"<% } %>><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
                         </div>
                         <div class="surebet-stats">
                             <div class="stat-item">

@@ -2329,6 +2329,11 @@ table td {
     font-weight: 700;
     color: var(--green-color);
     margin: 0;
+    transition: color 0.3s ease;
+}
+
+.surebet-balance h3.negative {
+    color: #dc3545;
 }
 
 .surebet-stats {

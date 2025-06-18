@@ -100,10 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="${profitClass}">${formatCurrency(entry.lucro_total)}</span>
                 </td>
                 <td class="status-cell">
-                    <span class="status-badge status-${status}">
-                        <i class="fas fa-${status === 'complete' ? 'check-circle' : 'clock'}"></i>
-                        ${statusText}
-                    </span>
+                    <select class="status-dropdown" data-entry-id="${entry.id}" data-current-status="${status}">
+                        <option value="pendente" ${status === 'pendente' ? 'selected' : ''}>Pendente</option>
+                        <option value="resolvido" ${status === 'resolvido' || status === 'complete' ? 'selected' : ''}>Resolvido</option>
+                    </select>
                 </td>
                 <td class="actions-cell">
                     <a href="#" class="action-btn" title="Ver Detalhes" data-entry-id="${entry.id}">
@@ -970,3 +970,105 @@ document.addEventListener('input', function(e) {
         }
     }
 });
+
+// Event listener para mudanças no dropdown de status
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.classList.contains('status-dropdown')) {
+        const entryId = e.target.getAttribute('data-entry-id');
+        const newStatus = e.target.value;
+        const currentStatus = e.target.getAttribute('data-current-status');
+        
+        if (newStatus !== currentStatus) {
+            updateEntryStatus(entryId, newStatus, e.target);
+        }
+    }
+});
+
+// Função para atualizar o status da entrada
+async function updateEntryStatus(entryId, newStatus, selectElement) {
+    try {
+        // Desabilitar o dropdown durante a atualização
+        selectElement.disabled = true;
+        
+        const response = await fetch(`/api/surebet/entries/${entryId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.msg || 'Erro ao atualizar status');
+        }
+        
+        const responseData = await response.json();
+        
+        // Atualizar o atributo data-current-status
+        selectElement.setAttribute('data-current-status', newStatus);
+        
+        // Atualizar o saldo na interface se houve mudança
+        await updateBalanceDisplay();
+        
+        // Mostrar toast de sucesso
+        showToast(responseData.msg || 'Status atualizado com sucesso!', 'success');
+        
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        
+        // Reverter a seleção para o status anterior
+        const currentStatus = selectElement.getAttribute('data-current-status');
+        selectElement.value = currentStatus;
+        
+        // Mostrar toast de erro
+        showToast(`Erro ao atualizar status: ${error.message}`, 'error');
+    } finally {
+        // Reabilitar o dropdown
+        selectElement.disabled = false;
+    }
+}
+
+// Função para atualizar o saldo exibido na interface
+async function updateBalanceDisplay() {
+    try {
+        // Obter o ID do bankroll da URL (parâmetro 'id')
+        const urlParams = new URLSearchParams(window.location.search);
+        const bankrollId = urlParams.get('id');
+        
+        if (!bankrollId) {
+            console.warn('ID do bankroll não encontrado na URL');
+            return;
+        }
+        
+        // Buscar o saldo atual do bankroll
+        const response = await fetch(`/api/bankrolls/${bankrollId}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar dados do bankroll');
+        }
+        
+        const bankrollData = await response.json();
+        
+        // Atualizar o elemento do saldo na interface
+        const balanceElement = document.getElementById('currentBalance');
+        if (balanceElement && bankrollData.saldo_atual !== undefined) {
+            const saldoAtual = parseFloat(bankrollData.saldo_atual);
+            const formattedBalance = saldoAtual.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+            balanceElement.textContent = formattedBalance;
+            
+            // Aplicar classe 'negative' se o saldo for negativo
+            if (saldoAtual < 0) {
+                balanceElement.classList.add('negative');
+            } else {
+                balanceElement.classList.remove('negative');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Erro ao atualizar saldo na interface:', error);
+    }
+}

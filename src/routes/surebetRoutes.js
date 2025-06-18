@@ -268,4 +268,109 @@ router.patch('/entries/:bankrollId/:entryId/status', async (req, res) => {
     }
 });
 
+// PUT - Atualizar status de uma entrada de surebet (para dropdown)
+router.put('/entries/:entryId/status', async (req, res) => {
+    const { entryId } = req.params;
+    const { status } = req.body;
+    
+    if (!entryId) {
+        return res.status(400).json({ msg: 'ID da entrada é necessário para atualização.' });
+    }
+
+    if (!status) {
+        return res.status(400).json({ msg: 'O novo status é obrigatório.' });
+    }
+
+    // Mapear status do frontend para o banco
+    const statusMap = {
+        'pendente': 'Pendente',
+        'resolvido': 'Resolvido'
+    };
+
+    const dbStatus = statusMap[status.toLowerCase()];
+    if (!dbStatus) {
+        return res.status(400).json({ msg: 'Status inválido. Os valores permitidos são: pendente, resolvido' });
+    }
+
+    try {
+        // Iniciar transação para garantir consistência
+        const client = await pool.connect();
+        
+        try {
+            await client.query('BEGIN');
+            
+            // Buscar dados da entrada antes da atualização
+            const entryData = await client.query(
+                'SELECT id, bankroll_id, status, lucro_total FROM surebet_entries WHERE id = $1 AND user_id = $2',
+                [entryId, req.user.id]
+            );
+            
+            if (entryData.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ msg: 'Entrada não encontrada ou você não tem permissão para alterá-la.' });
+            }
+            
+            const entry = entryData.rows[0];
+            const previousStatus = entry.status;
+            const bankrollId = entry.bankroll_id;
+            const lucroTotal = parseFloat(entry.lucro_total) || 0;
+            
+            // Atualizar o status da entrada
+            await client.query(
+                'UPDATE surebet_entries SET status = $1 WHERE id = $2 AND user_id = $3',
+                [dbStatus, entryId, req.user.id]
+            );
+            
+            // Se o status mudou para 'Resolvido', somar o lucro (positivo ou negativo) ao saldo do bankroll
+            if (dbStatus === 'Resolvido' && previousStatus !== 'Resolvido') {
+                await client.query(
+                    'UPDATE bankrolls SET saldo_atual = saldo_atual + $1 WHERE id = $2 AND user_id = $3',
+                    [lucroTotal, bankrollId, req.user.id]
+                );
+            }
+            
+            // Se o status mudou de 'Resolvido' para 'Pendente', subtrair o lucro do saldo do bankroll
+            if (dbStatus === 'Pendente' && previousStatus === 'Resolvido') {
+                await client.query(
+                    'UPDATE bankrolls SET saldo_atual = saldo_atual - $1 WHERE id = $2 AND user_id = $3',
+                    [lucroTotal, bankrollId, req.user.id]
+                );
+            }
+            
+            await client.query('COMMIT');
+            
+            let message = 'Status atualizado com sucesso!';
+            if (dbStatus === 'Resolvido' && previousStatus !== 'Resolvido') {
+                if (lucroTotal > 0) {
+                    message += ` Lucro de R$ ${lucroTotal.toFixed(2)} adicionado ao saldo do bankroll.`;
+                } else if (lucroTotal < 0) {
+                    message += ` Prejuízo de R$ ${Math.abs(lucroTotal).toFixed(2)} subtraído do saldo do bankroll.`;
+                } else {
+                    message += ` Resultado neutro - saldo do bankroll mantido.`;
+                }
+            } else if (dbStatus === 'Pendente' && previousStatus === 'Resolvido') {
+                if (lucroTotal > 0) {
+                    message += ` Lucro de R$ ${lucroTotal.toFixed(2)} removido do saldo do bankroll.`;
+                } else if (lucroTotal < 0) {
+                    message += ` Prejuízo de R$ ${Math.abs(lucroTotal).toFixed(2)} revertido no saldo do bankroll.`;
+                } else {
+                    message += ` Resultado neutro revertido - saldo do bankroll mantido.`;
+                }
+            }
+            
+            res.json({ msg: message, status: dbStatus, entryId });
+            
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+        
+    } catch (err) {
+        console.error(`Erro na rota PUT /api/surebet/entries/${entryId}/status:`, err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao atualizar status da entrada de surebet.', error: err.message });
+    }
+});
+
 module.exports = router;

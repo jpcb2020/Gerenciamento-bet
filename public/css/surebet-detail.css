@@ -105,3 +105,92 @@
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
 }
+
+/* Estilos para o dropdown de status */
+.status-dropdown {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
+    padding-right: 32px;
+}
+
+.status-dropdown:hover {
+    border-color: var(--primary-color);
+    background-color: #f8f9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.status-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    background-color: white;
+}
+
+.status-dropdown:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+}
+
+.status-dropdown option {
+    padding: 8px;
+    font-weight: 500;
+}
+
+.status-dropdown option[value="pendente"] {
+    color: #b8860b;
+    background-color: #fff3cd;
+}
+
+.status-dropdown option[value="resolvido"] {
+    color: #155724;
+    background-color: #d4edda;
+}
+
+/* Cores do dropdown baseadas no valor selecionado */
+.status-dropdown[data-current-status="pendente"] {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #b8860b;
+}
+
+.status-dropdown[data-current-status="resolvido"] {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.status-dropdown[data-current-status="pendente"]:hover {
+    background-color: #ffeaa7;
+    border-color: #b8860b;
+}
+
+.status-dropdown[data-current-status="resolvido"]:hover {
+    background-color: #c3e6cb;
+    border-color: #155724;
+}
+
+/* Responsividade para o dropdown */
+@media (max-width: 768px) {
+    .status-dropdown {
+        font-size: 13px;
+        padding: 6px 10px;
+        padding-right: 28px;
+        background-size: 10px;
+        background-position: right 6px center;
+    }
+}
