@@ -13,6 +13,7 @@ router.get('/entries/:bankrollId', async (req, res) => {
                 se.id, se.evento, se.competicao, se.data_evento, 
                 se.retorno_total, se.lucro_total, se.roi_percentual, 
                 se.status, se.observacoes, se.data_criacao,
+                se.bonus, se.bonus_value, se.bonus_house, se.bonus_expiry_date,
                 COALESCE(
                     json_agg(
                         json_build_object(
@@ -50,7 +51,7 @@ router.get('/entries/:bankrollId', async (req, res) => {
             paramIndex++;
         }
 
-        query += " GROUP BY se.id ORDER BY se.data_evento DESC, se.id DESC";
+        query += " GROUP BY se.id ORDER BY se.data_criacao DESC, se.id DESC";
 
         // Adicionar paginação
         const pageNumber = parseInt(page) || 1;
@@ -120,7 +121,11 @@ router.post('/entries', async (req, res) => {
         entryDate, 
         entryTime, 
         entryBets, // Espera-se um array de objetos de aposta
-        entryNotes 
+        entryNotes,
+        entryBonus,
+        bonusValue,
+        bonusHouse,
+        bonusExpiryDate
     } = req.body;
 
     if (!bankrollId || !entryEvent || !entryDate || !entryTime || !entryBets || entryBets.length === 0) {
@@ -137,8 +142,8 @@ router.post('/entries', async (req, res) => {
         // 1. Inserir na tabela surebet_entries
         const surebetEntryQuery = `
             INSERT INTO surebet_entries 
-                (bankroll_id, evento, competicao, data_evento, observacoes, status, user_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
+                (bankroll_id, evento, competicao, data_evento, observacoes, status, user_id, bonus, bonus_value, bonus_house, bonus_expiry_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id;
         `;
         const entryResult = await client.query(surebetEntryQuery, [
             bankrollId,
@@ -147,7 +152,11 @@ router.post('/entries', async (req, res) => {
             dataEvento,
             entryNotes,
             'Pendente', // Status inicial
-            req.user.id
+            req.user.id,
+            entryBonus || false,
+            entryBonus ? bonusValue : null,
+            entryBonus ? bonusHouse : null,
+            entryBonus ? bonusExpiryDate : null
         ]);
         const surebetEntryId = entryResult.rows[0].id;
 

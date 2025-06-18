@@ -466,6 +466,44 @@
                             <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
                         </div>
                         
+                        <div class="form-group modern-checkbox">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="entryBonus" onchange="toggleBonusFields()">
+                                <span class="checkmark"></span>
+                                <i class="fas fa-gift"></i>
+                                Aposta Grátis (Bonus)
+                            </label>
+                            <small class="form-help">Marque se a recompensa da surebet é uma aposta grátis</small>
+                        </div>
+                        
+                        <div class="bonus-fields" id="bonusFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="bonusValue">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Valor da Aposta Grátis (R$)
+                                    </label>
+                                    <input type="number" id="bonusValue" step="0.01" min="0" placeholder="100.00">
+                                </div>
+                                <div class="form-group modern-input">
+                                    <label for="bonusHouse">
+                                        <i class="fas fa-home"></i>
+                                        Casa de Apostas do Bonus
+                                    </label>
+                                    <input type="text" id="bonusHouse" placeholder="Ex: Bet365" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="bonusExpiryDate">
+                                        <i class="fas fa-calendar-times"></i>
+                                        Data de Expiração da Aposta Grátis
+                                    </label>
+                                    <input type="date" id="bonusExpiryDate">
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="form-row">
                             <div class="form-group modern-input">
                                 <label for="entryDate">

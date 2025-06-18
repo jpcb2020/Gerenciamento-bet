@@ -95,8 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="date-cell">${formatDate(entry.data_evento)}</td>
                 <td class="creation-date-cell">${formatDate(entry.data_criacao)}</td>
                 <td class="event-cell">
-                    <div style="font-weight: 500; margin-bottom: 2px;">${entry.evento}</div>
-                    <small style="color: var(--text-light); font-size: 0.8rem;">${entry.competicao || ''}</small>
+                    <div style="font-weight: 500; margin-bottom: 2px;">
+                        ${entry.evento}
+                        ${entry.bonus ? '<span style="background: var(--success-color); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px;"><i class="fas fa-gift"></i> Bonus</span>' : ''}
+                    </div>
+                    <small style="color: var(--text-light); font-size: 0.8rem;">
+                        ${entry.competicao || ''}
+                        ${entry.bonus && entry.bonus_value ? `<br><div class="bonus-display"><div class="bonus-value"><i class="fas fa-gift"></i><span>${formatCurrency(entry.bonus_value)}</span><span style="color: #6c757d; font-weight: 500;">•</span><span style="color: #495057; font-weight: 600;">${entry.bonus_house}</span></div>${entry.bonus_expiry_date ? `<div class="bonus-expiry"><i class="fas fa-calendar-times"></i><span>Expira: ${formatDate(entry.bonus_expiry_date)}</span></div>` : ''}</div>` : ''}
+                    </small>
                 </td>
                 <td class="house-cell">
                     <span style="font-weight: 500;">${casasApostas}</span>
@@ -216,6 +222,16 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('entryCompetition').value = '';
         document.getElementById('entryDate').value = '';
         document.getElementById('entryTime').value = '';
+        document.getElementById('entryBonus').checked = false;
+        document.getElementById('bonusValue').value = '';
+        document.getElementById('bonusHouse').value = '';
+        document.getElementById('bonusExpiryDate').value = '';
+        
+        // Ocultar campos de bonus
+        const bonusFields = document.getElementById('bonusFields');
+        if (bonusFields) {
+            bonusFields.style.display = 'none';
+        }
         
         // Limpar campos das apostas
         const betInputs = document.querySelectorAll('#newEntryModal input[type="text"], #newEntryModal input[type="number"]');
@@ -463,6 +479,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const entryDate = document.getElementById('entryDate').value;
             const entryTime = document.getElementById('entryTime').value;
             const entryNotes = document.getElementById('entryNotes').value;
+            const entryBonus = document.getElementById('entryBonus').checked;
+            const bonusValue = document.getElementById('bonusValue').value;
+            const bonusHouse = document.getElementById('bonusHouse').value;
+            const bonusExpiryDate = document.getElementById('bonusExpiryDate').value;
 
             const entryBetsData = [];
             const betElements = entryBetsContainer.querySelectorAll('.entry-bet');
@@ -509,6 +529,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Validação dos campos de bonus
+            if (entryBonus && (!bonusValue || !bonusHouse || !bonusExpiryDate)) {
+                toast.warning('Por favor, preencha o valor, a casa de apostas e a data de expiração do bonus.');
+                return;
+            }
+
             const formData = {
                 bankrollId,
                 entryEvent,
@@ -516,6 +542,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 entryDate,
                 entryTime,
                 entryNotes,
+                entryBonus,
+                bonusValue: entryBonus ? parseFloat(bonusValue) : null,
+                bonusHouse: entryBonus ? bonusHouse : null,
+                bonusExpiryDate: entryBonus ? bonusExpiryDate : null,
                 entryBets: entryBetsData
             };
 
@@ -606,6 +636,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
         fetchSurebetEntries();
     }
+
+    // Função para mostrar/ocultar campos de bonus
+    window.toggleBonusFields = function() {
+        const bonusCheckbox = document.getElementById('entryBonus');
+        const bonusFields = document.getElementById('bonusFields');
+        
+        if (bonusCheckbox && bonusFields) {
+            bonusFields.style.display = bonusCheckbox.checked ? 'block' : 'none';
+        }
+    };
 
     // Event listener para botões de deletar
     document.addEventListener('click', function(e) {
@@ -1014,6 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupBettingHouseAutocomplete(document.getElementById('betHouse2'));
     setupBettingHouseAutocomplete(document.getElementById('bookmaker1'));
     setupBettingHouseAutocomplete(document.getElementById('bookmaker2'));
+    setupBettingHouseAutocomplete(document.getElementById('bonusHouse'));
 });
 
 // Adicionar event listeners para recalcular responsabilidade quando odds ou stake mudarem
