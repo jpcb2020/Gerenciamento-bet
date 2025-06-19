@@ -584,6 +584,125 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchSurebetEntries();
     }
 
+    // Event listener para navegação entre abas
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.tab-btn')) {
+            const tabBtn = e.target.closest('.tab-btn');
+            const tabName = tabBtn.getAttribute('data-tab');
+            
+            // Se clicou na aba de bonus, atualizar os dados
+            if (tabName === 'bonus') {
+                fetchBonusData();
+            }
+        }
+    });
+
+    // Função para buscar e atualizar dados de bônus
+    async function fetchBonusData() {
+        try {
+            const response = await fetch('/api/user/bonus');
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados de bônus');
+            }
+            
+            const bonusData = await response.json();
+            updateBonusDisplay(bonusData);
+            
+        } catch (error) {
+            console.error('Erro ao buscar dados de bônus:', error);
+            showToast('Erro ao atualizar dados de bônus', 'error');
+        }
+    }
+
+    // Função para atualizar a exibição dos bônus
+    function updateBonusDisplay(bonusData) {
+        const bonusGrid = document.querySelector('.bonus-grid');
+        if (!bonusGrid) return;
+        
+        // Limpar conteúdo atual
+        bonusGrid.innerHTML = '';
+        
+        if (bonusData.length > 0) {
+            bonusData.forEach(bonus => {
+                const bonusCard = createBonusCard(bonus);
+                bonusGrid.appendChild(bonusCard);
+            });
+        } else {
+            // Mostrar card de "nenhum bônus"
+            const noBonusCard = createNoBonusCard();
+            bonusGrid.appendChild(noBonusCard);
+        }
+    }
+
+    // Função para criar card de bônus
+    function createBonusCard(bonus) {
+        const isActive = bonus.status.toLowerCase() === 'ativo';
+        const cardClass = isActive ? 'active' : 'expired';
+        const statusIcon = isActive ? 'check-circle' : 'times-circle';
+        const expiryText = isActive ? 'Expira em:' : 'Expirou em:';
+        const expiryDate = new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR');
+        const bonusValue = parseFloat(bonus.bonus_value).toFixed(2).replace('.', ',');
+        
+        const cardHTML = `
+            <div class="bonus-card ${cardClass}">
+                <div class="bonus-card-header">
+                    <div class="bonus-house">
+                        <i class="fas fa-home"></i>
+                        <span>${bonus.bonus_house}</span>
+                    </div>
+                    <div class="bonus-status ${cardClass}">
+                        <i class="fas fa-${statusIcon}"></i>
+                        <span>${bonus.status}</span>
+                    </div>
+                </div>
+                <div class="bonus-card-body">
+                    <div class="bonus-value">
+                        <span class="currency">R$</span>
+                        <span class="amount">${bonusValue}</span>
+                    </div>
+                    <div class="bonus-type">Aposta Grátis</div>
+                </div>
+                <div class="bonus-card-footer">
+                    <div class="bonus-expiry">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${expiryText} ${expiryDate}</span>
+                    </div>
+                    ${isActive ? 
+                        `<button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="${bonus.id}">
+                            <i class="fas fa-play"></i>
+                            Usar
+                        </button>` : 
+                        `<button class="btn btn-sm btn-secondary" disabled>
+                            <i class="fas fa-ban"></i>
+                            Expirado
+                        </button>`
+                    }
+                </div>
+            </div>
+        `;
+        
+        const cardElement = document.createElement('div');
+        cardElement.innerHTML = cardHTML;
+        return cardElement.firstElementChild;
+    }
+
+    // Função para criar card de "nenhum bônus"
+    function createNoBonusCard() {
+        const cardHTML = `
+            <div class="no-bonus-card">
+                <div class="no-bonus-content">
+                    <i class="fas fa-gift fa-3x"></i>
+                    <h4>Nenhum bônus disponível</h4>
+                    <p>Você não possui apostas grátis no momento. Complete surebets com bônus para receber novas apostas grátis!</p>
+                </div>
+            </div>
+        `;
+        
+        const cardElement = document.createElement('div');
+        cardElement.innerHTML = cardHTML;
+        return cardElement.firstElementChild;
+    }
+
     // Função para mostrar/ocultar campos de bonus
     window.toggleBonusFields = function() {
         const bonusCheckbox = document.getElementById('entryBonus');

@@ -244,7 +244,63 @@
                                     <p>Gerencie suas apostas grátis e promoções</p>
                                 </div>
                                 <div class="bonus-content">
-                                    <!-- Conteúdo será adicionado posteriormente -->
+                                    <div class="bonus-grid">
+                                        <% if (typeof userBonus !== 'undefined' && userBonus.length > 0) { %>
+                                            <% userBonus.forEach(function(bonus) { %>
+                                                <div class="bonus-card <%= bonus.status.toLowerCase() === 'ativo' ? 'active' : 'expired' %>">
+                                                    <div class="bonus-card-header">
+                                                        <div class="bonus-house">
+                                                            <i class="fas fa-home"></i>
+                                                            <span><%= bonus.bonus_house %></span>
+                                                        </div>
+                                                        <div class="bonus-status <%= bonus.status.toLowerCase() === 'ativo' ? 'active' : 'expired' %>">
+                                                            <i class="fas fa-<%= bonus.status.toLowerCase() === 'ativo' ? 'check-circle' : 'times-circle' %>"></i>
+                                                            <span><%= bonus.status %></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bonus-card-body">
+                                                        <div class="bonus-value">
+                                                            <span class="currency">R$</span>
+                                                            <span class="amount"><%= parseFloat(bonus.bonus_value).toFixed(2).replace('.', ',') %></span>
+                                                        </div>
+                                                        <div class="bonus-type">Aposta Grátis</div>
+                                                    </div>
+                                                    <div class="bonus-card-footer">
+                                                        <div class="bonus-expiry">
+                                                            <i class="fas fa-calendar-alt"></i>
+                                                            <span>
+                                                                <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                                                    Expira em: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>
+                                                                <% } else { %>
+                                                                    Expirou em: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>
+                                                                <% } %>
+                                                            </span>
+                                                        </div>
+                                                        <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                                            <button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="<%= bonus.id %>">
+                                                                <i class="fas fa-play"></i>
+                                                                Usar
+                                                            </button>
+                                                        <% } else { %>
+                                                            <button class="btn btn-sm btn-secondary" disabled>
+                                                                <i class="fas fa-ban"></i>
+                                                                Expirado
+                                                            </button>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <!-- Card para quando não há bônus -->
+                                            <div class="no-bonus-card">
+                                                <div class="no-bonus-content">
+                                                    <i class="fas fa-gift fa-3x"></i>
+                                                    <h4>Nenhum bônus disponível</h4>
+                                                    <p>Você não possui apostas grátis no momento. Complete surebets com bônus para receber novas apostas grátis!</p>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
                                 </div>
                             </div>
                         </div>

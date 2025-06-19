@@ -136,15 +136,37 @@ app.get('/surebet-detail', requireAuth, async (req, res) => { // Transformar em 
       return res.redirect('/bankrolls?error=not_surebet_or_found');
     }
 
-    // Passar os dados do bankroll para o template
+    // Buscar bônus do usuário
+    const bonusResult = await pool.query(
+      'SELECT * FROM user_bonus WHERE user_id = $1 ORDER BY data_criacao DESC',
+      [req.user.id]
+    );
+
+    // Passar os dados do bankroll e bônus para o template
     res.render('surebet-detail', { 
       title: `Detalhes Surebet: ${bankroll.nome}`,
       bankroll: bankroll, // Passa o objeto bankroll inteiro
-      user: req.user
+      user: req.user,
+      userBonus: bonusResult.rows // Passa os dados de bônus
     });
   } catch (error) {
     console.error('Erro ao buscar dados do bankroll:', error);
     res.status(500).send('Erro ao carregar detalhes do bankroll');
+  }
+});
+
+// Rota API para buscar bônus do usuário
+app.get('/api/user/bonus', requireAuth, async (req, res) => {
+  try {
+    const bonusResult = await pool.query(
+      'SELECT * FROM user_bonus WHERE user_id = $1 ORDER BY data_criacao DESC',
+      [req.user.id]
+    );
+    
+    res.json(bonusResult.rows);
+  } catch (error) {
+    console.error('Erro ao buscar bônus do usuário:', error);
+    res.status(500).json({ error: 'Erro ao buscar dados de bônus' });
   }
 });
 
