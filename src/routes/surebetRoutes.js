@@ -389,7 +389,7 @@ router.put('/entries/:entryId/status', async (req, res) => {
             
             // Buscar dados da entrada antes da atualização
             const entryData = await client.query(
-                'SELECT id, bankroll_id, status, lucro_total FROM surebet_entries WHERE id = $1 AND user_id = $2',
+                'SELECT id, bankroll_id, status, lucro_total, bonus, bonus_value, bonus_house, bonus_expiry_date, user_id FROM surebet_entries WHERE id = $1 AND user_id = $2',
                 [entryId, req.user.id]
             );
             
@@ -402,6 +402,11 @@ router.put('/entries/:entryId/status', async (req, res) => {
             const previousStatus = entry.status;
             const bankrollId = entry.bankroll_id;
             const lucroTotal = parseFloat(entry.lucro_total) || 0;
+            const hasBonus = entry.bonus;
+            const bonusValue = entry.bonus_value;
+            const bonusHouse = entry.bonus_house;
+            const bonusExpiryDate = entry.bonus_expiry_date;
+            const userId = entry.user_id;
             
             // Atualizar o status da entrada
             await client.query(
@@ -415,6 +420,14 @@ router.put('/entries/:entryId/status', async (req, res) => {
                     'UPDATE bankrolls SET saldo_atual = saldo_atual + $1 WHERE id = $2 AND user_id = $3',
                     [lucroTotal, bankrollId, req.user.id]
                 );
+                
+                // Se há bônus, inserir na tabela user_bonus
+                if (hasBonus && bonusValue && bonusHouse && bonusExpiryDate) {
+                    await client.query(
+                        'INSERT INTO user_bonus (user_id, bonus_value, bonus_house, bonus_expiry_date, surebet_entry_id) VALUES ($1, $2, $3, $4, $5)',
+                        [userId, bonusValue, bonusHouse, bonusExpiryDate, entryId]
+                    );
+                }
             }
             
             // Se o status mudou de 'Resolvido' para 'Pendente', subtrair o lucro do saldo do bankroll
