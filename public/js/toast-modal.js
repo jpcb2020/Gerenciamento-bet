@@ -174,11 +174,11 @@ class ConfirmModal {
                 <div class="confirm-modal-actions">
                     <button class="confirm-btn confirm-btn-cancel">
                         <i class="fas fa-times"></i>
-                        Cancelar
+                        <span>Cancelar</span>
                     </button>
                     <button class="confirm-btn confirm-btn-confirm">
                         <i class="fas fa-check"></i>
-                        Confirmar
+                        <span>Confirmar</span>
                     </button>
                 </div>
             </div>
@@ -189,6 +189,9 @@ class ConfirmModal {
 
         // Add event listeners
         this.setupEventListeners();
+        
+        // Add entrance animation
+        this.addEntranceEffects();
     }
 
     setupEventListeners() {
@@ -248,21 +251,133 @@ class ConfirmModal {
         const iconClass = this.getIcon(type);
         iconEl.querySelector('i').className = `fas ${iconClass}`;
 
-        // Update buttons
-        confirmBtn.innerHTML = `<i class="fas ${confirmIcon}"></i> ${confirmText}`;
-        cancelBtn.innerHTML = `<i class="fas ${cancelIcon}"></i> ${cancelText}`;
+        // Update buttons with new structure
+        confirmBtn.innerHTML = `<i class="fas ${confirmIcon}"></i><span>${confirmText}</span>`;
+        cancelBtn.innerHTML = `<i class="fas ${cancelIcon}"></i><span>${cancelText}</span>`;
         
         // Update confirm button style
         confirmBtn.className = `confirm-btn confirm-btn-confirm ${type}`;
 
-        // Show modal
-        this.overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        // Add button hover effects
+        this.addButtonEffects(confirmBtn, cancelBtn);
+
+        // Show modal with enhanced animation
+        this.showWithAnimation();
 
         // Return promise
         return new Promise((resolve) => {
             this.currentResolve = resolve;
         });
+    }
+
+    addEntranceEffects() {
+        // Add particle effect on modal creation
+        this.createParticleEffect();
+    }
+
+    addButtonEffects(confirmBtn, cancelBtn) {
+        // Add ripple effect on button click
+        [confirmBtn, cancelBtn].forEach(btn => {
+            btn.addEventListener('mousedown', (e) => {
+                this.createRippleEffect(e, btn);
+            });
+        });
+    }
+
+    createRippleEffect(e, button) {
+        const ripple = document.createElement('div');
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+            z-index: 0;
+        `;
+        
+        button.appendChild(ripple);
+        
+        setTimeout(() => {
+            if (ripple.parentNode) {
+                ripple.parentNode.removeChild(ripple);
+            }
+        }, 600);
+    }
+
+    createParticleEffect() {
+        // Add subtle particle animation around the modal
+        const particles = document.createElement('div');
+        particles.className = 'modal-particles';
+        particles.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        `;
+        
+        for (let i = 0; i < 6; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                border-radius: 50%;
+                animation: float ${3 + Math.random() * 2}s ease-in-out infinite;
+                animation-delay: ${Math.random() * 2}s;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                opacity: 0.6;
+            `;
+            particles.appendChild(particle);
+        }
+        
+        this.modal.appendChild(particles);
+    }
+
+    showWithAnimation() {
+        this.overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Add sound effect (optional)
+        this.playNotificationSound();
+    }
+
+    playNotificationSound() {
+        // Create a subtle notification sound using Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (e) {
+            // Silently fail if Web Audio API is not supported
+        }
     }
 
     hide(result) {

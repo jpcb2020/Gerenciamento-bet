@@ -3022,6 +3022,12 @@ table td {
     color: var(--primary-color);
 }
 
+.bonus-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .use-bonus-btn {
     padding: 6px 12px;
     font-size: 0.85rem;
@@ -3029,6 +3035,25 @@ table td {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.delete-bonus-btn {
+    padding: 0;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    transition: all 0.3s ease;
+}
+
+.delete-bonus-btn:hover {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    transform: scale(1.05);
 }
 
 .no-bonus-card {
@@ -3068,8 +3093,20 @@ table td {
         align-items: stretch;
     }
     
+    .bonus-actions {
+        justify-content: center;
+        gap: 12px;
+    }
+    
     .use-bonus-btn {
         justify-content: center;
+        flex: 1;
+    }
+    
+    .delete-bonus-btn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
     }
 }
 

@@ -667,16 +667,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fas fa-calendar-alt"></i>
                         <span>${expiryText} ${expiryDate}</span>
                     </div>
-                    ${isActive ? 
-                        `<button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="${bonus.id}">
-                            <i class="fas fa-play"></i>
-                            Usar
-                        </button>` : 
-                        `<button class="btn btn-sm btn-secondary" disabled>
-                            <i class="fas fa-ban"></i>
-                            Expirado
-                        </button>`
-                    }
+                    <div class="bonus-actions">
+                        ${isActive ? 
+                            `<button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="${bonus.id}">
+                                <i class="fas fa-play"></i>
+                                Usar
+                            </button>` : 
+                            `<button class="btn btn-sm btn-secondary" disabled>
+                                <i class="fas fa-ban"></i>
+                                Expirado
+                            </button>`
+                        }
+                        <button class="btn btn-sm btn-danger delete-bonus-btn" data-bonus-id="${bonus.id}" title="Deletar aposta grátis">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -720,6 +725,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const entryId = e.target.closest('.action-btn.delete').dataset.entryId;
             deleteSurebetEntry(entryId);
         }
+        
+        // Event listener para botões de deletar bônus
+        if (e.target.closest('.delete-bonus-btn')) {
+            e.preventDefault();
+            const bonusId = e.target.closest('.delete-bonus-btn').dataset.bonusId;
+            deleteBonusEntry(bonusId);
+        }
     });
 
     // Função para deletar entrada de surebet
@@ -749,9 +761,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Erro ao excluir entrada de surebet:', error);
-            toast.error('Erro ao excluir entrada. Tente novamente.');
+            toast.error('Erro ao excluir entrada de surebet');
         }
     }
+
+    // Função para deletar bônus
+    async function deleteBonusEntry(bonusId) {
+        const confirmed = await confirmModal.delete('Tem certeza que deseja excluir esta aposta grátis? Esta ação não pode ser desfeita.');
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/user/bonus/${bonusId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success(data.msg || 'Aposta grátis excluída com sucesso!');
+                // Atualizar a exibição dos bônus
+                fetchBonusData();
+            } else {
+                toast.error('Erro ao excluir aposta grátis: ' + (data.error || 'Erro desconhecido'));
+            }
+        } catch (error) {
+              console.error('Erro ao excluir aposta grátis:', error);
+              toast.error('Erro ao excluir aposta grátis. Tente novamente.');
+          }
+      }
 
     // Lógica para filtros da tabela de entradas
     const dateFilterEntries = document.getElementById('dateFilterEntries');

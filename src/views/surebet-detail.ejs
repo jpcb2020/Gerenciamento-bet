@@ -276,17 +276,22 @@
                                                                 <% } %>
                                                             </span>
                                                         </div>
-                                                        <% if (bonus.status.toLowerCase() === 'ativo') { %>
-                                                            <button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="<%= bonus.id %>">
-                                                                <i class="fas fa-play"></i>
-                                                                Usar
+                                                        <div class="bonus-actions">
+                                                            <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                                                <button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="<%= bonus.id %>">
+                                                                    <i class="fas fa-play"></i>
+                                                                    Usar
+                                                                </button>
+                                                            <% } else { %>
+                                                                <button class="btn btn-sm btn-secondary" disabled>
+                                                                    <i class="fas fa-ban"></i>
+                                                                    Expirado
+                                                                </button>
+                                                            <% } %>
+                                                            <button class="btn btn-sm btn-danger delete-bonus-btn" data-bonus-id="<%= bonus.id %>" title="Deletar aposta grátis">
+                                                                <i class="fas fa-trash"></i>
                                                             </button>
-                                                        <% } else { %>
-                                                            <button class="btn btn-sm btn-secondary" disabled>
-                                                                <i class="fas fa-ban"></i>
-                                                                Expirado
-                                                            </button>
-                                                        <% } %>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             <% }); %>

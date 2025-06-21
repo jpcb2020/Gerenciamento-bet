@@ -170,6 +170,34 @@ app.get('/api/user/bonus', requireAuth, async (req, res) => {
   }
 });
 
+// Rota API para deletar bônus do usuário
+app.delete('/api/user/bonus/:bonusId', requireAuth, async (req, res) => {
+  try {
+    const { bonusId } = req.params;
+    
+    // Verificar se o bônus pertence ao usuário logado
+    const bonusCheck = await pool.query(
+      'SELECT id FROM user_bonus WHERE id = $1 AND user_id = $2',
+      [bonusId, req.user.id]
+    );
+    
+    if (bonusCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Bônus não encontrado ou não pertence ao usuário' });
+    }
+    
+    // Deletar o bônus
+    await pool.query(
+      'DELETE FROM user_bonus WHERE id = $1 AND user_id = $2',
+      [bonusId, req.user.id]
+    );
+    
+    res.json({ msg: 'Aposta grátis deletada com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao deletar bônus:', error);
+    res.status(500).json({ error: 'Erro ao deletar aposta grátis' });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
