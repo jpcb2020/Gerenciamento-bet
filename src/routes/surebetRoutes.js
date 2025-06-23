@@ -14,6 +14,7 @@ router.get('/entries/:bankrollId', async (req, res) => {
                 se.retorno_total, se.lucro_total, se.roi_percentual, 
                 se.status, se.observacoes, se.data_criacao,
                 se.bonus, se.bonus_value, se.bonus_house, se.bonus_expiry_date,
+                se.used_bonus_id, se.used_bonus_value, se.used_bonus_house,
                 COALESCE(
                     json_agg(
                         json_build_object(
@@ -118,6 +119,7 @@ router.post('/entries', async (req, res) => {
         bankrollId, 
         entryEvent, 
         entryCompetition, 
+        useExistingBonus,
         entryDate, 
         entryTime, 
         entryBets, // Espera-se um array de objetos de aposta
@@ -139,11 +141,24 @@ router.post('/entries', async (req, res) => {
 
         const dataEvento = `${entryDate} ${entryTime}`;
 
+        // Buscar informações do bônus usado, se houver
+        let usedBonusData = null;
+        if (useExistingBonus) {
+            const bonusQuery = await client.query(
+                'SELECT id, bonus_value, bonus_house FROM user_bonus WHERE id = $1 AND user_id = $2 AND status = $3',
+                [useExistingBonus, req.user.id, 'Ativo']
+            );
+            
+            if (bonusQuery.rowCount > 0) {
+                usedBonusData = bonusQuery.rows[0];
+            }
+        }
+
         // 1. Inserir na tabela surebet_entries
         const surebetEntryQuery = `
             INSERT INTO surebet_entries 
-                (bankroll_id, evento, competicao, data_evento, observacoes, status, user_id, bonus, bonus_value, bonus_house, bonus_expiry_date)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id;
+                (bankroll_id, evento, competicao, data_evento, observacoes, status, user_id, bonus, bonus_value, bonus_house, bonus_expiry_date, used_bonus_id, used_bonus_value, used_bonus_house)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;
         `;
         const entryResult = await client.query(surebetEntryQuery, [
             bankrollId,
@@ -156,7 +171,10 @@ router.post('/entries', async (req, res) => {
             entryBonus || false,
             entryBonus ? bonusValue : null,
             entryBonus ? bonusHouse : null,
-            entryBonus ? bonusExpiryDate : null
+            entryBonus ? bonusExpiryDate : null,
+            usedBonusData ? usedBonusData.id : null,
+            usedBonusData ? usedBonusData.bonus_value : null,
+            usedBonusData ? usedBonusData.bonus_house : null
         ]);
         const surebetEntryId = entryResult.rows[0].id;
 
@@ -233,6 +251,23 @@ router.post('/entries', async (req, res) => {
             'UPDATE surebet_entries SET retorno_total = $1, lucro_total = $2, roi_percentual = $3 WHERE id = $4',
             [retornoTotalGarantido, lucroTotal, roiPercentual, surebetEntryId]
         );
+
+        // Se uma aposta grátis existente foi selecionada, deletar ela da tabela
+        if (useExistingBonus) {
+            // Verificar se a aposta grátis pertence ao usuário e está ativa
+            const bonusCheck = await client.query(
+                'SELECT id, status FROM user_bonus WHERE id = $1 AND user_id = $2 AND status = $3',
+                [useExistingBonus, req.user.id, 'Ativo']
+            );
+            
+            if (bonusCheck.rowCount > 0) {
+                // Deletar a aposta grátis (as informações ficam preservadas em surebet_entries)
+                await client.query(
+                    'DELETE FROM user_bonus WHERE id = $1 AND user_id = $2',
+                    [useExistingBonus, req.user.id]
+                );
+            }
+        }
 
         await client.query('COMMIT');
         res.status(201).json({ msg: 'Entrada de Surebet registrada com sucesso!', entryId: surebetEntryId });
@@ -471,6 +506,21 @@ router.put('/entries/:entryId/status', async (req, res) => {
     } catch (err) {
         console.error(`Erro na rota PUT /api/surebet/entries/${entryId}/status:`, err.message, err.stack);
         res.status(500).json({ msg: 'Erro no servidor ao atualizar status da entrada de surebet.', error: err.message });
+    }
+});
+
+// GET user's active free bets
+router.get('/user-bonus', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, bonus_value, bonus_house, bonus_expiry_date FROM user_bonus WHERE user_id = $1 AND status = $2 ORDER BY bonus_expiry_date ASC',
+            [req.user.id, 'Ativo']
+        );
+        
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Erro ao buscar apostas grátis do usuário:', err.message);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar apostas grátis.', error: err.message });
     }
 });
 

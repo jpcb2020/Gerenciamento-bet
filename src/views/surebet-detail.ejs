@@ -83,7 +83,12 @@
                         <div class="tag tag-surebet">Surebet</div>
                         <div class="surebet-balance">
                             <span class="balance-label">Saldo Atual:</span>
-                            <h3 id="currentBalance"<% if (parseFloat(bankroll.saldo_atual) < 0) { %> class="negative"<% } %>><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
+                            <div class="balance-container">
+                                <h3 id="currentBalance"<% if (parseFloat(bankroll.saldo_atual) < 0) { %> class="negative"<% } %>><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
+                                <button id="editBalanceBtn" class="edit-balance-btn" title="Editar Saldo">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="surebet-stats">
                             <div class="stat-item">
@@ -450,6 +455,26 @@
                             <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
                         </div>
                         
+                        <div class="form-group modern-input">
+                            <label for="useExistingBonus">
+                                <i class="fas fa-gift"></i>
+                                Usar Aposta Grátis Disponível
+                            </label>
+                            <select id="useExistingBonus" onchange="handleExistingBonusSelection()">
+                                <option value="">Selecione uma aposta grátis (opcional)</option>
+                                <% if (typeof userBonus !== 'undefined' && userBonus.length > 0) { %>
+                                    <% userBonus.forEach(function(bonus) { %>
+                                        <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                            <option value="<%= bonus.id %>" data-value="<%= bonus.bonus_value %>" data-house="<%= bonus.bonus_house %>" data-expiry="<%= bonus.bonus_expiry_date %>">
+                                                <%= bonus.bonus_house %> - R$ <%= parseFloat(bonus.bonus_value).toFixed(2).replace('.', ',') %> (Expira: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>)
+                                            </option>
+                                        <% } %>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                            <small class="form-help">Selecione uma aposta grátis existente para usar nesta entrada</small>
+                        </div>
+                        
                         <div class="form-group modern-checkbox">
                             <label class="checkbox-container">
                                 <input type="checkbox" id="entryBonus" onchange="toggleBonusFields()">
@@ -724,6 +749,45 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Saldo -->
+    <div id="editBalanceModal" class="edit-balance-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Saldo</h3>
+                <button class="modal-close" id="closeEditBalanceModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editBalanceForm">
+                    <div class="form-group">
+                        <label for="currentBalanceDisplay">Saldo Atual:</label>
+                        <div class="current-balance-display" id="currentBalanceDisplay"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newBalance">Novo Saldo:</label>
+                        <div class="input-container">
+                            <input type="number" id="newBalance" step="0.01" placeholder="0,00" required>
+                        </div>
+                        <small class="input-help">Digite o novo valor do saldo atual</small>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelEditBalance">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="editBalanceForm" class="btn-save" id="saveEditBalance">
+                    <i class="fas fa-save"></i>
+                    Salvar Alteração
+                </button>
             </div>
         </div>
     </div>

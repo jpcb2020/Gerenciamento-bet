@@ -95,14 +95,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="date-cell">${formatDate(entry.data_evento)}</td>
                 <td class="creation-date-cell">${formatDate(entry.data_criacao)}</td>
                 <td class="event-cell">
-                    <div style="font-weight: 500; margin-bottom: 2px;">
+                    <div style="font-weight: 500; margin-bottom: 4px;">
                         ${entry.evento}
-                        ${entry.bonus ? '<span style="background: var(--success-color); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px;"><i class="fas fa-gift"></i> Bonus</span>' : ''}
+                        ${entry.bonus ? '<span style="background: var(--success-color); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;"><i class="fas fa-gift"></i> Gera Bônus</span>' : ''}
+                        ${entry.used_bonus_value ? '<span style="background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;"><i class="fas fa-star"></i> Usou Bônus</span>' : ''}
                     </div>
-                    <small style="color: var(--text-light); font-size: 0.8rem;">
+                    <div style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 3px;">
                         ${entry.competicao || ''}
-                        ${entry.bonus && entry.bonus_value ? `<br><div class="bonus-display"><div class="bonus-value"><i class="fas fa-gift"></i><span>${formatCurrency(entry.bonus_value)}</span><span style="color: #6c757d; font-weight: 500;">•</span><span style="color: #495057; font-weight: 600;">${entry.bonus_house}</span></div>${entry.bonus_expiry_date ? `<div class="bonus-expiry"><i class="fas fa-calendar-times"></i><span>Expira: ${formatDate(entry.bonus_expiry_date)}</span></div>` : ''}</div>` : ''}
-                    </small>
+                    </div>
+                    ${entry.used_bonus_value ? `
+                        <div class="bonus-info-card used">
+                            <div style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                <i class="fas fa-arrow-down" style="font-size: 0.7rem; color: #1976d2;"></i>
+                                <span style="color: #1976d2; font-size: 0.75rem;">Usou:</span>
+                                <span style="color: #1565c0; font-weight: 700;">${formatCurrency(entry.used_bonus_value)}</span>
+                                <span style="background: #1976d2; color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600;">${entry.used_bonus_house}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${entry.bonus && entry.bonus_value ? `
+                        <div class="bonus-info-card generated">
+                            <div style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                <i class="fas fa-arrow-up" style="font-size: 0.7rem; color: #2e7d32;"></i>
+                                <span style="color: #2e7d32; font-size: 0.75rem;">Gera:</span>
+                                <span style="color: #1b5e20; font-weight: 700;">${formatCurrency(entry.bonus_value)}</span>
+                                <span style="background: #2e7d32; color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600;">${entry.bonus_house}</span>
+                            </div>
+                            ${entry.bonus_expiry_date ? `
+                                <div style="margin-top: 2px; font-size: 0.65rem; color: #666; display: flex; align-items: center; gap: 3px;">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <span>Exp: ${new Date(entry.bonus_expiry_date).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </td>
                 <td class="house-cell">
                     <span style="font-weight: 500;">${casasApostas}</span>
@@ -275,6 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addSurebetEntryBtn) {
         addSurebetEntryBtn.addEventListener('click', () => {
             clearModal();
+            loadAvailableFreeBets(); // Carregar apostas grátis disponíveis
             newEntryModal.classList.add('active');
         });
     }
@@ -476,10 +503,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const bankrollId = new URLSearchParams(window.location.search).get('id');
             const entryEvent = document.getElementById('entryEvent').value;
             const entryCompetition = document.getElementById('entryCompetition').value;
+            const useExistingBonus = document.getElementById('useExistingBonus').value;
             const entryDate = document.getElementById('entryDate').value;
             const entryTime = document.getElementById('entryTime').value;
             const entryNotes = document.getElementById('entryNotes').value;
-            const entryBonus = document.getElementById('entryBonus').checked;
+            // Se uma aposta grátis existente foi selecionada, entryBonus deve ser false
+            // pois o checkbox é apenas para criar uma nova aposta grátis
+            const entryBonus = useExistingBonus ? false : document.getElementById('entryBonus').checked;
             const bonusValue = document.getElementById('bonusValue').value;
             const bonusHouse = document.getElementById('bonusHouse').value;
             const bonusExpiryDate = document.getElementById('bonusExpiryDate').value;
@@ -539,6 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 bankrollId,
                 entryEvent,
                 entryCompetition,
+                useExistingBonus: useExistingBonus || null,
                 entryDate,
                 entryTime,
                 entryNotes,
@@ -715,6 +746,108 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (bonusCheckbox && bonusFields) {
             bonusFields.style.display = bonusCheckbox.checked ? 'block' : 'none';
+        }
+    };
+
+    // Função para carregar apostas grátis disponíveis
+    window.loadAvailableFreeBets = async function() {
+        try {
+            const response = await fetch('/api/surebet/user-bonus');
+            if (!response.ok) {
+                throw new Error('Erro ao carregar apostas grátis');
+            }
+            
+            const freeBets = await response.json();
+            const selectElement = document.getElementById('useExistingBonus');
+            
+            // Limpar opções existentes (exceto a primeira)
+            selectElement.innerHTML = '<option value="">Selecione uma aposta grátis...</option>';
+            
+            // Adicionar as apostas grátis disponíveis
+            freeBets.forEach(bet => {
+                const option = document.createElement('option');
+                option.value = bet.id;
+                option.textContent = `${bet.bonus_house} - R$ ${parseFloat(bet.bonus_value).toFixed(2)} (Expira: ${formatDate(bet.bonus_expiry_date)})`;
+                option.setAttribute('data-value', bet.bonus_value);
+                option.setAttribute('data-house', bet.bonus_house);
+                option.setAttribute('data-expiry', bet.bonus_expiry_date);
+                selectElement.appendChild(option);
+            });
+            
+        } catch (error) {
+            console.error('Erro ao carregar apostas grátis:', error);
+            showMessage('Erro ao carregar apostas grátis disponíveis', 'error');
+        }
+    };
+
+    // Função para lidar com seleção de aposta grátis existente
+    window.handleExistingBonusSelection = function() {
+        const selectElement = document.getElementById('useExistingBonus');
+        const bonusCheckbox = document.getElementById('entryBonus');
+        const bonusFields = document.getElementById('bonusFields');
+        const bonusValueInput = document.getElementById('bonusValue');
+        const bonusHouseInput = document.getElementById('bonusHouse');
+        const bonusExpiryInput = document.getElementById('bonusExpiryDate');
+        
+        if (selectElement.value) {
+            // Uma aposta grátis foi selecionada
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const bonusValue = selectedOption.getAttribute('data-value');
+            const bonusHouse = selectedOption.getAttribute('data-house');
+            const bonusExpiry = selectedOption.getAttribute('data-expiry');
+            
+            // Desmarcar e desabilitar o checkbox de bonus (ele é para criar nova aposta grátis)
+            if (bonusCheckbox) {
+                bonusCheckbox.checked = false;
+                bonusCheckbox.disabled = true; // Desabilitar para evitar conflitos
+            }
+            
+            // Ocultar os campos de bonus já que estamos usando uma aposta grátis existente
+            if (bonusFields) {
+                bonusFields.style.display = 'none';
+            }
+            
+            // Limpar os campos para evitar conflitos
+            if (bonusValueInput) {
+                bonusValueInput.value = '';
+                bonusValueInput.readOnly = false;
+            }
+            
+            if (bonusHouseInput) {
+                bonusHouseInput.value = '';
+                bonusHouseInput.readOnly = false;
+            }
+            
+            if (bonusExpiryInput) {
+                bonusExpiryInput.value = '';
+                bonusExpiryInput.readOnly = false;
+            }
+        } else {
+            // Nenhuma aposta grátis selecionada - limpar e habilitar campos
+            if (bonusCheckbox) {
+                bonusCheckbox.checked = false;
+                bonusCheckbox.disabled = false;
+            }
+            
+            if (bonusFields) {
+                bonusFields.style.display = 'none';
+            }
+            
+            // Limpar e habilitar os campos
+            if (bonusValueInput) {
+                bonusValueInput.value = '';
+                bonusValueInput.readOnly = false;
+            }
+            
+            if (bonusHouseInput) {
+                bonusHouseInput.value = '';
+                bonusHouseInput.readOnly = false;
+            }
+            
+            if (bonusExpiryInput) {
+                bonusExpiryInput.value = '';
+                bonusExpiryInput.readOnly = false;
+            }
         }
     };
 
@@ -1283,3 +1416,176 @@ async function updateBalanceDisplay() {
         console.error('Erro ao atualizar saldo na interface:', error);
     }
 }
+
+// Funcionalidade do Modal de Edição de Saldo
+class EditBalanceModal {
+    constructor() {
+        this.modal = document.getElementById('editBalanceModal');
+        this.form = document.getElementById('editBalanceForm');
+        this.currentBalanceDisplay = document.getElementById('currentBalanceDisplay');
+        this.newBalanceInput = document.getElementById('newBalance');
+        this.bankrollId = null;
+        this.currentBalance = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        // Event listeners para abrir/fechar modal
+        const editBtn = document.getElementById('editBalanceBtn');
+        const closeBtn = document.getElementById('closeEditBalanceModal');
+        const cancelBtn = document.getElementById('cancelEditBalance');
+        const overlay = this.modal.querySelector('.modal-overlay');
+        
+        if (editBtn) {
+            editBtn.addEventListener('click', () => this.open());
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.close());
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.close());
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', () => this.close());
+        }
+        
+        // Event listener para o formulário
+        if (this.form) {
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
+        
+        // Event listener para ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+                this.close();
+            }
+        });
+        
+        // Obter ID do bankroll da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        this.bankrollId = urlParams.get('id');
+    }
+    
+    async open() {
+        try {
+            // Buscar dados atuais do bankroll
+            const response = await fetch(`/api/bankrolls/${this.bankrollId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados do bankroll');
+            }
+            
+            const bankrollData = await response.json();
+            this.currentBalance = parseFloat(bankrollData.saldo_atual);
+            
+            // Atualizar display do saldo atual
+            const formattedBalance = this.currentBalance.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+            this.currentBalanceDisplay.textContent = formattedBalance;
+            
+            // Limpar formulário
+            this.form.reset();
+            this.newBalanceInput.value = '';
+            
+            // Mostrar modal
+            this.modal.classList.add('active');
+            
+            // Focar no input do novo saldo
+            setTimeout(() => {
+                this.newBalanceInput.focus();
+            }, 300);
+            
+        } catch (error) {
+            console.error('Erro ao abrir modal:', error);
+            showToast('Erro ao carregar dados do saldo', 'error');
+        }
+    }
+    
+    close() {
+        this.modal.classList.remove('active');
+    }
+    
+    async handleSubmit(e) {
+        e.preventDefault();
+        
+        const newBalance = parseFloat(this.newBalanceInput.value);
+        
+        // Validações
+        if (isNaN(newBalance)) {
+            showToast('Por favor, insira um valor válido para o saldo', 'error');
+            return;
+        }
+        
+        // Confirmar alteração se for uma mudança significativa
+        const difference = Math.abs(newBalance - this.currentBalance);
+        if (difference > 1000) {
+            const confirmed = await showConfirm(
+                'Confirmação de Alteração',
+                `Você está alterando o saldo de ${this.currentBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para ${newBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Esta é uma alteração significativa. Deseja continuar?`,
+                'warning'
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+        }
+        
+        try {
+            // Desabilitar botão de salvar
+            const saveBtn = document.getElementById('saveEditBalance');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            
+            // Enviar requisição para atualizar saldo
+            const response = await fetch(`/api/bankrolls/${this.bankrollId}/saldo`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    saldo_atual: newBalance
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.msg || 'Erro ao atualizar saldo');
+            }
+            
+            const updatedBankroll = await response.json();
+            
+            // Atualizar interface
+            await updateBalanceDisplay();
+            
+            // Fechar modal
+            this.close();
+            
+            // Mostrar toast de sucesso
+            const changeText = newBalance > this.currentBalance ? 'aumentado' : 'reduzido';
+            showToast(`Saldo ${changeText} com sucesso! Novo saldo: ${newBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, 'success');
+            
+            // Recarregar entradas para refletir mudanças
+            fetchSurebetEntries();
+            
+        } catch (error) {
+            console.error('Erro ao atualizar saldo:', error);
+            showToast(`Erro ao atualizar saldo: ${error.message}`, 'error');
+        } finally {
+            // Reabilitar botão de salvar
+            const saveBtn = document.getElementById('saveEditBalance');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alteração';
+        }
+    }
+}
+
+// Inicializar modal de edição de saldo quando a página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    new EditBalanceModal();
+});

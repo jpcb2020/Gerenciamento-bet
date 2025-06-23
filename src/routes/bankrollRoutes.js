@@ -73,6 +73,30 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// PATCH update only the current balance of a bankroll
+router.patch('/:id/saldo', async (req, res) => {
+  const { id } = req.params;
+  const { saldo_atual } = req.body;
+
+  if (saldo_atual === undefined || saldo_atual === null) {
+    return res.status(400).json({ msg: 'Por favor, inclua o novo saldo atual' });
+  }
+
+  try {
+    const updatedBankroll = await pool.query(
+      'UPDATE bankrolls SET saldo_atual = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
+      [parseFloat(saldo_atual), id, req.user.id]
+    );
+    if (updatedBankroll.rows.length === 0) {
+      return res.status(404).json({ msg: 'Bankroll não encontrado' });
+    }
+    res.json(updatedBankroll.rows[0]);
+  } catch (err) {
+    console.error('Erro na rota PATCH /api/bankrolls/:id/saldo:', err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // DELETE a bankroll
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
