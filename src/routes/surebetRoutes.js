@@ -524,4 +524,216 @@ router.get('/user-bonus', async (req, res) => {
     }
 });
 
+// GET evolution data for chart
+router.get('/evolution/:bankrollId', async (req, res) => {
+    const { bankrollId } = req.params;
+    
+    try {
+        // Buscar o saldo inicial do bankroll
+        const bankrollResult = await pool.query(
+            'SELECT saldo_inicial FROM bankrolls WHERE id = $1 AND user_id = $2',
+            [bankrollId, req.user.id]
+        );
+        
+        if (bankrollResult.rowCount === 0) {
+            return res.status(404).json({ msg: 'Bankroll não encontrado.' });
+        }
+        
+        const saldoInicial = parseFloat(bankrollResult.rows[0].saldo_inicial);
+        
+        // Buscar entradas resolvidas ordenadas por data de criação
+        const entriesResult = await pool.query(
+            `SELECT 
+                DATE(data_criacao) as data,
+                SUM(lucro_total) as lucro_diario
+             FROM surebet_entries 
+             WHERE bankroll_id = $1 AND user_id = $2 AND status = 'Resolvido'
+             GROUP BY DATE(data_criacao)
+             ORDER BY DATE(data_criacao) ASC`,
+            [bankrollId, req.user.id]
+        );
+        
+        // Construir dados de evolução
+        const evolutionData = [];
+        let saldoAcumulado = saldoInicial;
+        
+        // Adicionar ponto inicial (data de criação do bankroll ou primeira entrada)
+        const firstDate = entriesResult.rows.length > 0 
+            ? entriesResult.rows[0].data 
+            : new Date().toISOString().split('T')[0];
+            
+        evolutionData.push({
+            data: firstDate,
+            saldo: saldoInicial
+        });
+        
+        // Adicionar cada ponto de evolução
+        entriesResult.rows.forEach(row => {
+            saldoAcumulado += parseFloat(row.lucro_diario);
+            evolutionData.push({
+                data: row.data,
+                saldo: saldoAcumulado
+            });
+        });
+        
+        // Se não há entradas, adicionar pelo menos um ponto adicional para mostrar linha reta
+        if (entriesResult.rows.length === 0) {
+            evolutionData.push({
+                data: new Date().toISOString().split('T')[0],
+                saldo: saldoInicial
+            });
+        }
+        
+        res.json(evolutionData);
+        
+    } catch (err) {
+        console.error('Erro ao buscar dados de evolução:', err.message);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar dados de evolução.', error: err.message });
+    }
+});
+
+// GET statistics data for the statistics tab
+router.get('/statistics/:bankrollId', async (req, res) => {
+    const { bankrollId } = req.params;
+    const { period = '30', startDate, endDate } = req.query;
+    
+    try {
+        // Calcular data de início baseada no período
+        let dateFilter = '';
+        let dateParams = [bankrollId, req.user.id];
+        
+        if (period === 'custom' && startDate && endDate) {
+            // Período personalizado
+            dateFilter = ' AND data_criacao >= $3 AND data_criacao <= $4';
+            dateParams.push(startDate, endDate);
+        } else if (period !== 'all') {
+            // Períodos predefinidos
+            const daysAgo = parseInt(period);
+            dateFilter = ' AND data_criacao >= CURRENT_DATE - INTERVAL \'%s days\'';
+            dateFilter = dateFilter.replace('%s', daysAgo);
+        }
+        
+        // Buscar estatísticas gerais (apenas entradas resolvidas)
+        const generalStatsQuery = `
+            SELECT 
+                COUNT(*) as total_bets,
+                COALESCE(SUM(lucro_total), 0) as total_profit,
+                COALESCE(AVG(lucro_total), 0) as average_profit,
+                COALESCE(AVG((SELECT SUM(valor_apostado) FROM surebet_entry_bets seb WHERE seb.surebet_entry_id = se.id)), 0) as average_stake,
+                COUNT(*) as resolved_bets,
+                COUNT(CASE WHEN lucro_total > 0 THEN 1 END) as winning_bets
+            FROM surebet_entries se
+            WHERE bankroll_id = $1 AND user_id = $2 AND status = 'Resolvido'${dateFilter}
+        `;
+        
+        const generalStats = await pool.query(generalStatsQuery, dateParams);
+        
+        // Buscar lucro por período (agrupado por dia/semana/mês dependendo do período)
+        let profitPeriodFilter = '';
+        let profitPeriodParams = [bankrollId, req.user.id];
+        let groupByClause = 'DATE(data_criacao)';
+        let selectClause = 'DATE(data_criacao) as date';
+        
+        if (period === 'custom' && startDate && endDate) {
+            // Período personalizado
+            profitPeriodFilter = ' AND data_criacao >= $3 AND data_criacao <= $4';
+            profitPeriodParams.push(startDate, endDate);
+            
+            // Calcular diferença de dias para determinar agrupamento
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 30) {
+                groupByClause = 'DATE(data_criacao)';
+                selectClause = 'DATE(data_criacao) as date';
+            } else if (diffDays <= 180) {
+                groupByClause = 'DATE_TRUNC(\'week\', data_criacao)';
+                selectClause = 'DATE_TRUNC(\'week\', data_criacao) as date';
+            } else {
+                groupByClause = 'DATE_TRUNC(\'month\', data_criacao)';
+                selectClause = 'DATE_TRUNC(\'month\', data_criacao) as date';
+            }
+        } else if (period !== 'all') {
+            // Períodos predefinidos
+            const daysAgo = parseInt(period);
+            profitPeriodFilter = ` AND data_criacao >= CURRENT_DATE - INTERVAL '${daysAgo} days'`;
+            
+            // Ajustar agrupamento baseado no período
+            if (daysAgo <= 30) {
+                // Últimos 30 dias: agrupar por dia
+                groupByClause = 'DATE(data_criacao)';
+                selectClause = 'DATE(data_criacao) as date';
+            } else if (daysAgo <= 180) {
+                // 90-180 dias: agrupar por semana
+                groupByClause = 'DATE_TRUNC(\'week\', data_criacao)';
+                selectClause = 'DATE_TRUNC(\'week\', data_criacao) as date';
+            } else {
+                // Mais de 180 dias: agrupar por mês
+                groupByClause = 'DATE_TRUNC(\'month\', data_criacao)';
+                selectClause = 'DATE_TRUNC(\'month\', data_criacao) as date';
+            }
+        } else {
+            // Todo período: agrupar por mês
+            groupByClause = 'DATE_TRUNC(\'month\', data_criacao)';
+            selectClause = 'DATE_TRUNC(\'month\', data_criacao) as date';
+        }
+        
+        const profitByPeriodQuery = `
+            SELECT 
+                ${selectClause},
+                COALESCE(SUM(lucro_total), 0) as daily_profit,
+                COUNT(*) as entries_count,
+                COALESCE(AVG(lucro_total), 0) as avg_profit
+            FROM surebet_entries 
+            WHERE bankroll_id = $1 AND user_id = $2 
+                AND status = 'Resolvido'${profitPeriodFilter}
+            GROUP BY ${groupByClause}
+            ORDER BY date ASC
+        `;
+        
+        const profitByPeriod = await pool.query(profitByPeriodQuery, profitPeriodParams);
+        
+        // Buscar distribuição por casas de apostas (apenas entradas resolvidas)
+        const bookmakerDistributionQuery = `
+            SELECT 
+                seb.casa_apostas,
+                COUNT(*) as bet_count,
+                COALESCE(SUM(seb.valor_apostado), 0) as total_stake
+            FROM surebet_entry_bets seb
+            JOIN surebet_entries se ON seb.surebet_entry_id = se.id
+            WHERE se.bankroll_id = $1 AND se.user_id = $2 AND se.status = 'Resolvido'${dateFilter}
+            GROUP BY seb.casa_apostas
+            ORDER BY bet_count DESC
+            LIMIT 10
+        `;
+        
+        const bookmakerDistribution = await pool.query(bookmakerDistributionQuery, dateParams);
+        
+        // Calcular ROI médio
+        const stats = generalStats.rows[0];
+        const totalStake = parseFloat(stats.average_stake) * parseInt(stats.total_bets);
+        const roi = totalStake > 0 ? (parseFloat(stats.total_profit) / totalStake) * 100 : 0;
+        
+        res.json({
+            general: {
+                totalBets: parseInt(stats.total_bets),
+                totalProfit: parseFloat(stats.total_profit),
+                averageROI: roi,
+                averageStake: parseFloat(stats.average_stake),
+                resolvedBets: parseInt(stats.resolved_bets),
+                winningBets: parseInt(stats.winning_bets),
+                winRate: stats.resolved_bets > 0 ? (stats.winning_bets / stats.resolved_bets) * 100 : 0
+            },
+            profitByPeriod: profitByPeriod.rows,
+            bookmakerDistribution: bookmakerDistribution.rows
+        });
+        
+    } catch (err) {
+        console.error('Erro ao buscar estatísticas:', err.message);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar estatísticas.', error: err.message });
+    }
+});
+
 module.exports = router;

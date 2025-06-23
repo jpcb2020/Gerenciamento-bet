@@ -328,7 +328,17 @@
                                             <option value="180">Últimos 6 meses</option>
                                             <option value="365">Último ano</option>
                                             <option value="all">Todo o período</option>
+                                            <option value="custom">Período personalizado</option>
                                         </select>
+                                        
+                                        <div id="customDateRange" class="custom-date-range" style="display: none;">
+                                            <input type="date" id="startDate" class="date-input">
+                                            <span class="date-separator">até</span>
+                                            <input type="date" id="endDate" class="date-input">
+                                            <button type="button" id="applyCustomDate" class="btn-apply-date">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -339,29 +349,29 @@
                                         </div>
                                         <div class="stat-card-body">
                                             <div class="stat-metrics">
-                                                <div class="stat-metric">
-                                                    <div class="metric-label">Total de Apostas</div>
-                                                    <div class="metric-value" id="totalBetsCount">0</div>
-                                                </div>
-                                                <div class="stat-metric">
-                                                    <div class="metric-label">Lucro Total</div>
-                                                    <div class="metric-value" id="totalProfit">R$ 0,00</div>
-                                                </div>
-                                                <div class="stat-metric">
-                                                    <div class="metric-label">ROI Médio</div>
-                                                    <div class="metric-value" id="averageROI">0%</div>
-                                                </div>
-                                                <div class="stat-metric">
-                                                    <div class="metric-label">Valor Médio</div>
-                                                    <div class="metric-value" id="averageStake">R$ 0,00</div>
-                                                </div>
+                                                                                <div class="stat-metric">
+                                    <div class="metric-label">Surebets Resolvidas</div>
+                                    <div class="metric-value" id="totalBetsCount">0</div>
+                                </div>
+                                <div class="stat-metric">
+                                    <div class="metric-label">Lucro Total</div>
+                                    <div class="metric-value" id="totalProfit">R$ 0,00</div>
+                                </div>
+                                <div class="stat-metric">
+                                    <div class="metric-label">ROI Médio</div>
+                                    <div class="metric-value" id="averageROI">0%</div>
+                                </div>
+                                <div class="stat-metric">
+                                    <div class="metric-label">Valor Médio Apostado</div>
+                                    <div class="metric-value" id="averageStake">R$ 0,00</div>
+                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="stat-card chart-card">
                                         <div class="stat-card-header">
-                                            <h4>Lucro por Período</h4>
+                                            <h4>Evolução dos Lucros</h4>
                                         </div>
                                         <div class="stat-card-body">
                                             <div class="chart-container" id="profitByPeriodChart">
@@ -376,7 +386,7 @@
 
                                     <div class="stat-card">
                                         <div class="stat-card-header">
-                                            <h4>Casas de Apostas Mais Utilizadas</h4>
+                                            <h4>Casas Mais Utilizadas (Resolvidas)</h4>
                                         </div>
                                         <div class="stat-card-body">
                                             <div class="chart-container" id="bookmakerDistributionChart">
@@ -389,20 +399,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="stat-card">
-                                        <div class="stat-card-header">
-                                            <h4>Distribuição por Tipo de Mercado</h4>
-                                        </div>
-                                        <div class="stat-card-body">
-                                            <div class="chart-container" id="marketTypeChart">
-                                                <!-- Canvas para o gráfico será inserido via JavaScript -->
-                                                <div class="no-data-message">
-                                                    <i class="fas fa-chart-pie"></i>
-                                                    <p>Distribuição por tipo de mercado</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>

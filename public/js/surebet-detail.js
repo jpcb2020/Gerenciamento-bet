@@ -178,10 +178,16 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>`;
         }
         
-        // Informações da página
-        paginationHTML += `<span class="pagination-info">
-            Página ${pagination.currentPage} de ${pagination.totalPages}
-        </span>`;
+        // Campo para ir para página específica (design simplificado)
+        paginationHTML += `
+            <div class="page-jump">
+                <span class="page-info">${pagination.currentPage} de ${pagination.totalPages}</span>
+                <input type="number" id="pageInput" min="1" max="${pagination.totalPages}" 
+                       value="${pagination.currentPage}" class="page-input" placeholder="${pagination.currentPage}"
+                       onkeypress="if(event.key === 'Enter') goToPage()">
+                <button class="btn-go" onclick="goToPage()">Ir</button>
+            </div>
+        `;
         
         // Botão Próximo
         if (pagination.hasNextPage) {
@@ -198,6 +204,22 @@ document.addEventListener('DOMContentLoaded', function() {
     window.changePage = function(page) {
         const filters = getCurrentFilters();
         fetchSurebetEntries(filters, page);
+    };
+
+    // Função para ir diretamente para uma página específica
+    window.goToPage = function() {
+        const pageInput = document.getElementById('pageInput');
+        if (!pageInput) return;
+        
+        const targetPage = parseInt(pageInput.value);
+        if (isNaN(targetPage) || targetPage < 1) {
+            toast.warning('Por favor, digite um número de página válido.');
+            return;
+        }
+        
+        // A validação do máximo já é feita pelo input (max attribute)
+        const filters = getCurrentFilters();
+        fetchSurebetEntries(filters, targetPage);
     };
 
     // Função para obter filtros atuais
@@ -600,6 +622,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearModal(); // Limpa e reseta o modal
                 newEntryModal.classList.remove('active');
                 fetchSurebetEntries(); // Atualizar a tabela após salvar
+                if (window.reloadEvolutionChart) {
+                    window.reloadEvolutionChart(); // Atualizar gráfico
+                }
 
             } catch (error) {
                 console.error('Erro ao salvar entrada:', error);
@@ -614,6 +639,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
         fetchSurebetEntries();
     }
+    
+    // Carregar gráfico de evolução do bankroll
+    loadEvolutionChart();
+    
+    // Armazenar referência para poder recarregar
+    window.reloadEvolutionChart = loadEvolutionChart;
 
     // Event listener para navegação entre abas
     document.addEventListener('click', function(e) {
@@ -624,6 +655,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Se clicou na aba de bonus, atualizar os dados
             if (tabName === 'bonus') {
                 fetchBonusData();
+            }
+            
+            // Se clicou na aba de estatísticas, carregar os dados
+            if (tabName === 'statistics') {
+                loadStatistics();
             }
         }
     });
@@ -889,6 +925,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetchSurebetEntries();
                 // Atualizar o saldo na interface
                 await updateBalanceDisplay();
+                // Atualizar gráfico
+                if (window.reloadEvolutionChart) {
+                    window.reloadEvolutionChart();
+                }
             } else {
                 toast.error('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
             }
@@ -948,6 +988,564 @@ document.addEventListener('DOMContentLoaded', function() {
             searchEntriesInput.timer = setTimeout(applyFilters, 500);
         });
     }
+
+    // Função para carregar e renderizar o gráfico de evolução
+    async function loadEvolutionChart() {
+        if (!bankrollId) return;
+        
+        const chartContainer = document.getElementById('balanceChart');
+        if (!chartContainer) return;
+        
+        try {
+            const response = await fetch(`/api/surebet/evolution/${bankrollId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados de evolução');
+            }
+            
+            const evolutionData = await response.json();
+            
+            // Verificar se há dados suficientes
+            if (evolutionData.length === 0) {
+                chartContainer.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Ainda não há dados para mostrar a evolução</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Preparar dados para o Chart.js
+            const labels = evolutionData.map(item => {
+                const date = new Date(item.data);
+                return date.toLocaleDateString('pt-BR');
+            });
+            
+            const data = evolutionData.map(item => parseFloat(item.saldo));
+            
+            // Limpar container e criar canvas
+            chartContainer.innerHTML = '<canvas id="evolutionChart" width="400" height="200"></canvas>';
+            const canvas = document.getElementById('evolutionChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Configurar cores baseadas na performance
+            const isPositive = data[data.length - 1] >= data[0];
+            const lineColor = isPositive ? '#28a745' : '#dc3545';
+            const gradientColor = isPositive ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+            
+            // Criar gradiente
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, gradientColor);
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            // Criar o gráfico
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Saldo do Bankroll',
+                        data: data,
+                        borderColor: lineColor,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: lineColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Saldo: ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6c757d',
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#6c757d',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: lineColor
+                        }
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Erro ao carregar gráfico de evolução:', error);
+            chartContainer.innerHTML = `
+                <div class="no-data-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erro ao carregar gráfico</p>
+                </div>
+                         `;
+         }
+     }
+
+    // Funções para a aba de estatísticas
+    let statisticsCharts = {}; // Armazenar referências dos gráficos
+
+    async function loadStatistics() {
+        if (!bankrollId) return;
+        
+        try {
+            const statsDateFilter = document.getElementById('statsDateFilter');
+            const period = statsDateFilter ? statsDateFilter.value : '30';
+            
+            let url = `/api/surebet/statistics/${bankrollId}?period=${period}`;
+            
+            // Se for período personalizado, adicionar datas
+            if (period === 'custom') {
+                const startDate = document.getElementById('startDate')?.value;
+                const endDate = document.getElementById('endDate')?.value;
+                
+                if (!startDate || !endDate) {
+                    showToast('Por favor, selecione as datas de início e fim', 'error');
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    showToast('A data de início deve ser anterior à data de fim', 'error');
+                    return;
+                }
+                
+                url += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar estatísticas');
+            }
+            
+            const statisticsData = await response.json();
+            
+            // Atualizar métricas gerais
+            updateGeneralMetrics(statisticsData.general);
+            
+            // Criar gráfico de lucro por período
+            createProfitByPeriodChart(statisticsData.profitByPeriod);
+            
+            // Criar gráfico de distribuição por casas de apostas
+            createBookmakerDistributionChart(statisticsData.bookmakerDistribution);
+            
+        } catch (error) {
+            console.error('Erro ao carregar estatísticas:', error);
+            showToast('Erro ao carregar estatísticas', 'error');
+        }
+    }
+
+    function updateGeneralMetrics(generalStats) {
+        // Atualizar elementos das métricas
+        const elements = {
+            totalBetsCount: generalStats.totalBets,
+            totalProfit: formatCurrency(generalStats.totalProfit),
+            averageROI: `${generalStats.averageROI.toFixed(2)}%`,
+            averageStake: formatCurrency(generalStats.averageStake)
+        };
+        
+        Object.keys(elements).forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = elements[id];
+                
+                // Adicionar classe de cor para lucro
+                if (id === 'totalProfit') {
+                    element.className = generalStats.totalProfit >= 0 ? 'metric-value positive' : 'metric-value negative';
+                }
+                
+                // Adicionar classe de cor para ROI
+                if (id === 'averageROI') {
+                    element.className = generalStats.averageROI >= 0 ? 'metric-value positive' : 'metric-value negative';
+                }
+            }
+        });
+    }
+
+    function createProfitByPeriodChart(profitData) {
+        const container = document.getElementById('profitByPeriodChart');
+        if (!container) return;
+        
+        // Destruir gráfico anterior se existir
+        if (statisticsCharts.profitChart) {
+            statisticsCharts.profitChart.destroy();
+        }
+        
+        // Se não há dados, mostrar mensagem
+        if (profitData.length === 0) {
+            container.innerHTML = `
+                <div class="no-data-message">
+                    <i class="fas fa-chart-line"></i>
+                    <p>Nenhum dado de lucro disponível</p>
+                    <small>Complete algumas surebets para ver o gráfico</small>
+                </div>
+            `;
+            return;
+        }
+        
+        // Criar canvas
+        container.innerHTML = '<canvas id="profitChart"></canvas>';
+        const canvas = document.getElementById('profitChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Preparar dados
+        const labels = profitData.map(item => {
+            const date = new Date(item.date);
+            const statsDateFilter = document.getElementById('statsDateFilter');
+            const period = statsDateFilter ? statsDateFilter.value : '30';
+            
+            // Determinar formato baseado no período e agrupamento
+            let formatType = 'day'; // padrão
+            
+            if (period === 'custom') {
+                const startDate = document.getElementById('startDate')?.value;
+                const endDate = document.getElementById('endDate')?.value;
+                
+                if (startDate && endDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    const diffTime = Math.abs(end - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= 30) formatType = 'day';
+                    else if (diffDays <= 180) formatType = 'week';
+                    else formatType = 'month';
+                }
+            } else if (period === '30') {
+                formatType = 'day';
+            } else if (period === '90' || period === '180') {
+                formatType = 'week';
+            } else {
+                formatType = 'month';
+            }
+            
+            // Formatar label baseado no tipo
+            if (formatType === 'day') {
+                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            } else if (formatType === 'week') {
+                const startOfWeek = new Date(date);
+                const endOfWeek = new Date(date);
+                endOfWeek.setDate(endOfWeek.getDate() + 6);
+                return `${startOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - ${endOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
+            } else {
+                return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            }
+        });
+        
+        const profits = profitData.map(item => parseFloat(item.daily_profit));
+        const entryCounts = profitData.map(item => parseInt(item.entries_count));
+        
+        // Calcular lucro acumulado
+        const cumulativeProfits = [];
+        let cumulative = 0;
+        profits.forEach(profit => {
+            cumulative += profit;
+            cumulativeProfits.push(cumulative);
+        });
+        
+        // Cores baseadas nos valores
+        const barColors = profits.map(value => value >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)');
+        const lineColor = cumulative >= 0 ? '#28a745' : '#dc3545';
+        
+        statisticsCharts.profitChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Lucro do Período',
+                        data: profits,
+                        backgroundColor: barColors,
+                        borderColor: barColors,
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Lucro Acumulado',
+                        data: cumulativeProfits,
+                        type: 'line',
+                        borderColor: lineColor,
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 11 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#4a90e2',
+                        borderWidth: 1,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label;
+                                const value = formatCurrency(context.parsed.y);
+                                const entryCount = entryCounts[context.dataIndex];
+                                
+                                if (datasetLabel === 'Lucro do Período') {
+                                    return [
+                                        `${datasetLabel}: ${value}`,
+                                        `Surebets: ${entryCount}`
+                                    ];
+                                } else {
+                                    return `${datasetLabel}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 9 },
+                            maxRotation: 45,
+                            color: '#6c757d'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Lucro do Período',
+                            color: '#6c757d',
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            },
+                            font: { size: 10 },
+                            color: '#6c757d'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Lucro Acumulado',
+                            color: '#6c757d',
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            },
+                            font: { size: 10 },
+                            color: '#6c757d'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createBookmakerDistributionChart(bookmakerData) {
+        const container = document.getElementById('bookmakerDistributionChart');
+        if (!container) return;
+        
+        // Destruir gráfico anterior se existir
+        if (statisticsCharts.bookmakerChart) {
+            statisticsCharts.bookmakerChart.destroy();
+        }
+        
+        // Se não há dados, mostrar mensagem
+        if (bookmakerData.length === 0) {
+            container.innerHTML = `
+                <div class="no-data-message">
+                    <i class="fas fa-chart-pie"></i>
+                    <p>Nenhum dado de casas de apostas</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Criar canvas
+        container.innerHTML = '<canvas id="bookmakerChart"></canvas>';
+        const canvas = document.getElementById('bookmakerChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Preparar dados
+        const labels = bookmakerData.map(item => item.casa_apostas);
+        const data = bookmakerData.map(item => parseInt(item.bet_count));
+        
+        // Cores para o gráfico de pizza
+        const colors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+        ];
+        
+        statisticsCharts.bookmakerChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors.slice(0, data.length),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 10 },
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} apostas (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
+    // Event listener para mudança de período nas estatísticas
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'statsDateFilter') {
+            const customDateRange = document.getElementById('customDateRange');
+            
+            if (e.target.value === 'custom') {
+                // Mostrar campos de data personalizada
+                if (customDateRange) {
+                    customDateRange.style.display = 'flex';
+                }
+                
+                // Definir datas padrão (últimos 30 dias)
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 30);
+                
+                const startInput = document.getElementById('startDate');
+                const endInput = document.getElementById('endDate');
+                
+                if (startInput) startInput.value = startDate.toISOString().split('T')[0];
+                if (endInput) endInput.value = endDate.toISOString().split('T')[0];
+                
+                // Não carregar automaticamente, aguardar usuário aplicar
+            } else {
+                // Ocultar campos de data personalizada
+                if (customDateRange) {
+                    customDateRange.style.display = 'none';
+                }
+                
+                // Carregar estatísticas para períodos predefinidos
+                loadStatistics();
+            }
+        }
+    });
+    
+    // Event listener para aplicar período personalizado
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'applyCustomDate' || e.target.closest('#applyCustomDate')) {
+            loadStatistics();
+        }
+    });
+    
+    // Event listener para mudança das datas (opcional: atualizar automaticamente)
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'startDate' || e.target.id === 'endDate') {
+            const statsDateFilter = document.getElementById('statsDateFilter');
+            if (statsDateFilter && statsDateFilter.value === 'custom') {
+                // Opcional: carregar automaticamente quando as datas mudarem
+                // loadStatistics();
+            }
+        }
+    });
 });
 
 // Funções globais para onchange nos inputs HTML
@@ -1354,6 +1952,11 @@ async function updateEntryStatus(entryId, newStatus, selectElement) {
         
         // Atualizar o saldo na interface se houve mudança
         await updateBalanceDisplay();
+        
+        // Atualizar gráfico se o status mudou para resolvido
+        if (window.reloadEvolutionChart) {
+            window.reloadEvolutionChart();
+        }
         
         // Mostrar toast de sucesso
         showToast(responseData.msg || 'Status atualizado com sucesso!', 'success');

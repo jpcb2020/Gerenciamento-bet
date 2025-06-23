@@ -59,7 +59,7 @@
 
 /* Estilos para paginação */
 .pagination-wrapper {
-    margin: 25px 0;
+    margin: 20px 0;
     display: flex;
     justify-content: center;
 }
@@ -67,67 +67,93 @@
 .pagination-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
     background: white;
-    padding: 15px 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     border: 1px solid #e9ecef;
 }
 
 .pagination-btn {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white !important;
+    background: #007bff;
+    color: white;
     border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-
-.pagination-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .pagination-btn:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    color: white !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-.pagination-btn:hover::before {
-    left: 100%;
+    background: #0056b3;
+    transform: translateY(-1px);
 }
 
 .pagination-btn:disabled {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-    color: white !important;
+    background: #6c757d;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
 }
 
-.pagination-info {
-    font-size: 0.9rem;
-    color: #495057;
-    padding: 0 15px;
+/* Estilos para navegação direta de página */
+.page-jump {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+}
+
+.page-info {
+    font-size: 0.85rem;
+    color: #6c757d;
     font-weight: 500;
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 8px 12px;
+    min-width: 70px;
+    text-align: center;
+}
+
+.page-input {
+    width: 50px;
+    padding: 6px 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    text-align: center;
+    transition: border-color 0.2s ease;
+}
+
+.page-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.page-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.btn-go {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-go:hover {
+    background: #218838;
+    transform: translateY(-1px);
 }
 
 /* Estilos para exibição de bônus */
@@ -983,5 +1009,280 @@
     .edit-balance-modal .btn-save {
         width: 100%;
         justify-content: center;
+    }
+}
+
+/* Estilos para o gráfico de evolução */
+.no-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6c757d;
+    text-align: center;
+    min-height: 200px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+}
+
+.no-data-message i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #dc3545;
+    opacity: 0.7;
+}
+
+.no-data-message p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.no-data-message small {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #868e96;
+    font-style: italic;
+}
+
+/* Container do gráfico */
+#balanceChart {
+    min-height: 200px;
+    max-height: 400px;
+    width: 100%;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Canvas do gráfico */
+#evolutionChart {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 300px;
+}
+
+/* Estilos para a aba de estatísticas */
+.statistics-container {
+    padding: 1.5rem;
+}
+
+.statistics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.statistics-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.statistics-period {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statistics-period label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.statistics-period select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.custom-date-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.date-input {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    color: #495057;
+    font-size: 0.85rem;
+    min-width: 130px;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.date-separator {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.btn-apply-date {
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-apply-date:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stat-card-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-card-body {
+    padding: 1.5rem;
+}
+
+.stat-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-metric {
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.metric-value.positive {
+    color: #28a745;
+}
+
+.metric-value.negative {
+    color: #dc3545;
+}
+
+.chart-container {
+    height: 350px;
+    position: relative;
+    padding: 10px;
+    background: #fafbfc;
+    border-radius: 8px;
+}
+
+.chart-card .chart-container {
+    height: 300px;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Responsividade para estatísticas */
+@media (max-width: 768px) {
+    .statistics-container {
+        padding: 1rem;
+    }
+    
+    .statistics-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .statistics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stat-metrics {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    
+    .chart-container,
+    .chart-card .chart-container {
+        height: 200px;
+    }
+    
+    .custom-date-range {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: stretch;
+    }
+    
+    .date-input {
+        min-width: unset;
+        width: 100%;
+    }
+    
+    .btn-apply-date {
+        align-self: center;
+        width: auto;
     }
 }
