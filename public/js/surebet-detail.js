@@ -286,10 +286,17 @@ document.addEventListener('DOMContentLoaded', function() {
         betInputs.forEach(input => {
             if (input.id !== 'entryEvent' && input.id !== 'entryCompetition' && input.id !== 'entryDate' && input.id !== 'entryTime') {
                 input.value = '';
+                
+                // Limpar estilos visuais de aposta grátis nos campos de odds
+                if (input.id && input.id.includes('betOdds')) {
+                    input.style.background = '';
+                    input.style.borderColor = '';
+                    input.title = '';
+                }
             }
         });
         
-        // Limpar checkboxes de exchange
+        // Limpar checkboxes de exchange e aposta grátis
         const exchangeCheckboxes = document.querySelectorAll('#newEntryModal input[type="checkbox"]');
         exchangeCheckboxes.forEach(checkbox => {
             checkbox.checked = false;
@@ -446,13 +453,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     
                     <!-- Exchange Options -->
-                    <div class="form-row">
+                    <div class="form-row checkbox-row">
                         <div class="form-group modern-checkbox">
                             <label class="checkbox-container">
                                 <input type="checkbox" id="isExchange${betCount}" onchange="toggleExchangeFields(${betCount})">
                                 <span class="checkmark"></span>
                                 <i class="fas fa-exchange-alt"></i>
                                 É Exchange?
+                            </label>
+                        </div>
+                        <div class="form-group modern-checkbox">
+                            <label class="checkbox-container freebet-tooltip-trigger">
+                                <input type="checkbox" id="isFreebet${betCount}" onchange="toggleFreebetOdds(${betCount})">
+                                <span class="checkmark"></span>
+                                <i class="fas fa-gift"></i>
+                                Aposta Grátis
+                                <i class="fas fa-info-circle freebet-info-icon"></i>
+                                <div class="freebet-tooltip">
+                                    <div class="tooltip-content">
+                                        <h4><i class="fas fa-gift"></i> Como funciona a Aposta Grátis</h4>
+                                        <p><strong>Subtrai automaticamente 1.00 da odd inserida</strong></p>
+                                        <div class="tooltip-example">
+                                            <span class="example-label">Exemplo:</span>
+                                            <span class="example-calc">Odd 3.33 → 2.33</span>
+                                        </div>
+                                        <small>Use quando a casa oferece aposta grátis que retorna apenas o lucro (sem a stake)</small>
+                                    </div>
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -1597,6 +1624,64 @@ function calculateLiability(betNumber) {
     }
 }
 
+// Função para alternar odds quando marcado como aposta grátis
+function toggleFreebetOdds(betNumber) {
+    const freebetCheckbox = document.getElementById(`isFreebet${betNumber}`);
+    const oddsInput = document.getElementById(`betOdds${betNumber}`);
+    
+    if (!freebetCheckbox || !oddsInput) return;
+    
+    const currentOdds = parseFloat(oddsInput.value) || 0;
+    
+    if (currentOdds === 0) {
+        showToast('Por favor, insira uma odd primeiro', 'warning');
+        freebetCheckbox.checked = false;
+        return;
+    }
+    
+    if (freebetCheckbox.checked) {
+        // Marcar como aposta grátis: subtrair 1 da odd
+        if (currentOdds <= 1) {
+            showToast('A odd deve ser maior que 1.00 para aplicar desconto de aposta grátis', 'error');
+            freebetCheckbox.checked = false;
+            return;
+        }
+        
+        const newOdds = currentOdds - 1;
+        oddsInput.value = newOdds.toFixed(2);
+        
+        // Adicionar indicador visual
+        oddsInput.style.background = '#e8f5e8';
+        oddsInput.style.borderColor = '#28a745';
+        
+        // Adicionar tooltip ou indicação
+        oddsInput.title = `Odd original: ${currentOdds.toFixed(2)} | Odd com aposta grátis: ${newOdds.toFixed(2)}`;
+        
+        showToast(`Odd ajustada para aposta grátis: ${currentOdds.toFixed(2)} → ${newOdds.toFixed(2)}`, 'success');
+        
+    } else {
+        // Desmarcar: adicionar 1 de volta à odd
+        const newOdds = currentOdds + 1;
+        oddsInput.value = newOdds.toFixed(2);
+        
+        // Remover indicador visual
+        oddsInput.style.background = '';
+        oddsInput.style.borderColor = '';
+        oddsInput.title = '';
+        
+        showToast(`Odd restaurada: ${currentOdds.toFixed(2)} → ${newOdds.toFixed(2)}`, 'info');
+    }
+    
+    // Recalcular liability se for exchange
+    const isExchangeCheckbox = document.getElementById(`isExchange${betNumber}`);
+    const betTypeSelect = document.getElementById(`betType${betNumber}`);
+    
+    if (isExchangeCheckbox && isExchangeCheckbox.checked && 
+        betTypeSelect && betTypeSelect.value === 'lay') {
+        calculateLiability(betNumber);
+    }
+}
+
 // Lista de casas de apostas para autocomplete
 const bettingHouses = [
     "BETANO", "SUPERBET", "REI DO PITACO", "SPORTINGBET", "BETBOO",
@@ -2192,3 +2277,5 @@ class EditBalanceModal {
 document.addEventListener('DOMContentLoaded', () => {
     new EditBalanceModal();
 });
+
+// Tooltip simples para aposta grátis - funciona com CSS puro

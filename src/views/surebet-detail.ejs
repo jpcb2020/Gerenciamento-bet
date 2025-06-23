@@ -28,6 +28,9 @@
                         <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
                     </li>
                     <li>
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
                         <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
                     </li>
                     <li>
@@ -580,13 +583,33 @@
                                     </div>
                                     
                                     <!-- Exchange Options -->
-                                    <div class="form-row">
+                                    <div class="form-row checkbox-row">
                                         <div class="form-group modern-checkbox">
                                             <label class="checkbox-container">
                                                 <input type="checkbox" id="isExchange1" onchange="toggleExchangeFields(1)">
                                                 <span class="checkmark"></span>
                                                 <i class="fas fa-exchange-alt"></i>
                                                 É Exchange?
+                                            </label>
+                                        </div>
+                                        <div class="form-group modern-checkbox">
+                                            <label class="checkbox-container freebet-tooltip-trigger">
+                                                <input type="checkbox" id="isFreebet1" onchange="toggleFreebetOdds(1)">
+                                                <span class="checkmark"></span>
+                                                <i class="fas fa-gift"></i>
+                                                Aposta Grátis
+                                                <i class="fas fa-info-circle freebet-info-icon"></i>
+                                                <div class="freebet-tooltip">
+                                                    <div class="tooltip-content">
+                                                        <h4><i class="fas fa-gift"></i> Como funciona a Aposta Grátis</h4>
+                                                        <p><strong>Subtrai automaticamente 1.00 da odd inserida</strong></p>
+                                                        <div class="tooltip-example">
+                                                            <span class="example-label">Exemplo:</span>
+                                                            <span class="example-calc">Odd 3.33 → 2.33</span>
+                                                        </div>
+                                                        <small>Use quando a casa oferece aposta grátis que retorna apenas o lucro (sem a stake)</small>
+                                                    </div>
+                                                </div>
                                             </label>
                                         </div>
                                     </div>
@@ -668,13 +691,33 @@
                                     </div>
                                     
                                     <!-- Exchange Options -->
-                                    <div class="form-row">
+                                    <div class="form-row checkbox-row">
                                         <div class="form-group modern-checkbox">
                                             <label class="checkbox-container">
                                                 <input type="checkbox" id="isExchange2" onchange="toggleExchangeFields(2)">
                                                 <span class="checkmark"></span>
                                                 <i class="fas fa-exchange-alt"></i>
                                                 É Exchange?
+                                            </label>
+                                        </div>
+                                        <div class="form-group modern-checkbox">
+                                            <label class="checkbox-container freebet-tooltip-trigger">
+                                                <input type="checkbox" id="isFreebet2" onchange="toggleFreebetOdds(2)">
+                                                <span class="checkmark"></span>
+                                                <i class="fas fa-gift"></i>
+                                                Aposta Grátis
+                                                <i class="fas fa-info-circle freebet-info-icon"></i>
+                                                <div class="freebet-tooltip">
+                                                    <div class="tooltip-content">
+                                                        <h4><i class="fas fa-gift"></i> Como funciona a Aposta Grátis</h4>
+                                                        <p><strong>Subtrai automaticamente 1.00 da odd inserida</strong></p>
+                                                        <div class="tooltip-example">
+                                                            <span class="example-label">Exemplo:</span>
+                                                            <span class="example-calc">Odd 3.33 → 2.33</span>
+                                                        </div>
+                                                        <small>Use quando a casa oferece aposta grátis que retorna apenas o lucro (sem a stake)</small>
+                                                    </div>
+                                                </div>
                                             </label>
                                         </div>
                                     </div>

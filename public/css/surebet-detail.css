@@ -8,6 +8,189 @@
     white-space: nowrap;
 }
 
+/* Estilos para linha de checkboxes */
+.checkbox-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.checkbox-row .form-group {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+/* Tooltip personalizado para aposta grátis */
+.freebet-tooltip-trigger {
+    position: relative;
+    overflow: visible !important;
+}
+
+.freebet-info-icon {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-left: 6px;
+    cursor: help;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.freebet-info-icon:hover {
+    color: #28a745;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.freebet-tooltip {
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10000;
+    pointer-events: none;
+    white-space: normal;
+    width: max-content;
+}
+
+.freebet-info-icon:hover + .freebet-tooltip,
+.freebet-tooltip:hover {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.tooltip-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    min-width: 280px;
+    max-width: 320px;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.tooltip-content::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top-color: #ffffff;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 12px solid transparent;
+    border-top-color: #dee2e6;
+    z-index: -1;
+}
+
+.tooltip-content h4 {
+    margin: 0 0 12px 0;
+    color: #28a745;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tooltip-content h4 i {
+    color: #28a745;
+}
+
+.tooltip-content p {
+    margin: 0 0 12px 0;
+    color: #495057;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.tooltip-example {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border: 1px solid #d4edda;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.example-label {
+    font-size: 0.8rem;
+    color: #28a745;
+    font-weight: 600;
+}
+
+.example-calc {
+    font-size: 0.85rem;
+    color: #155724;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.tooltip-content small {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    display: block;
+    font-style: italic;
+}
+
+@media (max-width: 576px) {
+    .checkbox-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .checkbox-row .form-group {
+        width: 100%;
+    }
+    
+    /* Ajustes do tooltip para mobile */
+    .freebet-tooltip {
+        left: 0;
+        right: 0;
+        transform: none;
+        margin-bottom: 8px;
+    }
+    
+    .freebet-tooltip-trigger:hover .freebet-tooltip {
+        transform: translateY(-3px);
+    }
+    
+    .tooltip-content {
+        min-width: auto;
+        max-width: none;
+        margin: 0 10px;
+    }
+    
+    .tooltip-content::before {
+        left: 30px;
+        transform: none;
+    }
+}
+
 /* Melhorias para a coluna de eventos */
 .event-cell {
     padding: 12px 8px !important;
@@ -445,6 +628,30 @@
 
 .checkbox-container input:checked ~ i {
     color: var(--primary-color);
+}
+
+/* Estilos específicos para aposta grátis */
+.checkbox-container input[id*="isFreebet"]:checked ~ i {
+    color: #28a745;
+}
+
+.checkbox-container input[id*="isFreebet"]:checked ~ .checkmark {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Estilo para campo de odds quando é aposta grátis */
+input[id*="betOdds"][style*="background"] {
+    position: relative;
+}
+
+input[id*="betOdds"][style*="background"]::before {
+    content: "🎁";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
 }
 
 .liability-row {

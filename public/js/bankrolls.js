@@ -144,6 +144,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (bankroll.categoria === 'Surebet') {
             card.classList.add('bankroll-card-surebet');
             card.style.cursor = 'pointer';
+            
+            // Adicionar classe especial se o saldo for negativo
+            if (bankroll.saldo_atual < 0) {
+                card.classList.add('negative-balance');
+            }
         }
         
         card.innerHTML = `
@@ -157,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="card-body">
                 <p class="balance-label">Saldo Atual:</p>
-                <p class="bankroll-balance">${formatCurrency(bankroll.saldo_atual)}</p>
+                <p class="bankroll-balance ${bankroll.saldo_atual > 0 ? 'positive' : bankroll.saldo_atual < 0 ? 'negative' : 'neutral'}">${formatCurrency(bankroll.saldo_atual)}</p>
             </div>
             <div class="card-footer actions">
                 <div class="bankroll-info">
