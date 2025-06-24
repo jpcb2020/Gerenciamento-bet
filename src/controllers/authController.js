@@ -228,11 +228,28 @@ const resetPassword = async (req, res) => {
 
 // Logout do usuário
 const logout = (req, res) => {
+  // Limpar dados da sessão antes de destruir
+  req.session.user = null;
+  req.session.token = null;
+  
   req.session.destroy((err) => {
     if (err) {
+      console.error('Erro ao destruir sessão:', err);
       return res.status(500).json({ error: 'Erro ao fazer logout' });
     }
+    
+    // Limpar todos os cookies relacionados à sessão
     res.clearCookie('connect.sid');
+    res.clearCookie('session');
+    res.clearCookie('sess');
+    
+    // Adicionar headers para prevenir cache
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     res.json({ message: 'Logout realizado com sucesso' });
   });
 };

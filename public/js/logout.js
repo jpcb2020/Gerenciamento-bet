@@ -16,8 +16,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     
                     if (response.ok) {
-                        // Marcar que o usuário acabou de fazer logout
+                        // Limpar TODOS os dados salvos localmente
+                        localStorage.removeItem('rememberedEmail');
+                        localStorage.removeItem('rememberedPassword');
+                        localStorage.removeItem('rememberLogin');
+                        localStorage.removeItem('rememberTimestamp');
+                        
+                        // Limpar qualquer cache de sessão
+                        sessionStorage.clear();
+                        
+                        // Marcar que o usuário acabou de fazer logout (depois de limpar)
                         sessionStorage.setItem('justLoggedOut', 'true');
+                        
+                        // Mostrar mensagem de confirmação
+                        console.log('🔓 Logout realizado - todos os dados limpos');
                         
                         // Redirecionar para a página de login
                         window.location.href = '/login';

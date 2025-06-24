@@ -123,6 +123,12 @@ body {
     color: #764ba2;
 }
 
+.register-footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+}
+
 .alert {
     border-radius: 10px;
     border: none;

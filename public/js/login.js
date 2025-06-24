@@ -60,12 +60,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {
                 localStorage.setItem('rememberedEmail', formData.get('email'));
-                localStorage.setItem('rememberedPassword', formData.get('password'));
+                localStorage.setItem('rememberedPassword', btoa(formData.get('password'))); // Base64 encode
                 localStorage.setItem('rememberLogin', 'true');
+                localStorage.setItem('rememberTimestamp', Date.now().toString()); // Timestamp para expiração
             } else {
                 localStorage.removeItem('rememberedEmail');
                 localStorage.removeItem('rememberedPassword');
                 localStorage.removeItem('rememberLogin');
+                localStorage.removeItem('rememberTimestamp');
             }
             
             showAlert('Login realizado com sucesso! Redirecionando...', 'success');
@@ -92,27 +94,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     const rememberedPassword = localStorage.getItem('rememberedPassword');
     
-    // Check if user just logged out (avoid immediate auto-login)
+    // Check if user just logged out (clear saved data)
     const justLoggedOut = sessionStorage.getItem('justLoggedOut');
     if (justLoggedOut) {
         sessionStorage.removeItem('justLoggedOut');
+        // Clear all saved login data when user logs out
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+        localStorage.removeItem('rememberLogin');
+        localStorage.removeItem('rememberTimestamp');
+        showAlert('Você foi desconectado com sucesso.', 'info');
         return;
     }
     
+    // Auto-login if credentials are saved and not expired
     if (rememberLogin === 'true' && rememberedEmail && rememberedPassword) {
-        document.getElementById('email').value = rememberedEmail;
-        document.getElementById('password').value = rememberedPassword;
-        document.getElementById('rememberMe').checked = true;
-        
-        // Auto-login
-        showAlert('Fazendo login automático...', 'info');
-        setTimeout(() => {
-            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-        }, 1000);
+        try {
+            // Verificar se as credenciais não expiraram (7 dias)
+            const rememberTimestamp = localStorage.getItem('rememberTimestamp');
+            const now = Date.now();
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000; // 7 dias
+            
+            if (rememberTimestamp && (now - parseInt(rememberTimestamp)) > sevenDaysInMs) {
+                console.log('🕒 Credenciais expiradas após 7 dias');
+                localStorage.removeItem('rememberedEmail');
+                localStorage.removeItem('rememberedPassword');
+                localStorage.removeItem('rememberLogin');
+                localStorage.removeItem('rememberTimestamp');
+                return;
+            }
+            
+            document.getElementById('email').value = rememberedEmail;
+            document.getElementById('password').value = atob(rememberedPassword); // Base64 decode
+            document.getElementById('rememberMe').checked = true;
+            
+            // Show auto-login message
+            showAlert('🔄 Bem-vindo de volta! Fazendo login automático...', 'info');
+            
+            // Auto-submit form after short delay
+            setTimeout(() => {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }, 1000);
+        } catch (error) {
+            console.error('Erro ao decodificar credenciais salvas:', error);
+            localStorage.removeItem('rememberedPassword');
+            localStorage.removeItem('rememberTimestamp');
+        }
     } else if (rememberLogin === 'true' && rememberedEmail) {
+        // Only fill email if password is missing
         document.getElementById('email').value = rememberedEmail;
         document.getElementById('rememberMe').checked = true;
-        // Focus on password field if email is already filled
         document.getElementById('password').focus();
     }
     
@@ -134,5 +165,9 @@ document.getElementById('rememberMe').addEventListener('change', function() {
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberedPassword');
         localStorage.removeItem('rememberLogin');
+        localStorage.removeItem('rememberTimestamp');
+        // Clear the fields when unchecking
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
     }
 });

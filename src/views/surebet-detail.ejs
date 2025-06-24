@@ -65,8 +65,10 @@
                         <span class="badge">3</span>
                     </div>
                     <div class="user-profile">
-                        <img src="https://via.placeholder.com/40" alt="Profile">
-                        <span>Usuário</span>
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
                     </div>
                 </div>
             </header>
