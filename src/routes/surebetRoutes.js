@@ -5,7 +5,7 @@ const { pool } = require('../config/db');
 // GET all surebet entries for a specific bankroll
 router.get('/entries/:bankrollId', async (req, res) => {
     const { bankrollId } = req.params;
-    const { period, status, search, page = 1, limit = 5 } = req.query; // Filtros opcionais e paginação
+    const { period, status, search, page = 1, limit = 5, startDate, endDate } = req.query; // Filtros opcionais e paginação
 
     try {
         let query = `
@@ -43,8 +43,14 @@ router.get('/entries/:bankrollId', async (req, res) => {
             queryParams.push(status);
         }
         if (period && period !== 'all') {
-            // Lógica de período (ex: '7', '30', '90')
-            query += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            if (period === 'custom' && startDate && endDate) {
+                // Período personalizado
+                query += ` AND se.data_criacao >= $${paramIndex++} AND se.data_criacao <= $${paramIndex++}`;
+                queryParams.push(startDate, endDate);
+            } else {
+                // Lógica de período (ex: '7', '30', '90')
+                query += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            }
         }
         if (search) {
             query += ` AND (se.evento ILIKE $${paramIndex} OR se.competicao ILIKE $${paramIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${paramIndex}))`;
@@ -79,7 +85,13 @@ router.get('/entries/:bankrollId', async (req, res) => {
             countParams.push(status);
         }
         if (period && period !== 'all') {
-            countQuery += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            if (period === 'custom' && startDate && endDate) {
+                // Período personalizado
+                countQuery += ` AND se.data_criacao >= $${countParamIndex++} AND se.data_criacao <= $${countParamIndex++}`;
+                countParams.push(startDate, endDate);
+            } else {
+                countQuery += ` AND se.data_criacao >= NOW() - INTERVAL '${parseInt(period)} days'`;
+            }
         }
         if (search) {
             countQuery += ` AND (se.evento ILIKE $${countParamIndex} OR se.competicao ILIKE $${countParamIndex} OR EXISTS (SELECT 1 FROM surebet_entry_bets seb2 WHERE seb2.surebet_entry_id = se.id AND seb2.casa_apostas ILIKE $${countParamIndex}))`;
@@ -733,6 +745,37 @@ router.get('/statistics/:bankrollId', async (req, res) => {
     } catch (err) {
         console.error('Erro ao buscar estatísticas:', err.message);
         res.status(500).json({ msg: 'Erro no servidor ao buscar estatísticas.', error: err.message });
+    }
+});
+
+// GET bonus data for PDF report
+router.get('/bonus/:bankrollId', async (req, res) => {
+    const { bankrollId } = req.params;
+    
+    try {
+        // Buscar bônus ativos e expirados do usuário
+        const bonusQuery = `
+            SELECT 
+                id,
+                bonus_house,
+                bonus_value,
+                bonus_expiry_date,
+                status,
+                created_at
+            FROM user_bonus 
+            WHERE user_id = $1 
+            ORDER BY 
+                CASE WHEN status = 'Ativo' THEN 1 ELSE 2 END,
+                bonus_expiry_date ASC
+        `;
+        
+        const bonusResult = await pool.query(bonusQuery, [req.user.id]);
+        
+        res.json(bonusResult.rows);
+        
+    } catch (err) {
+        console.error('Erro ao buscar bônus:', err.message);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar bônus.', error: err.message });
     }
 });
 

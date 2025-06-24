@@ -496,8 +496,6 @@
     margin: 0;
 }
 
-
-
 /* Melhorias nos botões de ação */
 .action-btn {
     display: inline-flex;
@@ -1465,5 +1463,541 @@ input[id*="betOdds"][style*="background"]::before {
     .btn-apply-date {
         align-self: center;
         width: auto;
+    }
+}
+
+/* Estilos para o Relatório PDF */
+.pdf-report {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 10mm;
+    background: white;
+    color: #333;
+    line-height: 1.6;
+}
+
+.pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #6c5ce7;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.pdf-logo h1 {
+    font-size: 28px;
+    color: #6c5ce7;
+    margin: 0;
+    font-weight: 700;
+}
+
+.pdf-logo p {
+    font-size: 14px;
+    color: #666;
+    margin: 5px 0 0 0;
+}
+
+.pdf-date p {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.pdf-bankroll-info,
+.pdf-statistics,
+.pdf-entries,
+.pdf-bonus {
+    margin-bottom: 40px;
+    page-break-inside: avoid;
+}
+
+.pdf-bankroll-info h2,
+.pdf-statistics h2,
+.pdf-entries h2,
+.pdf-bonus h2 {
+    color: #2d3436;
+    font-size: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #6c5ce7;
+    padding-left: 15px;
+}
+
+.pdf-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.pdf-info-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #6c5ce7;
+}
+
+.pdf-info-item label {
+    font-weight: 600;
+    color: #555;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.pdf-info-item span {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2d3436;
+}
+
+.pdf-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.pdf-stat-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+.pdf-stat-card h3 {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pdf-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #6c5ce7;
+    margin: 0;
+}
+
+.pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 11px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pdf-table thead th {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+.pdf-table tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.pdf-table tbody tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+.pdf-table tbody tr:hover {
+    background: #e3f2fd;
+}
+
+.pdf-bonus-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pdf-bonus-info {
+    flex: 1;
+}
+
+.pdf-bonus-house {
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 5px;
+}
+
+.pdf-bonus-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #00b894;
+}
+
+.pdf-bonus-expiry {
+    font-size: 12px;
+    color: #636e72;
+}
+
+.pdf-footer {
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+}
+
+.pdf-footer p {
+    margin: 5px 0;
+}
+
+.pdf-empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Estilos específicos para valores positivos/negativos */
+.pdf-profit-positive {
+    color: #00b894;
+    font-weight: 600;
+}
+
+.pdf-profit-negative {
+    color: #e17055;
+    font-weight: 600;
+}
+
+.pdf-profit-zero {
+    color: #636e72;
+    font-weight: 600;
+}
+
+/* Responsive para PDF */
+@media print {
+    .pdf-report {
+        padding: 8mm;
+        font-size: 12px;
+    }
+    
+    .pdf-header {
+        margin-bottom: 20px;
+    }
+    
+    .pdf-logo h1 {
+        font-size: 24px;
+    }
+    
+    .pdf-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .pdf-stat-card {
+        padding: 15px;
+    }
+    
+    .pdf-stat-value {
+        font-size: 20px;
+    }
+    
+    .pdf-table {
+        font-size: 10px;
+    }
+    
+    .pdf-table thead th {
+        padding: 8px 6px;
+    }
+    
+    .pdf-table tbody td {
+        padding: 8px 6px;
+    }
+}
+
+/* Cores específicas para status */
+.pdf-status-pending {
+    color: #fdcb6e;
+    font-weight: 600;
+}
+
+.pdf-status-complete {
+    color: #00b894;
+    font-weight: 600;
+}
+
+.pdf-status-cancelled {
+    color: #e17055;
+    font-weight: 600;
+}
+
+/* Melhorias na tipografia */
+.pdf-report h1, .pdf-report h2, .pdf-report h3 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pdf-table-summary {
+    background: #f1f2f6;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    text-align: center;
+}
+
+.pdf-summary-item {
+    color: #2d3436;
+}
+
+.pdf-summary-item .label {
+    font-size: 12px;
+    color: #636e72;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.pdf-summary-item .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6c5ce7;
+}
+
+/* Estilo específico para o botão de exportar PDF */
+#exportPdfBtn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+#exportPdfBtn:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+#exportPdfBtn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#exportPdfBtn i {
+    color: white;
+}
+
+/* Loading animation para o botão */
+#exportPdfBtn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Melhorias adicionais para o PDF */
+.pdf-report * {
+    box-sizing: border-box;
+}
+
+.pdf-info-grid {
+    page-break-inside: avoid;
+}
+
+.pdf-stats-grid {
+    page-break-inside: avoid;
+}
+
+.pdf-table {
+    page-break-inside: auto;
+}
+
+.pdf-table tbody tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+.pdf-table thead {
+    display: table-header-group;
+}
+
+.pdf-table tbody {
+    display: table-row-group;
+}
+
+/* Estilo para evitar quebra de seções importantes */
+.pdf-bankroll-info,
+.pdf-statistics {
+    page-break-after: avoid;
+}
+
+.pdf-entries {
+    page-break-before: auto;
+}
+
+/* Cores otimizadas para impressão */
+@media print {
+    .pdf-report {
+        color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .pdf-table thead th {
+        background: #6c5ce7 !important;
+        color: white !important;
+    }
+    
+    .pdf-profit-positive {
+        color: #00b894 !important;
+    }
+    
+    .pdf-profit-negative {
+        color: #e17055 !important;
+    }
+    
+    .pdf-status-complete {
+        color: #00b894 !important;
+    }
+    
+    .pdf-status-pending {
+        color: #fdcb6e !important;
+    }
+}
+
+/* Estilos para o Modal de Configuração do PDF */
+.pdf-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.pdf-options-grid .modern-checkbox {
+    margin-bottom: 0;
+}
+
+.pdf-options-grid .checkbox-container {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.pdf-options-grid .checkbox-container:hover {
+    border-color: #6c5ce7;
+    background: #f8f9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
+}
+
+.pdf-options-grid .checkbox-container input:checked ~ * {
+    color: #6c5ce7;
+}
+
+.pdf-options-grid .checkbox-container input:checked {
+    & ~ .checkmark {
+        background-color: #6c5ce7;
+        border-color: #6c5ce7;
+    }
+}
+
+#pdfConfigModal .custom-date-range {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+#pdfConfigModal .date-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+#pdfConfigModal .date-input:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+#pdfConfigModal .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 0;
+}
+
+/* Indicador visual para período selecionado */
+.pdf-period-preview {
+    margin-top: 15px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8f9ff, #e9ecef);
+    border: 1px solid #6c5ce7;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #555;
+    display: none;
+}
+
+.pdf-period-preview.active {
+    display: block;
+}
+
+.pdf-period-preview i {
+    color: #6c5ce7;
+    margin-right: 8px;
+}
+
+/* Loading state para o modal */
+#pdfConfigModal .btn-save.loading {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+#pdfConfigModal .btn-save.loading i {
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive para o modal de PDF */
+@media (max-width: 768px) {
+    .pdf-options-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    #pdfConfigModal .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .pdf-options-grid .checkbox-container {
+        padding: 14px 16px;
+        font-size: 14px;
     }
 }

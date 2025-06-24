@@ -116,6 +116,7 @@
                     <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName"><%= bankroll.nome %></span></h2>
                     <div class="action-buttons">
                         <button id="addSurebetEntryBtn" class="btn-primary"><i class="fas fa-plus"></i> Nova Entrada</button>
+                        <button id="exportPdfBtn" class="btn-outline"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
                         <button id="configSurebetBtn" class="btn-outline"><i class="fas fa-cog"></i> Configurar</button>
                     </div>
                 </div>
@@ -787,6 +788,135 @@
         </div>
     </div>
 
+    <!-- Modal de Configuração do PDF -->
+    <div id="pdfConfigModal" class="modal">
+        <div class="modal-content modern-modal">
+            <div class="modal-header modern-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3>Configurar Relatório PDF</h3>
+                        <p>Escolha o período e as informações que deseja incluir</p>
+                    </div>
+                </div>
+                <button class="close-modal modern-close" type="button" id="closePdfConfigModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body modern-body">
+                <form id="pdfConfigForm">
+                    <!-- Seção de Período -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h4>Período do Relatório</h4>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="pdfPeriodSelect">
+                                <i class="fas fa-clock"></i>
+                                Selecione o Período
+                            </label>
+                            <select id="pdfPeriodSelect" class="filter-control">
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="30" selected>Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                                <option value="180">Últimos 6 meses</option>
+                                <option value="365">Último ano</option>
+                                <option value="all">Todo o período</option>
+                                <option value="custom">Período personalizado</option>
+                            </select>
+                        </div>
+                        
+                        <div id="pdfCustomDateRange" class="custom-date-range" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="pdfStartDate">
+                                        <i class="fas fa-calendar-day"></i>
+                                        Data Inicial
+                                    </label>
+                                    <input type="date" id="pdfStartDate" class="date-input">
+                                </div>
+                                <div class="form-group modern-input">
+                                    <label for="pdfEndDate">
+                                        <i class="fas fa-calendar-day"></i>
+                                        Data Final
+                                    </label>
+                                    <input type="date" id="pdfEndDate" class="date-input">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="pdfPreview" class="pdf-period-preview">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="pdfPreviewText">Carregando preview...</span>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Configurações -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-cog"></i>
+                            <h4>Configurações do Relatório</h4>
+                        </div>
+                        
+                        <div class="pdf-options-grid">
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="includePendingEntries" checked>
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-hourglass-half"></i>
+                                    Incluir Entradas Pendentes
+                                </label>
+                            </div>
+                            
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="includeStatistics" checked>
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-chart-bar"></i>
+                                    Incluir Estatísticas Detalhadas
+                                </label>
+                            </div>
+                            
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="includeBonus" checked>
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-gift"></i>
+                                    Incluir Informações de Bônus
+                                </label>
+                            </div>
+                            
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="includeNotes" checked>
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-sticky-note"></i>
+                                    Incluir Observações das Entradas
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions modern-actions">
+                        <button type="button" id="cancelPdfConfig" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-file-pdf"></i>
+                            Gerar Relatório PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Edição de Saldo -->
     <div id="editBalanceModal" class="edit-balance-modal">
         <div class="modal-overlay"></div>
@@ -826,7 +956,99 @@
         </div>
     </div>
 
+    <!-- HTML Template para o Relatório PDF -->
+    <div id="pdfReportTemplate" style="display: none;">
+        <div class="pdf-report">
+            <div class="pdf-header">
+                <div class="pdf-logo">
+                    <h1>📊 BetManager</h1>
+                    <p>Relatório de Surebet</p>
+                </div>
+                <div class="pdf-date">
+                    <p>Data do Relatório: <span id="pdfDate"></span></p>
+                </div>
+            </div>
+
+            <div class="pdf-bankroll-info">
+                <h2>📈 Informações do Bankroll</h2>
+                <div class="pdf-info-grid">
+                    <div class="pdf-info-item">
+                        <label>Nome:</label>
+                        <span id="pdfBankrollName"></span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <label>Saldo Atual:</label>
+                        <span id="pdfCurrentBalance"></span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <label>ROI:</label>
+                        <span id="pdfROI"></span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <label>Período Analisado:</label>
+                        <span id="pdfPeriod"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pdf-statistics">
+                <h2>📊 Estatísticas Gerais</h2>
+                <div class="pdf-stats-grid">
+                    <div class="pdf-stat-card">
+                        <h3>Total de Surebets</h3>
+                        <div class="pdf-stat-value" id="pdfTotalBets">0</div>
+                    </div>
+                    <div class="pdf-stat-card">
+                        <h3>Lucro Total</h3>
+                        <div class="pdf-stat-value" id="pdfTotalProfit">R$ 0,00</div>
+                    </div>
+                    <div class="pdf-stat-card">
+                        <h3>ROI Médio</h3>
+                        <div class="pdf-stat-value" id="pdfAverageROI">0%</div>
+                    </div>
+                    <div class="pdf-stat-card">
+                        <h3>Valor Médio Apostado</h3>
+                        <div class="pdf-stat-value" id="pdfAverageStake">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pdf-entries">
+                <h2>📋 Lista Detalhada de Surebets</h2>
+                <table class="pdf-table" id="pdfEntriesTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Evento</th>
+                            <th>Casas</th>
+                            <th>Valor Apostado</th>
+                            <th>Retorno</th>
+                            <th>Lucro</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdfEntriesTableBody">
+                        <!-- Entradas serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pdf-bonus">
+                <h2>🎁 Bonus Ativos</h2>
+                <div id="pdfBonusContent">
+                    <!-- Conteúdo de bônus será inserido aqui -->
+                </div>
+            </div>
+
+            <div class="pdf-footer">
+                <p>Relatório gerado em <span id="pdfGeneratedDate"></span> pelo BetManager</p>
+                <p>Este relatório contém informações confidenciais sobre apostas esportivas.</p>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="/js/toast-modal.js"></script>
     <script src="/js/surebet-detail.js"></script>
     <script src="/js/main.js"></script>
