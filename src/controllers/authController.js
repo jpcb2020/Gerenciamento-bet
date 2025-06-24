@@ -326,6 +326,65 @@ const renderResetPassword = async (req, res) => {
   }
 };
 
+// Alterar senha do usuário logado
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id;
+
+  try {
+    // Validar dados de entrada
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres' });
+    }
+
+    // Buscar usuário atual
+    const userResult = await pool.query(
+      'SELECT id, email, password_hash FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verificar senha atual
+    const isValidCurrentPassword = await bcrypt.compare(currentPassword, user.password_hash);
+    
+    if (!isValidCurrentPassword) {
+      return res.status(400).json({ error: 'Senha atual incorreta' });
+    }
+
+    // Verificar se a nova senha é diferente da atual
+    const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+    
+    if (isSamePassword) {
+      return res.status(400).json({ error: 'A nova senha deve ser diferente da senha atual' });
+    }
+
+    // Hash da nova senha
+    const saltRounds = 10;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Atualizar senha no banco de dados
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [newPasswordHash, userId]
+    );
+
+    res.json({ message: 'Senha alterada com sucesso' });
+
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -336,5 +395,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   renderForgotPassword,
-  renderResetPassword
+  renderResetPassword,
+  changePassword
 };

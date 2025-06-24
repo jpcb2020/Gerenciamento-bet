@@ -62,11 +62,49 @@
                         <i class="fas fa-bell"></i>
                         <span class="badge">3</span>
                     </div>
-                    <div class="user-profile">
+                    <div class="user-profile" id="userProfile">
                         <div class="user-avatar-placeholder">
                             <i class="fas fa-user"></i>
                         </div>
                         <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -213,5 +251,6 @@
     <script src="js/transacoes.js"></script> 
     <script src="js/main.js"></script> <!-- Common JS like sidebar toggle -->
     <script src="js/logout.js"></script>
+    <script src="js/user-dropdown.js"></script>
 </body>
 </html>

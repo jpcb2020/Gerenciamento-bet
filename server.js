@@ -112,6 +112,19 @@ app.get('/surebet/:id', requireAuth, (req, res) => {
   });
 });
 
+app.get('/profile', requireAuth, (req, res) => {
+  res.render('profile', { 
+    title: 'Meu Perfil - BetManager',
+    user: req.user
+  });
+});
+
+// Rota API para alterar senha
+app.post('/api/change-password', requireAuth, async (req, res) => {
+  const { changePassword } = require('./src/controllers/authController');
+  await changePassword(req, res);
+});
+
 // Rotas duplicadas removidas - mantendo apenas as rotas protegidas acima
 
 // Rota para a página de detalhes de surebet

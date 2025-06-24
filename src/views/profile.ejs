@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                    <li class="logout-item">
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <div class="page-header">
+                        <h2><i class="fas fa-user-cog"></i> Meu Perfil</h2>
+                        <p>Gerencie suas informações pessoais e configurações de segurança</p>
+                    </div>
+                </div>
+
+                <!-- Profile Content -->
+                <div class="profile-container">
+                    <!-- User Info Card -->
+                    <div class="profile-card">
+                        <div class="card-header" style="flex-direction: column;">
+                            <div class="user-avatar-large">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h3><%= user.nome %> <%= user.sobrenome || '' %></h3>
+                                <p class="user-email"><%= user.email %></p>
+                                <span class="user-since">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Membro desde <%= user.data_criacao ? new Date(user.data_criacao).toLocaleDateString('pt-BR') : 'N/A' %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Change Section -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-lock"></i> Alterar Senha</h3>
+                            <p>Mantenha sua conta segura alterando sua senha regularmente</p>
+                        </div>
+                        <div class="card-body">
+                            <form id="changePasswordForm" class="password-form">
+                                <div class="form-group">
+                                    <label for="currentPassword">
+                                        <i class="fas fa-key"></i>
+                                        Senha Atual
+                                    </label>
+                                    <div class="password-input-group">
+                                        <input type="password" id="currentPassword" name="currentPassword" required placeholder="Digite sua senha atual">
+                                        <button type="button" class="toggle-password" data-target="currentPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newPassword">
+                                        <i class="fas fa-lock"></i>
+                                        Nova Senha
+                                    </label>
+                                    <div class="password-input-group">
+                                        <input type="password" id="newPassword" name="newPassword" required placeholder="Digite sua nova senha" minlength="6">
+                                        <button type="button" class="toggle-password" data-target="newPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength" id="passwordStrength">
+                                        <div class="strength-meter">
+                                            <div class="strength-fill"></div>
+                                        </div>
+                                        <span class="strength-text">Digite uma senha</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="confirmPassword">
+                                        <i class="fas fa-lock"></i>
+                                        Confirmar Nova Senha
+                                    </label>
+                                    <div class="password-input-group">
+                                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirme sua nova senha">
+                                        <button type="button" class="toggle-password" data-target="confirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <small class="password-match" id="passwordMatch"></small>
+                                </div>
+
+                                <div class="password-requirements">
+                                    <h4><i class="fas fa-shield-alt"></i> Requisitos da senha:</h4>
+                                    <ul>
+                                        <li><i class="fas fa-check"></i> Mínimo de 6 caracteres</li>
+                                        <li><i class="fas fa-check"></i> Pelo menos 1 letra maiúscula</li>
+                                        <li><i class="fas fa-check"></i> Pelo menos 1 letra minúscula</li>
+                                        <li><i class="fas fa-check"></i> Pelo menos 1 número</li>
+                                    </ul>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn-cancel" onclick="clearForm()">
+                                        <i class="fas fa-times"></i>
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" class="btn-primary" id="changePasswordBtn">
+                                        <i class="fas fa-save"></i>
+                                        Alterar Senha
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Account Info Section -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-info-circle"></i> Informações da Conta</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label><i class="fas fa-envelope"></i> Email</label>
+                                    <span class="info-value email-readonly">
+                                        <%= user.email %>
+                                        <i class="fas fa-lock" title="Email não pode ser alterado"></i>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-user"></i> Nome Completo</label>
+                                    <span class="info-value"><%= user.nome %> <%= user.sobrenome || '' %></span>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-calendar-plus"></i> Data de Cadastro</label>
+                                    <span class="info-value"><%= user.data_criacao ? new Date(user.data_criacao).toLocaleDateString('pt-BR') : 'N/A' %></span>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-clock"></i> Último Acesso</label>
+                                    <span class="info-value">Agora</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/main.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/user-dropdown.js"></script>
+    <script src="/js/profile.js"></script>
+    <script src="/js/toast-modal.js"></script>
+</body>
+</html> 

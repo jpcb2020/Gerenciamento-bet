@@ -496,33 +496,7 @@
     margin: 0;
 }
 
-/* Melhorias nos cards de oportunidades */
-.opportunity-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-    position: relative;
-}
 
-.opportunity-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #28a745, #20c997);
-    border-radius: 16px 16px 0 0;
-}
-
-.opportunity-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-}
 
 /* Melhorias nos botões de ação */
 .action-btn {

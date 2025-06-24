@@ -14,7 +14,7 @@ const requireAuth = async (req, res, next) => {
     
     // Verificar se o usuário ainda existe e está ativo
     const result = await pool.query(
-      'SELECT id, nome, sobrenome, email, ativo FROM users WHERE id = $1',
+      'SELECT id, nome, sobrenome, email, ativo, data_criacao FROM users WHERE id = $1',
       [decoded.userId]
     );
     
@@ -47,7 +47,7 @@ const requireAuthAPI = async (req, res, next) => {
     
     // Verificar se o usuário ainda existe e está ativo
     const result = await pool.query(
-      'SELECT id, nome, sobrenome, email, ativo FROM users WHERE id = $1',
+      'SELECT id, nome, sobrenome, email, ativo, data_criacao FROM users WHERE id = $1',
       [decoded.userId]
     );
     

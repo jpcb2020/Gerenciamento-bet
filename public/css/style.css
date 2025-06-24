@@ -17,6 +17,7 @@
     --transition: all 0.3s ease;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-hover: 0 6px 10px rgba(0, 0, 0, 0.15);
+    --hover-color: #f8f9fa;
     --sidebar-width: 250px;
     --sidebar-collapsed: 70px;
 }
@@ -231,6 +232,7 @@ button {
     display: flex;
     align-items: center;
     cursor: pointer;
+    position: relative;
 }
 
 .user-profile img {
@@ -255,10 +257,121 @@ button {
     font-weight: bold;
     font-size: 16px;
     text-transform: uppercase;
+    transition: var(--transition);
 }
 
 .user-avatar-placeholder i {
     font-size: 18px;
+}
+
+.user-profile:hover .user-avatar-placeholder {
+    transform: scale(1.05);
+}
+
+.user-profile .fa-chevron-down {
+    transition: transform 0.3s ease;
+    color: var(--text-light);
+}
+
+/* Dropdown do perfil de usuário */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--card-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+}
+
+.user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 20px;
+    width: 16px;
+    height: 16px;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-right: none;
+    transform: rotate(45deg);
+}
+
+.dropdown-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.dropdown-user-info h4 {
+    margin: 8px 0 4px 0;
+    color: var(--dark-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.dropdown-user-info p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.dropdown-menu {
+    padding: 8px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+    background-color: var(--hover-color);
+    color: var(--primary-color);
+}
+
+.dropdown-item i {
+    margin-right: 12px;
+    width: 18px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 8px 0;
+}
+
+.dropdown-item.logout {
+    color: var(--red-color);
+}
+
+.dropdown-item.logout:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--red-color);
 }
 
 /* Content Wrapper */
@@ -2766,142 +2879,7 @@ table td {
     }
 }
 
-/* Estilos para a Tab Opportunities */
-.opportunities-container {
-    padding: 20px;
-}
 
-.opportunities-header {
-    margin-bottom: 20px;
-}
-
-.opportunities-header h3 {
-    margin-bottom: 5px;
-}
-
-.opportunities-header p {
-    color: var(--text-light);
-    font-size: 0.9rem;
-}
-
-.opportunities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.opportunity-card {
-    background-color: var(--bg-color);
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    transition: var(--transition);
-}
-
-.opportunity-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
-}
-
-.opportunity-header {
-    background-color: rgba(108, 92, 231, 0.1);
-    padding: 10px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-}
-
-.opportunity-date {
-    color: var(--text-light);
-}
-
-.opportunity-profit {
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.opportunity-event {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.opportunity-event h4 {
-    margin: 0 0 5px 0;
-    font-size: 1rem;
-}
-
-.opportunity-event p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--text-light);
-}
-
-.opportunity-bets {
-    padding: 15px;
-}
-
-.opportunity-bet {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px dotted var(--border-color);
-}
-
-.opportunity-bet:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.bet-house {
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.bet-market {
-    font-size: 0.85rem;
-    color: var(--text-light);
-    text-align: center;
-    flex: 1;
-    margin: 0 10px;
-}
-
-.bet-odds {
-    font-weight: 600;
-    color: var(--green-color);
-    font-size: 0.85rem;
-}
-
-.opportunity-actions {
-    padding: 0 15px 15px;
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-}
-
-.empty-opportunities {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-light);
-}
-
-.empty-opportunities i {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    opacity: 0.3;
-}
-
-.empty-opportunities h3 {
-    margin-bottom: 5px;
-}
 
 /* Estilos para Tab Bonus */
 .bonus-container {
