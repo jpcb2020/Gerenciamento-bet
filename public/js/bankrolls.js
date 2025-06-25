@@ -294,11 +294,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
             }
             
+            // Mostrar toast de sucesso
+            if (window.showToast) {
+                const action = editingBankrollId ? 'atualizado' : 'criado';
+                window.showToast(`Bankroll ${action} com sucesso!`, 'success');
+            }
+            
             closeModal();
             fetchBankrolls();
         } catch (error) {
             console.error('Erro ao salvar bankroll:', error);
-            alert(`Erro ao salvar bankroll: ${error.message}`);
+            
+            // Usar toast para erro se disponível, senão alert
+            if (window.showToast) {
+                window.showToast(`Erro ao salvar bankroll: ${error.message}`, 'error');
+            } else {
+                alert(`Erro ao salvar bankroll: ${error.message}`);
+            }
         }
     }
 
@@ -308,17 +320,25 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     async function deleteBankroll(id) {
         try {
+            // Buscar informações do bankroll para exibir no modal
+            const bankrollInfo = document.querySelector(`[data-id="${id}"]`)?.closest('.bankroll-card');
+            const bankrollName = bankrollInfo?.querySelector('.bankroll-name')?.textContent || 'este bankroll';
+            
             const confirmed = await confirmModal.delete(
-                'Esta ação não pode ser desfeita. Tem certeza que deseja excluir este bankroll?',
+                `Tem certeza que deseja excluir o bankroll "${bankrollName}"? Todos os dados associados serão perdidos permanentemente.`,
                 {
-                    title: 'Confirmar Exclusão',
-                    subtitle: 'Atenção: Esta ação é irreversível'
+                    title: 'Confirmar Exclusão do Bankroll',
+                    subtitle: 'Atenção: Esta ação é irreversível e não pode ser desfeita',
+                    confirmText: 'Excluir Bankroll',
+                    confirmIcon: 'fa-trash-alt',
+                    type: 'warning'
                 }
             );
             
             if (!confirmed) {
                 return;
             }
+            
             const response = await fetch(`/api/bankrolls/${id}`, {
                 method: 'DELETE',
             });
@@ -328,10 +348,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
             }
             
+            // Mostrar toast de sucesso
+            if (window.showToast) {
+                window.showToast(`Bankroll "${bankrollName}" excluído com sucesso!`, 'success');
+            }
+            
             fetchBankrolls();
         } catch (error) {
             console.error('Erro ao deletar bankroll:', error);
-            alert(`Erro ao deletar bankroll: ${error.message}`);
+            
+            // Usar toast para erro se disponível, senão alert
+            if (window.showToast) {
+                window.showToast(`Erro ao excluir bankroll: ${error.message}`, 'error');
+            } else {
+                alert(`Erro ao deletar bankroll: ${error.message}`);
+            }
         }
     }
 

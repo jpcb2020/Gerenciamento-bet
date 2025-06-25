@@ -310,6 +310,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Atualizar saldo do cabeçalho
             updateBalanceDisplay();
             
+            // Atualizar gráfico
+            if (window.reloadEvolutionChart) {
+                window.reloadEvolutionChart();
+            }
+            
             // Mostrar mensagem de sucesso
             const action = isEditMode ? 'atualizada' : 'criada';
             throttledShowToast(`Entrada ${action} com sucesso!`, 'success');
@@ -342,6 +347,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Atualizar saldo do cabeçalho
             updateBalanceDisplay();
             
+            // Atualizar gráfico
+            if (window.reloadEvolutionChart) {
+                window.reloadEvolutionChart();
+            }
+            
             throttledShowToast('Entrada excluída com sucesso!', 'success');
             
         } catch (error) {
@@ -367,6 +377,147 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erro ao atualizar saldo:', error);
+        }
+    }
+
+    // Função para carregar e renderizar o gráfico de evolução
+    async function loadEvolutionChart() {
+        if (!bankrollId) return;
+        
+        const chartContainer = document.getElementById('balanceChart');
+        if (!chartContainer) return;
+        
+        try {
+            const response = await fetch(`/api/general/evolution/${bankrollId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados de evolução');
+            }
+            
+            const evolutionData = await response.json();
+            
+            // Verificar se há dados suficientes
+            if (evolutionData.length === 0) {
+                chartContainer.innerHTML = `
+                    <div class="no-data-message">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Ainda não há dados para mostrar a evolução</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Preparar dados para o Chart.js
+            const labels = evolutionData.map(item => {
+                const date = new Date(item.data);
+                return date.toLocaleDateString('pt-BR');
+            });
+            
+            const data = evolutionData.map(item => parseFloat(item.saldo));
+            
+            // Limpar container e criar canvas
+            chartContainer.innerHTML = '<canvas id="evolutionChart"></canvas>';
+            const canvas = document.getElementById('evolutionChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Definir tamanho do canvas baseado no container
+            const containerRect = chartContainer.getBoundingClientRect();
+            canvas.width = containerRect.width - 40;
+            canvas.height = 180;
+            
+            // Configurar cores baseadas na performance
+            const isPositive = data[data.length - 1] >= data[0];
+            const lineColor = isPositive ? '#28a745' : '#dc3545';
+            const gradientColor = isPositive ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+            
+            // Criar gradiente
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, gradientColor);
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            // Criar o gráfico
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Saldo do Bankroll',
+                        data: data,
+                        borderColor: lineColor,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: lineColor,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Saldo: ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6c757d',
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#6c757d',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: lineColor
+                        }
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Erro ao carregar gráfico de evolução:', error);
+            chartContainer.innerHTML = `
+                <div class="no-data-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erro ao carregar gráfico</p>
+                </div>
+            `;
         }
     }
 
@@ -476,6 +627,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 editBalanceModal.classList.remove('active');
                 updateBalanceDisplay();
+                
+                // Atualizar gráfico
+                if (window.reloadEvolutionChart) {
+                    window.reloadEvolutionChart();
+                }
+                
                 throttledShowToast('Saldo atualizado com sucesso!', 'success');
                 
             } catch (error) {
@@ -511,4 +668,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicialização
     fetchGeneralEntries();
+    
+    // Carregar gráfico de evolução
+    loadEvolutionChart();
+    
+    // Tornar função disponível globalmente para recarga
+    window.reloadEvolutionChart = loadEvolutionChart;
 }); 
