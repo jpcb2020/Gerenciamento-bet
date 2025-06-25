@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Variável global para controlar a página atual
     let currentPage = 1;
     const entriesPerPage = 5;
+    
+    // Variáveis para controle de edição
+    let isEditMode = false;
+    let editingEntryId = null;
 
     // Função para buscar e renderizar entradas de surebet
     async function fetchSurebetEntries(filters = {}, page = 1) {
@@ -263,13 +267,142 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = document.querySelector('.modal .close-modal');
     const cancelEntryBtn = document.getElementById('cancelEntryBtn');
 
-    // Função para limpar o modal
+    // Event delegation para botões de ação na tabela
+    document.addEventListener('click', function(e) {
+        // Botão de deletar
+        if (e.target.closest('.action-btn.delete')) {
+            e.preventDefault();
+            const entryId = e.target.closest('.action-btn.delete').getAttribute('data-entry-id');
+            if (entryId) {
+                deleteSurebetEntry(entryId);
+            }
+        }
+        
+        // Botão de editar
+        if (e.target.closest('.action-btn.edit')) {
+            e.preventDefault();
+            const entryId = e.target.closest('.action-btn.edit').getAttribute('data-entry-id');
+            if (entryId) {
+                loadSurebetForEdit(entryId);
+            }
+        }
+    });
+
+    // Função para carregar dados da surebet para edição
+    async function loadSurebetForEdit(entryId) {
+        try {
+            const response = await fetch(`/api/surebet/entries/single/${entryId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados da entrada');
+            }
+            
+            const entry = await response.json();
+            
+            // Definir modo de edição
+            isEditMode = true;
+            editingEntryId = entryId;
+            
+            // Limpar modal primeiro
+            clearModal();
+            
+            // Preencher campos do evento
+            document.getElementById('entryEvent').value = entry.evento || '';
+            document.getElementById('entryCompetition').value = entry.competicao || '';
+            document.getElementById('entryNotes').value = entry.observacoes || '';
+            
+            // Preencher data e hora
+            if (entry.data_evento) {
+                const eventDate = new Date(entry.data_evento);
+                const dateStr = eventDate.toISOString().split('T')[0];
+                const timeStr = eventDate.toTimeString().split(' ')[0].substring(0, 5);
+                document.getElementById('entryDate').value = dateStr;
+                document.getElementById('entryTime').value = timeStr;
+            }
+            
+            // Preencher campos de bônus se existirem
+            if (entry.bonus) {
+                document.getElementById('entryBonus').checked = true;
+                document.getElementById('bonusValue').value = entry.bonus_value || '';
+                document.getElementById('bonusHouse').value = entry.bonus_house || '';
+                if (entry.bonus_expiry_date) {
+                    const bonusDate = new Date(entry.bonus_expiry_date);
+                    document.getElementById('bonusExpiryDate').value = bonusDate.toISOString().split('T')[0];
+                }
+                // Mostrar campos de bônus
+                const bonusFields = document.getElementById('bonusFields');
+                if (bonusFields) {
+                    bonusFields.style.display = 'block';
+                }
+            }
+            
+            // Limpar container de apostas
+            const entryBetsContainer = document.getElementById('entryBetsContainer');
+            const existingBets = entryBetsContainer.querySelectorAll('.entry-bet');
+            existingBets.forEach((bet, index) => {
+                if (index >= 2) { // Manter apenas as duas primeiras apostas padrão
+                    bet.remove();
+                }
+            });
+            
+            // Preencher apostas
+            if (entry.bets && entry.bets.length > 0) {
+                entry.bets.forEach((bet, index) => {
+                    const betNumber = index + 1;
+                    
+                    // Se precisar de mais apostas além das 2 padrão, criar novas
+                    if (index >= 2) {
+                        // Simular clique no botão de adicionar aposta
+                        const addMoreBetBtn = document.getElementById('addMoreBetBtn');
+                        if (addMoreBetBtn) {
+                            addMoreBetBtn.click();
+                        }
+                    }
+                    
+                    // Aguardar um pouco para garantir que os elementos foram criados
+                    setTimeout(() => {
+                        const houseInput = document.getElementById(`betHouse${betNumber}`);
+                        const marketInput = document.getElementById(`betMarket${betNumber}`);
+                        const oddsInput = document.getElementById(`betOdds${betNumber}`);
+                        const stakeInput = document.getElementById(`betStake${betNumber}`);
+                        
+                        if (houseInput) houseInput.value = bet.casa_apostas || '';
+                        if (marketInput) marketInput.value = bet.mercado || '';
+                        if (oddsInput) oddsInput.value = bet.odds || '';
+                        if (stakeInput) stakeInput.value = bet.valor_apostado || '';
+                    }, index * 100); // Delay progressivo para cada aposta
+                });
+            }
+            
+            // Atualizar título do modal
+            const modalTitle = document.querySelector('#newEntryModal .modal-header h3');
+            const modalDescription = document.querySelector('#newEntryModal .modal-header p');
+            if (modalTitle) modalTitle.textContent = 'Editar Entrada de Surebet';
+            if (modalDescription) modalDescription.textContent = 'Modifique os dados da oportunidade de arbitragem';
+            
+            // Atualizar botão de salvar
+            const saveButton = document.querySelector('#newEntryForm button[type="submit"]');
+            if (saveButton) {
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Atualizar Entrada';
+            }
+            
+            // Abrir modal
+            const newEntryModal = document.getElementById('newEntryModal');
+            newEntryModal.classList.add('active');
+            
+        } catch (error) {
+            console.error('Erro ao carregar dados para edição:', error);
+            showToast('Erro ao carregar dados da entrada', 'error');
+        }
+    }
+
+    // Função para limpar o modal (modificada para considerar modo de edição)
     function clearModal() {
         // Limpar campos de informações do evento
         document.getElementById('entryEvent').value = '';
         document.getElementById('entryCompetition').value = '';
         document.getElementById('entryDate').value = '';
         document.getElementById('entryTime').value = '';
+        document.getElementById('entryNotes').value = '';
         document.getElementById('entryBonus').checked = false;
         document.getElementById('bonusValue').value = '';
         document.getElementById('bonusHouse').value = '';
@@ -284,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Limpar campos das apostas
         const betInputs = document.querySelectorAll('#newEntryModal input[type="text"], #newEntryModal input[type="number"]');
         betInputs.forEach(input => {
-            if (input.id !== 'entryEvent' && input.id !== 'entryCompetition' && input.id !== 'entryDate' && input.id !== 'entryTime') {
+            if (input.id !== 'entryEvent' && input.id !== 'entryCompetition' && input.id !== 'entryDate' && input.id !== 'entryTime' && input.id !== 'entryNotes') {
                 input.value = '';
                 
                 // Limpar estilos visuais de aposta grátis nos campos de odds
@@ -299,7 +432,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Limpar checkboxes de exchange e aposta grátis
         const exchangeCheckboxes = document.querySelectorAll('#newEntryModal input[type="checkbox"]');
         exchangeCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
+            if (checkbox.id !== 'entryBonus') {
+                checkbox.checked = false;
+            }
         });
         
         // Limpar selects de tipo de aposta
@@ -325,10 +460,27 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Renumerar as apostas restantes
         renumberBets();
+        
+        // Resetar modo de edição
+        if (!isEditMode) {
+            const modalTitle = document.querySelector('#newEntryModal .modal-header h3');
+            const modalDescription = document.querySelector('#newEntryModal .modal-header p');
+            if (modalTitle) modalTitle.textContent = 'Nova Entrada de Surebet';
+            if (modalDescription) modalDescription.textContent = 'Configure uma nova oportunidade de arbitragem';
+            
+            const saveButton = document.querySelector('#newEntryForm button[type="submit"]');
+            if (saveButton) {
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Entrada';
+            }
+        }
     }
 
     if (addSurebetEntryBtn) {
         addSurebetEntryBtn.addEventListener('click', () => {
+            // Resetar modo de edição
+            isEditMode = false;
+            editingEntryId = null;
+            
             clearModal();
             loadAvailableFreeBets(); // Carregar apostas grátis disponíveis
             newEntryModal.classList.add('active');
@@ -337,18 +489,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
+            // Resetar modo de edição ao fechar
+            isEditMode = false;
+            editingEntryId = null;
             newEntryModal.classList.remove('active');
         });
     }
 
     if (cancelEntryBtn) {
         cancelEntryBtn.addEventListener('click', () => {
+            // Resetar modo de edição ao cancelar
+            isEditMode = false;
+            editingEntryId = null;
             newEntryModal.classList.remove('active');
         });
     }
 
+    // Fechar modal clicando fora dele
     window.addEventListener('click', (event) => {
         if (event.target === newEntryModal) {
+            // Resetar modo de edição ao fechar
+            isEditMode = false;
+            editingEntryId = null;
             newEntryModal.classList.remove('active');
         }
     });
@@ -543,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Formulário de nova entrada
+    // Formulário de nova entrada (modificado para suportar edição)
     const newEntryForm = document.getElementById('newEntryForm');
     if (newEntryForm) {
         newEntryForm.addEventListener('submit', async function(event) {
@@ -552,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const bankrollId = new URLSearchParams(window.location.search).get('id');
             const entryEvent = document.getElementById('entryEvent').value;
             const entryCompetition = document.getElementById('entryCompetition').value;
-            const useExistingBonus = document.getElementById('useExistingBonus').value;
+            const useExistingBonus = document.getElementById('useExistingBonus') ? document.getElementById('useExistingBonus').value : null;
             const entryDate = document.getElementById('entryDate').value;
             const entryTime = document.getElementById('entryTime').value;
             const entryNotes = document.getElementById('entryNotes').value;
@@ -585,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const liability = liabilityInput ? parseFloat(liabilityInput.value) || 0 : 0;
 
                 if (!house || !market || !odds || !stake) {
-                    toast.warning('Por favor, preencha todos os campos de todas as apostas.');
+                    showToast('Por favor, preencha todos os campos de todas as apostas.', 'warning');
                     return;
                 }
                 
@@ -604,13 +766,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (entryBetsData.length === 0) {
-                toast.warning('Adicione pelo menos uma aposta para a entrada.');
+                showToast('Adicione pelo menos uma aposta para a entrada.', 'warning');
                 return;
             }
 
             // Validação dos campos de bonus
             if (entryBonus && (!bonusValue || !bonusHouse || !bonusExpiryDate)) {
-                toast.warning('Por favor, preencha o valor, a casa de apostas e a data de expiração do bonus.');
+                showToast('Por favor, preencha o valor, a casa de apostas e a data de expiração do bonus.', 'warning');
                 return;
             }
 
@@ -630,8 +792,12 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             try {
-                const response = await fetch('/api/surebet/entries', {
-                    method: 'POST',
+                // Determinar URL e método baseado no modo
+                const url = isEditMode ? `/api/surebet/entries/${editingEntryId}` : '/api/surebet/entries';
+                const method = isEditMode ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -644,10 +810,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.msg || `Erro HTTP: ${response.status}`);
                 }
 
-                toast.success(result.msg || 'Entrada salva com sucesso!');
+                const successMessage = isEditMode ? 'Entrada atualizada com sucesso!' : 'Entrada salva com sucesso!';
+                showToast(result.msg || successMessage, 'success');
+                
+                // Resetar formulário e modo
                 newEntryForm.reset();
-                clearModal(); // Limpa e reseta o modal
+                clearModal();
+                isEditMode = false;
+                editingEntryId = null;
                 newEntryModal.classList.remove('active');
+                
+                // Atualizar interface
                 fetchSurebetEntries(); // Atualizar a tabela após salvar
                 if (window.reloadEvolutionChart) {
                     window.reloadEvolutionChart(); // Atualizar gráfico
@@ -655,12 +828,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } catch (error) {
                 console.error('Erro ao salvar entrada:', error);
-                toast.error(`Erro ao salvar entrada: ${error.message}`);
+                const errorMessage = isEditMode ? 'Erro ao atualizar entrada' : 'Erro ao salvar entrada';
+                showToast(`${errorMessage}: ${error.message}`, 'error');
             }
         });
     }
-
-
 
     // Carregar entradas inicialmente se a aba "Entries" estiver ativa por padrão
     if (document.querySelector('.tab-btn[data-tab="entries"].active')) {
@@ -2671,10 +2843,9 @@ class EditBalanceModal {
         // Confirmar alteração se for uma mudança significativa
         const difference = Math.abs(newBalance - this.currentBalance);
         if (difference > 1000) {
-            const confirmed = await showConfirm(
-                'Confirmação de Alteração',
+            const confirmed = await showConfirmModal(
                 `Você está alterando o saldo de ${this.currentBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para ${newBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Esta é uma alteração significativa. Deseja continuar?`,
-                'warning'
+                'Confirmação de Alteração'
             );
             
             if (!confirmed) {

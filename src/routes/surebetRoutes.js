@@ -125,6 +125,56 @@ router.get('/entries/:bankrollId', async (req, res) => {
     }
 });
 
+// GET single surebet entry for editing
+router.get('/entries/single/:entryId', async (req, res) => {
+    const { entryId } = req.params;
+
+    try {
+        const query = `
+            SELECT 
+                se.id, se.evento, se.competicao, se.data_evento, 
+                se.retorno_total, se.lucro_total, se.roi_percentual, 
+                se.status, se.observacoes, se.data_criacao,
+                se.bonus, se.bonus_value, se.bonus_house, se.bonus_expiry_date,
+                se.used_bonus_id, se.used_bonus_value, se.used_bonus_house,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', seb.id,
+                            'casa_apostas', seb.casa_apostas,
+                            'mercado', seb.mercado,
+                            'odds', seb.odds,
+                            'valor_apostado', seb.valor_apostado,
+                            'retorno_potencial', seb.retorno_potencial,
+                            'status_aposta', seb.status_aposta,
+                            'is_exchange', seb.is_exchange,
+                            'bet_type', seb.bet_type,
+                            'commission', seb.commission,
+                            'liability', seb.liability
+                        )
+                    ORDER BY seb.id ASC
+                    ) FILTER (WHERE seb.id IS NOT NULL), '[]'::json
+                ) AS bets
+            FROM surebet_entries se
+            LEFT JOIN surebet_entry_bets seb ON se.id = seb.surebet_entry_id
+            WHERE se.id = $1 AND se.user_id = $2
+            GROUP BY se.id
+        `;
+
+        const result = await pool.query(query, [entryId, req.user.id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ msg: 'Entrada de surebet não encontrada.' });
+        }
+
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error(`Erro na rota GET /api/surebet/entries/single/${entryId}:`, err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar entrada de surebet.', error: err.message });
+    }
+});
+
 // POST a new surebet entry
 router.post('/entries', async (req, res) => {
     const { 
@@ -776,6 +826,159 @@ router.get('/bonus/:bankrollId', async (req, res) => {
     } catch (err) {
         console.error('Erro ao buscar bônus:', err.message);
         res.status(500).json({ msg: 'Erro no servidor ao buscar bônus.', error: err.message });
+    }
+});
+
+// PUT update existing surebet entry
+router.put('/entries/:entryId', async (req, res) => {
+    const { entryId } = req.params;
+    const { 
+        bankrollId, 
+        entryEvent, 
+        entryCompetition, 
+        useExistingBonus,
+        entryDate, 
+        entryTime, 
+        entryBets, // Espera-se um array de objetos de aposta
+        entryNotes,
+        entryBonus,
+        bonusValue,
+        bonusHouse,
+        bonusExpiryDate
+    } = req.body;
+
+    if (!bankrollId || !entryEvent || !entryDate || !entryTime || !entryBets || entryBets.length === 0) {
+        return res.status(400).json({ msg: 'Dados incompletos para atualizar a entrada de surebet.' });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN'); // Iniciar transação
+
+        // Verificar se a entrada pertence ao usuário
+        const ownershipCheck = await client.query(
+            'SELECT id FROM surebet_entries WHERE id = $1 AND user_id = $2',
+            [entryId, req.user.id]
+        );
+
+        if (ownershipCheck.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ msg: 'Entrada de surebet não encontrada ou não autorizada.' });
+        }
+
+        const dataEvento = `${entryDate} ${entryTime}`;
+
+        // Buscar informações do bônus usado, se houver
+        let usedBonusData = null;
+        if (useExistingBonus) {
+            const bonusQuery = await client.query(
+                'SELECT id, bonus_value, bonus_house FROM user_bonus WHERE id = $1 AND user_id = $2 AND status = $3',
+                [useExistingBonus, req.user.id, 'Ativo']
+            );
+            
+            if (bonusQuery.rowCount > 0) {
+                usedBonusData = bonusQuery.rows[0];
+            }
+        }
+
+        // 1. Atualizar a entrada principal
+        const updateEntryQuery = `
+            UPDATE surebet_entries 
+            SET evento = $1, competicao = $2, data_evento = $3, observacoes = $4,
+                bonus = $5, bonus_value = $6, bonus_house = $7, bonus_expiry_date = $8,
+                used_bonus_id = $9, used_bonus_value = $10, used_bonus_house = $11
+            WHERE id = $12 AND user_id = $13
+        `;
+        await client.query(updateEntryQuery, [
+            entryEvent,
+            entryCompetition,
+            dataEvento,
+            entryNotes || null,
+            entryBonus || false,
+            entryBonus ? bonusValue : null,
+            entryBonus ? bonusHouse : null,
+            entryBonus ? bonusExpiryDate : null,
+            usedBonusData ? usedBonusData.id : null,
+            usedBonusData ? usedBonusData.bonus_value : null,
+            usedBonusData ? usedBonusData.bonus_house : null,
+            entryId,
+            req.user.id
+        ]);
+
+        // 2. Deletar todas as apostas existentes da entrada
+        await client.query('DELETE FROM surebet_entry_bets WHERE surebet_entry_id = $1', [entryId]);
+
+        // 3. Inserir as novas apostas
+        let totalValorApostado = 0;
+        let retornosIndividuais = [];
+
+        for (const bet of entryBets) {
+            if (!bet.house || !bet.market || !bet.odds || !bet.stake) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ msg: `Dados incompletos para uma das apostas: ${JSON.stringify(bet)}` });
+            }
+
+            const valorApostado = parseFloat(bet.stake);
+            const odds = parseFloat(bet.odds);
+            const retornoPotencial = valorApostado * odds;
+
+            totalValorApostado += valorApostado;
+            retornosIndividuais.push(retornoPotencial);
+
+            const betInsertQuery = `
+                INSERT INTO surebet_entry_bets 
+                    (surebet_entry_id, casa_apostas, mercado, odds, valor_apostado, retorno_potencial, status_aposta, is_exchange, bet_type, commission, liability, user_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            `;
+            await client.query(betInsertQuery, [
+                entryId,
+                bet.house,
+                bet.market,
+                odds,
+                valorApostado,
+                retornoPotencial,
+                'Pendente', // Status inicial das apostas
+                bet.isExchange || false,
+                bet.betType || null,
+                bet.commission || null,
+                bet.liability || null,
+                req.user.id // Adicionar user_id
+            ]);
+        }
+
+        // 4. Calcular e atualizar totais
+        const maiorRetorno = Math.max(...retornosIndividuais);
+        const lucroTotal = maiorRetorno - totalValorApostado;
+        const roiPercentual = ((lucroTotal / totalValorApostado) * 100).toFixed(2);
+
+        const updateTotalsQuery = `
+            UPDATE surebet_entries 
+            SET retorno_total = $1, lucro_total = $2, roi_percentual = $3
+            WHERE id = $4
+        `;
+        await client.query(updateTotalsQuery, [
+            maiorRetorno,
+            lucroTotal,
+            parseFloat(roiPercentual),
+            entryId
+        ]);
+
+        await client.query('COMMIT'); // Confirmar transação
+
+        res.json({ 
+            msg: 'Entrada de surebet atualizada com sucesso!',
+            entryId: entryId,
+            lucroTotal: lucroTotal,
+            roiPercentual: roiPercentual
+        });
+
+    } catch (err) {
+        await client.query('ROLLBACK'); // Reverter transação em caso de erro
+        console.error('Erro ao atualizar entrada de surebet:', err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao atualizar entrada de surebet.', error: err.message });
+    } finally {
+        client.release();
     }
 });
 
