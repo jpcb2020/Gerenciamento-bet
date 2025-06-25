@@ -3,13 +3,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Formatação de moeda e data
     const formatCurrency = (value) => {
-        return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
     };
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
-               date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleDateString('pt-BR');
+    };
+
+    // Função helper para formatar status
+    const formatStatus = (status) => {
+        if (!status) return 'Pendente';
+        const statusLower = status.toLowerCase();
+        switch (statusLower) {
+            case 'ganha':
+            case 'ganhou':
+            case 'win':
+                return 'Ganha';
+            case 'perdida':
+            case 'perdeu':
+            case 'loss':
+                return 'Perdida';
+            case 'pendente':
+            case 'pending':
+            default:
+                return 'Pendente';
+        }
     };
 
     // Variável global para controlar a página atual
@@ -89,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Determinar status
             const status = entry.status ? entry.status.toLowerCase() : 'pendente';
-            const statusText = entry.status || 'Pendente';
+            const statusText = formatStatus(entry.status);
 
             const row = entriesTableBody.insertRow();
             row.innerHTML = `
@@ -1387,6 +1406,396 @@ document.addEventListener('DOMContentLoaded', function() {
     const bonusHouseInput = document.getElementById('bonusHouse');
     if (bonusHouseInput) {
         setupBettingHouseAutocomplete(bonusHouseInput);
+    }
+
+    // Event listeners para a funcionalidade de PDF
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', openPdfConfigModal);
+    }
+
+    // Event listeners para o modal de configuração do PDF
+    const closePdfConfigBtn = document.getElementById('closePdfConfigModal');
+    const cancelPdfConfigBtn = document.getElementById('cancelPdfConfig');
+    const pdfConfigForm = document.getElementById('pdfConfigForm');
+    const pdfPeriodSelect = document.getElementById('pdfPeriodSelect');
+
+    if (closePdfConfigBtn) {
+        closePdfConfigBtn.addEventListener('click', closePdfConfigModal);
+    }
+
+    if (cancelPdfConfigBtn) {
+        cancelPdfConfigBtn.addEventListener('click', closePdfConfigModal);
+    }
+
+    // Event listener para mudança no período
+    if (pdfPeriodSelect) {
+        pdfPeriodSelect.addEventListener('change', function() {
+            const customRange = document.getElementById('pdfCustomDateRange');
+            if (this.value === 'custom') {
+                customRange.style.display = 'block';
+            } else {
+                customRange.style.display = 'none';
+            }
+            updatePdfPreview();
+        });
+    }
+
+    // Event listeners para atualizar preview
+    const pdfStartDate = document.getElementById('pdfStartDate');
+    const pdfEndDate = document.getElementById('pdfEndDate');
+    const includePendingEntries = document.getElementById('includePendingEntries');
+
+    if (pdfStartDate) {
+        pdfStartDate.addEventListener('change', updatePdfPreview);
+    }
+
+    if (pdfEndDate) {
+        pdfEndDate.addEventListener('change', updatePdfPreview);
+    }
+
+    if (includePendingEntries) {
+        includePendingEntries.addEventListener('change', updatePdfPreview);
+    }
+
+    // Event listener para o formulário de configuração do PDF
+    if (pdfConfigForm) {
+        pdfConfigForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Mostrar loading no botão
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando PDF...';
+
+            try {
+                // Coletar configurações
+                const period = document.getElementById('pdfPeriodSelect').value;
+                const startDate = document.getElementById('pdfStartDate').value;
+                const endDate = document.getElementById('pdfEndDate').value;
+                const includePending = document.getElementById('includePendingEntries').checked;
+                const includeStatistics = document.getElementById('includeStatistics').checked;
+                const includeBonus = document.getElementById('includeBonus').checked;
+                const includeNotes = document.getElementById('includeNotes').checked;
+
+                // Validar datas personalizadas
+                if (period === 'custom') {
+                    if (!startDate || !endDate) {
+                        toast.error('Por favor, selecione as datas de início e fim para o período personalizado');
+                        return;
+                    }
+                    if (new Date(startDate) > new Date(endDate)) {
+                        toast.error('A data de início deve ser anterior à data de fim');
+                        return;
+                    }
+                }
+
+                // Fechar modal
+                closePdfConfigModal();
+
+                // Gerar PDF com configurações
+                await generatePDFReport({
+                    period,
+                    startDate: period === 'custom' ? startDate : null,
+                    endDate: period === 'custom' ? endDate : null,
+                    includePending,
+                    includeStatistics,
+                    includeBonus,
+                    includeNotes
+                });
+
+            } catch (error) {
+                console.error('Erro ao configurar PDF:', error);
+                toast.error('Erro ao gerar relatório: ' + error.message);
+            } finally {
+                // Restaurar botão
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Fechar modal clicando fora
+    const pdfConfigModal = document.getElementById('pdfConfigModal');
+    if (pdfConfigModal) {
+        pdfConfigModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePdfConfigModal();
+            }
+        });
+    }
+
+    // Funcionalidade de Modal de Configuração do PDF
+    function openPdfConfigModal() {
+        const modal = document.getElementById('pdfConfigModal');
+        modal.classList.add('active');
+        
+        // Definir data máxima como hoje
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('pdfEndDate').max = today;
+        document.getElementById('pdfStartDate').max = today;
+        
+        // Definir valores padrão para datas personalizadas
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        document.getElementById('pdfStartDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+        document.getElementById('pdfEndDate').value = today;
+        
+        // Atualizar preview inicial
+        updatePdfPreview();
+    }
+
+    async function updatePdfPreview() {
+        const preview = document.getElementById('pdfPreview');
+        const previewText = document.getElementById('pdfPreviewText');
+        
+        try {
+            preview.classList.add('active');
+            previewText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculando...';
+            
+            const period = document.getElementById('pdfPeriodSelect').value;
+            const startDate = document.getElementById('pdfStartDate').value;
+            const endDate = document.getElementById('pdfEndDate').value;
+            const includePending = document.getElementById('includePendingEntries').checked;
+            
+            // Construir URL para preview
+            let previewUrl = `/api/sports-bet/entries/${bankrollId}?limit=1&page=1`;
+            if (period !== 'all') {
+                if (period === 'custom' && startDate && endDate) {
+                    previewUrl += `&period=custom&startDate=${startDate}&endDate=${endDate}`;
+                } else {
+                    previewUrl += `&period=${period}`;
+                }
+            }
+            if (!includePending) {
+                previewUrl += `&status=ganha,perdida`;
+            }
+            
+            const response = await fetch(previewUrl);
+            const data = await response.json();
+            
+            const totalEntries = data.pagination?.totalEntries || 0;
+            const periodName = period === 'custom' && startDate && endDate 
+                ? `${new Date(startDate).toLocaleDateString('pt-BR')} até ${new Date(endDate).toLocaleDateString('pt-BR')}`
+                : period === 'all' ? 'todo o período' : `últimos ${period} dias`;
+            
+            previewText.innerHTML = `📊 <strong>${totalEntries}</strong> apostas encontradas para <strong>${periodName}</strong>`;
+            
+        } catch (error) {
+            console.error('Erro ao buscar preview:', error);
+            previewText.innerHTML = '⚠️ Erro ao carregar preview';
+        }
+    }
+
+    function closePdfConfigModal() {
+        const modal = document.getElementById('pdfConfigModal');
+        modal.classList.remove('active');
+    }
+
+    // Funcionalidade de Exportar PDF
+    async function generatePDFReport(config = {}) {
+        try {
+            // Obter configurações do modal ou usar padrões
+            const period = config.period || 'all';
+            const startDate = config.startDate;
+            const endDate = config.endDate;
+            const includePending = config.includePending !== false;
+            const includeStatistics = config.includeStatistics !== false;
+            const includeBonus = config.includeBonus !== false;
+            const includeNotes = config.includeNotes !== false;
+
+            // Buscar todos os dados necessários
+            
+            // Buscar dados do bankroll
+            const bankrollResponse = await fetch(`/api/bankrolls/${bankrollId}`);
+            const bankrollData = await bankrollResponse.json();
+            
+            // Construir URL para entradas com filtros
+            let entriesUrl = `/api/sports-bet/entries/${bankrollId}?limit=1000`;
+            if (period !== 'all') {
+                if (period === 'custom' && startDate && endDate) {
+                    entriesUrl += `&period=custom&startDate=${startDate}&endDate=${endDate}`;
+                } else {
+                    entriesUrl += `&period=${period}`;
+                }
+            }
+            if (!includePending) {
+                entriesUrl += `&status=ganha,perdida`;
+            }
+            
+            // Buscar entradas
+            const entriesResponse = await fetch(entriesUrl);
+            const entriesData = await entriesResponse.json();
+            
+            // Construir URL para estatísticas
+            let statsUrl = `/api/sports-bet/statistics/${bankrollId}`;
+            if (period !== 'all') {
+                if (period === 'custom' && startDate && endDate) {
+                    statsUrl += `?period=custom&startDate=${startDate}&endDate=${endDate}`;
+                } else {
+                    statsUrl += `?period=${period}`;
+                }
+            } else {
+                statsUrl += `?period=all`;
+            }
+            
+            // Buscar estatísticas se habilitado
+            let statsData = {};
+            if (includeStatistics) {
+                const statsResponse = await fetch(statsUrl);
+                statsData = await statsResponse.json();
+            }
+            
+            // Buscar bônus se habilitado
+            let bonusData = [];
+            if (includeBonus) {
+                try {
+                    const bonusResponse = await fetch(`/api/user/bonus`);
+                    bonusData = await bonusResponse.json();
+                } catch (error) {
+                    console.log('Erro ao buscar bônus (não crítico):', error);
+                    bonusData = [];
+                }
+            }
+
+            // Preencher template do PDF
+            populatePDFTemplate(bankrollData, entriesData.entries || [], statsData, bonusData, {
+                period,
+                startDate,
+                endDate,
+                includePending,
+                includeStatistics,
+                includeBonus,
+                includeNotes
+            });
+            
+            // Gerar nome do arquivo baseado no período
+            let periodText = '';
+            if (period === 'custom' && startDate && endDate) {
+                periodText = `${startDate}_${endDate}`;
+            } else if (period !== 'all') {
+                periodText = `${period}dias`;
+            } else {
+                periodText = 'completo';
+            }
+            
+            // Configurações do PDF
+            const options = {
+                margin: [5, 5, 5, 5],
+                filename: `relatorio-apostas-esportivas-${bankrollData.nome.replace(/\s+/g, '_')}-${periodText}-${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    allowTaint: false
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true
+                }
+            };
+
+            // Gerar PDF
+            const element = document.getElementById('pdfReportTemplate').firstElementChild;
+            element.style.display = 'block';
+            
+            await html2pdf().set(options).from(element).save();
+            
+            element.style.display = 'none';
+            
+            toast.success('Relatório PDF gerado com sucesso!');
+            
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            toast.error('Erro ao gerar relatório PDF: ' + error.message);
+        }
+    }
+
+    function populatePDFTemplate(bankroll, entries, statistics, bonus, config = {}) {
+        const now = new Date();
+        
+        // Preencher dados básicos
+        document.getElementById('pdfDate').textContent = now.toLocaleDateString('pt-BR');
+        document.getElementById('pdfGeneratedDate').textContent = now.toLocaleString('pt-BR');
+        
+        // Informações do bankroll
+        document.getElementById('pdfBankrollName').textContent = bankroll.nome;
+        document.getElementById('pdfCurrentBalance').textContent = formatCurrency(bankroll.saldo_atual);
+        document.getElementById('pdfROI').textContent = (bankroll.roi || '0') + '%';
+        
+        // Período analisado
+        let periodText = '';
+        if (config.period === 'custom' && config.startDate && config.endDate) {
+            periodText = `${new Date(config.startDate).toLocaleDateString('pt-BR')} até ${new Date(config.endDate).toLocaleDateString('pt-BR')}`;
+        } else if (config.period === 'all') {
+            periodText = 'Todo o período';
+        } else {
+            periodText = `Últimos ${config.period} dias`;
+        }
+        document.getElementById('pdfPeriod').textContent = periodText;
+        
+        // Estatísticas gerais
+        if (statistics.general) {
+            document.getElementById('pdfTotalBets').textContent = statistics.general.totalBets || 0;
+            document.getElementById('pdfTotalProfit').textContent = formatCurrency(statistics.general.totalProfit || 0);
+            document.getElementById('pdfAverageROI').textContent = `${(statistics.general.averageROI || 0).toFixed(2)}%`;
+            document.getElementById('pdfAverageStake').textContent = formatCurrency(statistics.general.averageStake || 0);
+        }
+        
+        // Preencher tabela de entradas
+        const entriesTableBody = document.getElementById('pdfEntriesTableBody');
+        entriesTableBody.innerHTML = '';
+        
+        if (entries && entries.length > 0) {
+            entries.forEach(entry => {
+                const row = entriesTableBody.insertRow();
+                const statusText = formatStatus(entry.status);
+                const statusClass = entry.status === 'ganha' ? 'pdf-profit-positive' : 
+                                  entry.status === 'perdida' ? 'pdf-profit-negative' : 'pdf-status-pending';
+                
+                row.innerHTML = `
+                    <td>${formatDate(entry.data_evento)}</td>
+                    <td>${entry.evento || 'N/A'}</td>
+                    <td>${entry.casa_apostas || 'N/A'}</td>
+                    <td>${formatCurrency(entry.valor_apostado)}</td>
+                    <td>${formatCurrency(entry.retorno_potencial)}</td>
+                    <td class="${entry.lucro_total > 0 ? 'pdf-profit-positive' : entry.lucro_total < 0 ? 'pdf-profit-negative' : 'pdf-profit-zero'}">${formatCurrency(entry.lucro_total)}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                `;
+            });
+        } else {
+            const row = entriesTableBody.insertRow();
+            row.innerHTML = '<td colspan="7" class="pdf-empty-state">Nenhuma aposta encontrada para o período selecionado</td>';
+        }
+        
+        // Preencher informações de bônus
+        const bonusContent = document.getElementById('pdfBonusContent');
+        if (config.includeBonus && bonus && bonus.length > 0) {
+            let bonusHTML = '<div class="pdf-bonus-list">';
+            bonus.forEach(b => {
+                const statusClass = b.status.toLowerCase() === 'ativo' ? 'pdf-profit-positive' : 'pdf-profit-negative';
+                bonusHTML += `
+                    <div class="pdf-bonus-item">
+                        <div class="pdf-bonus-info">
+                            <span class="pdf-bonus-house">${b.bonus_house}</span>
+                            <span class="pdf-bonus-value">${formatCurrency(b.bonus_value)}</span>
+                            <span class="pdf-bonus-expiry">Expira: ${new Date(b.bonus_expiry_date).toLocaleDateString('pt-BR')}</span>
+                            <span class="${statusClass}">${b.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            bonusHTML += '</div>';
+            bonusContent.innerHTML = bonusHTML;
+        } else {
+            bonusContent.innerHTML = '<p class="pdf-empty-state">Nenhum bônus ativo no momento</p>';
+        }
     }
 
     // Inicializar página
