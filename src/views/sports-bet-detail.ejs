@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes Apostas Esportivas - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/surebet-detail.css">
+    <link rel="stylesheet" href="/css/toast-modal.css">
+    <style>
+        /* Estilos para autocomplete de casas de apostas */
+        .autocomplete-dropdown {
+            position: absolute !important;
+            z-index: 1000 !important;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .autocomplete-item {
+            display: flex !important;
+            align-items: center;
+            padding: 8px 12px !important;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background-color: #f5f5f5 !important;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            margin-right: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .autocomplete-item span {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .autocomplete-item strong {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        /* Melhorar o container dos inputs */
+        .modern-input {
+            position: relative;
+        }
+
+        .modern-input input[type="text"] {
+            width: 100%;
+            padding-right: 30px;
+        }
+
+        /* Ícone de seta para indicar dropdown */
+        .modern-input input[type="text"][id="betHouse"]::after,
+        .modern-input input[type="text"][id="bonusHouse"]::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                    <li class="logout-item">
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-title">
+                    <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName"><%= bankroll.nome %></span></h2>
+                    <div class="action-buttons">
+                        <button id="addSportsBetEntryBtn" class="btn-primary"><i class="fas fa-plus"></i> Nova Aposta</button>
+                        <button id="exportPdfBtn" class="btn-outline"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+                        <button id="configSportsBetBtn" class="btn-outline"><i class="fas fa-cog"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Área do cabeçalho das Apostas Esportivas -->
+                <div class="surebet-header">
+                    <div class="surebet-info">
+                        <div class="tag tag-apostas-esportivas" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white;">Apostas Esportivas</div>
+                        <div class="surebet-balance">
+                            <span class="balance-label">Saldo Atual:</span>
+                            <div class="balance-container">
+                                <h3 id="currentBalance"<% if (parseFloat(bankroll.saldo_atual) < 0) { %> class="negative"<% } %>><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
+                                <button id="editBalanceBtn" class="edit-balance-btn" title="Editar Saldo">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="surebet-stats">
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-chart-line"></i> ROI:</span>
+                                <span class="stat-value" id="roiValue"><%= bankroll.roi || '0' %>%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-calendar-alt"></i> Período:</span>
+                                <span class="stat-value" id="periodValue">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="surebet-chart">
+                        <div class="chart-placeholder">
+                            <div class="chart-label">Evolução do Bankroll</div>
+                            <div class="chart-area" id="balanceChart">
+                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                <div class="no-data-message">
+                                    <i class="fas fa-chart-area"></i>
+                                    <p>Gráfico de evolução será exibido aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área das Abas -->
+                <div class="surebet-tabs">
+                    <div class="tab-header">
+                        <button class="tab-btn active" data-tab="entries">
+                            <i class="fas fa-list"></i> Apostas
+                        </button>
+                        <button class="tab-btn" data-tab="bonus">
+                            <i class="fas fa-gift"></i> Bonus
+                        </button>
+                        <button class="tab-btn" data-tab="statistics">
+                            <i class="fas fa-chart-pie"></i> Estatísticas
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Aba de Apostas -->
+                        <div class="tab-pane active" id="entriesTab">
+                            <div class="entries-header">
+                                <div class="entries-filters">
+                                    <div class="filter-group">
+                                        <label for="dateFilterEntries">Período:</label>
+                                        <select id="dateFilterEntries" class="filter-control">
+                                            <option value="7">Últimos 7 dias</option>
+                                            <option value="30" selected>Últimos 30 dias</option>
+                                            <option value="90">Últimos 90 dias</option>
+                                            <option value="all">Todo período</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="statusFilterEntries">Status:</label>
+                                        <select id="statusFilterEntries" class="filter-control">
+                                            <option value="all" selected>Todos</option>
+                                            <option value="pendente">Pendente</option>
+                                            <option value="ganha">Ganha</option>
+                                            <option value="perdida">Perdida</option>
+                                        </select>
+                                    </div>
+                                    <div class="search-entries">
+                                        <input type="text" id="searchEntries" placeholder="Buscar apostas...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="entries-table-container">
+                                <table class="entries-table">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-calendar-alt"></i> Data</th>
+                                            <th><i class="fas fa-clock"></i> Criação</th>
+                                            <th><i class="fas fa-futbol"></i> Evento</th>
+                                            <th><i class="fas fa-home"></i> Casa / Mercado</th>
+                                            <th><i class="fas fa-percentage"></i> Odds</th>
+                                            <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                            <th><i class="fas fa-chart-line"></i> Retorno</th>
+                                            <th><i class="fas fa-trophy"></i> Lucro</th>
+                                            <th><i class="fas fa-info-circle"></i> Status</th>
+                                            <th><i class="fas fa-cogs"></i> Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="entriesTableBody">
+                                        <tr>
+                                            <td colspan="10" class="empty-state">
+                                                <div class="empty-state-content">
+                                                    <i class="fas fa-futbol"></i>
+                                                    <h3>Nenhuma aposta encontrada</h3>
+                                                    <p>Adicione uma nova aposta usando o botão "Nova Aposta".</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Container de Paginação -->
+                            <div id="paginationContainer" class="pagination-wrapper">
+                                <!-- Controles de paginação serão inseridos aqui via JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Aba de Bonus -->
+                        <div class="tab-pane" id="bonusTab">
+                            <div class="bonus-container">
+                                <div class="bonus-header">
+                                    <h3>Apostas Grátis (Bonus)</h3>
+                                    <p>Gerencie suas apostas grátis e promoções</p>
+                                </div>
+                                <div class="bonus-content">
+                                    <div class="bonus-grid">
+                                        <% if (typeof userBonus !== 'undefined' && userBonus.length > 0) { %>
+                                            <% userBonus.forEach(function(bonus) { %>
+                                                <div class="bonus-card <%= bonus.status.toLowerCase() === 'ativo' ? 'active' : 'expired' %>">
+                                                    <div class="bonus-card-header">
+                                                        <div class="bonus-house">
+                                                            <i class="fas fa-home"></i>
+                                                            <span><%= bonus.bonus_house %></span>
+                                                        </div>
+                                                        <div class="bonus-status <%= bonus.status.toLowerCase() === 'ativo' ? 'active' : 'expired' %>">
+                                                            <i class="fas fa-<%= bonus.status.toLowerCase() === 'ativo' ? 'check-circle' : 'times-circle' %>"></i>
+                                                            <span><%= bonus.status %></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bonus-card-body">
+                                                        <div class="bonus-value">
+                                                            <span class="currency">R$</span>
+                                                            <span class="amount"><%= parseFloat(bonus.bonus_value).toFixed(2).replace('.', ',') %></span>
+                                                        </div>
+                                                        <div class="bonus-type">Aposta Grátis</div>
+                                                    </div>
+                                                    <div class="bonus-card-footer">
+                                                        <div class="bonus-expiry">
+                                                            <i class="fas fa-calendar-alt"></i>
+                                                            <span>
+                                                                <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                                                    Expira em: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>
+                                                                <% } else { %>
+                                                                    Expirou em: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>
+                                                                <% } %>
+                                                            </span>
+                                                        </div>
+                                                        <div class="bonus-actions">
+                                                            <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                                                <button class="btn btn-sm btn-primary use-bonus-btn" data-bonus-id="<%= bonus.id %>">
+                                                                    <i class="fas fa-play"></i>
+                                                                    Usar
+                                                                </button>
+                                                            <% } else { %>
+                                                                <button class="btn btn-sm btn-secondary" disabled>
+                                                                    <i class="fas fa-ban"></i>
+                                                                    Expirado
+                                                                </button>
+                                                            <% } %>
+                                                            <button class="btn btn-sm btn-danger delete-bonus-btn" data-bonus-id="<%= bonus.id %>" title="Deletar aposta grátis">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <!-- Card para quando não há bônus -->
+                                            <div class="no-bonus-card">
+                                                <div class="no-bonus-content">
+                                                    <i class="fas fa-gift fa-3x"></i>
+                                                    <h4>Nenhum bônus disponível</h4>
+                                                    <p>Você não possui apostas grátis no momento. Complete apostas com bônus para receber novas apostas grátis!</p>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aba de Estatísticas -->
+                        <div class="tab-pane" id="statisticsTab">
+                            <div class="statistics-container">
+                                <div class="statistics-header">
+                                    <h3>Estatísticas de Desempenho</h3>
+                                    <div class="statistics-period">
+                                        <label for="statsDateFilter">Período:</label>
+                                        <select id="statsDateFilter" class="filter-control">
+                                            <option value="30" selected>Últimos 30 dias</option>
+                                            <option value="90">Últimos 90 dias</option>
+                                            <option value="180">Últimos 6 meses</option>
+                                            <option value="365">Último ano</option>
+                                            <option value="all">Todo o período</option>
+                                            <option value="custom">Período personalizado</option>
+                                        </select>
+                                        
+                                        <div id="customDateRange" class="custom-date-range" style="display: none;">
+                                            <input type="date" id="startDate" class="date-input">
+                                            <span class="date-separator">até</span>
+                                            <input type="date" id="endDate" class="date-input">
+                                            <button type="button" id="applyCustomDate" class="btn-apply-date">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="statistics-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-card-header">
+                                            <h4>Desempenho Geral</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="stat-metrics">
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Apostas Resolvidas</div>
+                                                    <div class="metric-value" id="totalBetsCount">0</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Lucro Total</div>
+                                                    <div class="metric-value" id="totalProfit">R$ 0,00</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">ROI Médio</div>
+                                                    <div class="metric-value" id="averageROI">0%</div>
+                                                </div>
+                                                <div class="stat-metric">
+                                                    <div class="metric-label">Valor Médio Apostado</div>
+                                                    <div class="metric-value" id="averageStake">R$ 0,00</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stat-card chart-card">
+                                        <div class="stat-card-header">
+                                            <h4>Evolução dos Lucros</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="chart-container" id="profitByPeriodChart">
+                                                <div class="no-data-message">
+                                                    <i class="fas fa-chart-line"></i>
+                                                    <p>Gráfico de lucro por período</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stat-card">
+                                        <div class="stat-card-header">
+                                            <h4>Casas Mais Utilizadas</h4>
+                                        </div>
+                                        <div class="stat-card-body">
+                                            <div class="chart-container" id="bookmakerDistributionChart">
+                                                <div class="no-data-message">
+                                                    <i class="fas fa-chart-pie"></i>
+                                                    <p>Distribuição por casas de apostas</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Adicionar Nova Aposta -->
+    <div id="newEntryModal" class="modal">
+        <div class="modal-content modern-modal">
+            <div class="modal-header modern-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3>Nova Aposta Esportiva</h3>
+                        <p>Configure uma nova aposta esportiva</p>
+                    </div>
+                </div>
+                <button class="close-modal modern-close" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body-scrollable modern-body">
+                <form id="newEntryForm">
+                    <!-- Seção de Informações do Evento -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h4>Informações do Evento</h4>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryEvent">
+                                <i class="fas fa-futbol"></i>
+                                Evento
+                            </label>
+                            <input type="text" id="entryEvent" required placeholder="Ex: Flamengo vs Palmeiras">
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryCompetition">
+                                <i class="fas fa-trophy"></i>
+                                Competição
+                            </label>
+                            <input type="text" id="entryCompetition" placeholder="Ex: Campeonato Brasileiro">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="entryDate">
+                                    <i class="fas fa-calendar"></i>
+                                    Data do Evento
+                                </label>
+                                <input type="date" id="entryDate" required>
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="entryTime">
+                                    <i class="fas fa-clock"></i>
+                                    Horário
+                                </label>
+                                <input type="time" id="entryTime" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="useExistingBonus">
+                                <i class="fas fa-gift"></i>
+                                Usar Aposta Grátis Disponível
+                            </label>
+                            <select id="useExistingBonus" onchange="handleExistingBonusSelection()">
+                                <option value="">Selecione uma aposta grátis (opcional)</option>
+                                <% if (typeof userBonus !== 'undefined' && userBonus.length > 0) { %>
+                                    <% userBonus.forEach(function(bonus) { %>
+                                        <% if (bonus.status.toLowerCase() === 'ativo') { %>
+                                            <option value="<%= bonus.id %>" data-value="<%= bonus.bonus_value %>" data-house="<%= bonus.bonus_house %>" data-expiry="<%= bonus.bonus_expiry_date %>">
+                                                <%= bonus.bonus_house %> - R$ <%= parseFloat(bonus.bonus_value).toFixed(2).replace('.', ',') %> (Expira: <%= new Date(bonus.bonus_expiry_date).toLocaleDateString('pt-BR') %>)
+                                            </option>
+                                        <% } %>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                            <small class="form-help">Selecione uma aposta grátis existente para usar nesta entrada</small>
+                        </div>
+                        
+                        <div class="form-group modern-checkbox">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="entryBonus" onchange="toggleBonusFields()">
+                                <span class="checkmark"></span>
+                                <i class="fas fa-gift"></i>
+                                Aposta Grátis (Bonus)
+                            </label>
+                            <small class="form-help">Marque se a recompensa da aposta é uma aposta grátis</small>
+                        </div>
+                        
+                        <div class="bonus-fields" id="bonusFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="bonusValue">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Valor da Aposta Grátis (R$)
+                                    </label>
+                                    <input type="number" id="bonusValue" step="0.01" min="0" placeholder="100.00">
+                                </div>
+                                <div class="form-group modern-input">
+                                    <label for="bonusHouse">
+                                        <i class="fas fa-home"></i>
+                                        Casa de Apostas do Bonus
+                                    </label>
+                                    <input type="text" id="bonusHouse" placeholder="Ex: Bet365" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="bonusExpiryDate">
+                                        <i class="fas fa-calendar-times"></i>
+                                        Data de Expiração do Bonus
+                                    </label>
+                                    <input type="date" id="bonusExpiryDate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção da Aposta -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-dice"></i>
+                            <h4>Dados da Aposta</h4>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="betHouse">
+                                    <i class="fas fa-home"></i>
+                                    Casa de Apostas
+                                </label>
+                                <input type="text" id="betHouse" required placeholder="Ex: Bet365" autocomplete="off">
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="betMarket">
+                                    <i class="fas fa-target"></i>
+                                    Mercado
+                                </label>
+                                <input type="text" id="betMarket" required placeholder="Ex: Vitória do Flamengo">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group modern-input">
+                                <label for="betOdds">
+                                    <i class="fas fa-percentage"></i>
+                                    Odds
+                                </label>
+                                <input type="number" id="betOdds" required step="0.01" min="1" placeholder="2.50">
+                            </div>
+                            <div class="form-group modern-input">
+                                <label for="betStake">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    Valor Apostado (R$)
+                                </label>
+                                <input type="number" id="betStake" required step="0.01" min="0" placeholder="100.00">
+                            </div>
+                        </div>
+                        
+                        <!-- Exchange Options -->
+                        <div class="form-row checkbox-row">
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="isExchange" onchange="toggleExchangeFields()">
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-exchange-alt"></i>
+                                    É Exchange?
+                                </label>
+                            </div>
+                            <div class="form-group modern-checkbox">
+                                <label class="checkbox-container freebet-tooltip-trigger">
+                                    <input type="checkbox" id="isFreebet" onchange="toggleFreebetOdds()">
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-gift"></i>
+                                    Aposta Grátis
+                                    <i class="fas fa-info-circle freebet-info-icon"></i>
+                                    <div class="freebet-tooltip">
+                                        <div class="tooltip-content">
+                                            <h4><i class="fas fa-gift"></i> Como funciona a Aposta Grátis</h4>
+                                            <p><strong>Subtrai automaticamente 1.00 da odd inserida</strong></p>
+                                            <div class="tooltip-example">
+                                                <span class="example-label">Exemplo:</span>
+                                                <span class="example-calc">Odd 3.33 → 2.33</span>
+                                            </div>
+                                            <small>Use quando a casa oferece aposta grátis que retorna apenas o lucro (sem a stake)</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="exchange-fields" id="exchangeFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group modern-input">
+                                    <label for="betType">
+                                        <i class="fas fa-arrows-alt-h"></i>
+                                        Tipo de Aposta
+                                    </label>
+                                    <select id="betType" onchange="toggleLiabilityField()">
+                                        <option value="back">Back (Apostar A Favor)</option>
+                                        <option value="lay">Lay (Apostar Contra)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group modern-input">
+                                    <label for="commission">
+                                        <i class="fas fa-percent"></i>
+                                        Comissão (%)
+                                    </label>
+                                    <input type="number" id="commission" step="0.1" min="0" max="100" placeholder="5.0">
+                                </div>
+                            </div>
+                            <div class="form-row liability-row" id="liabilityRow" style="display: none;">
+                                <div class="form-group modern-input">
+                                    <label for="liability">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Responsabilidade (R$)
+                                    </label>
+                                    <input type="number" id="liability" step="0.01" min="0" placeholder="Calculado automaticamente" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Observações -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-sticky-note"></i>
+                            <h4>Observações</h4>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryNotes">
+                                <i class="fas fa-comment"></i>
+                                Notas Adicionais
+                            </label>
+                            <textarea id="entryNotes" rows="3" placeholder="Adicione observações sobre esta aposta, estratégias ou informações importantes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions modern-actions">
+                        <button type="button" id="cancelEntryBtn" class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i>
+                            Salvar Aposta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Saldo -->
+    <div id="editBalanceModal" class="edit-balance-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Saldo</h3>
+                <button class="modal-close" id="closeEditBalanceModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editBalanceForm">
+                    <div class="form-group">
+                        <label for="currentBalanceDisplay">Saldo Atual:</label>
+                        <div class="current-balance-display" id="currentBalanceDisplay"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newBalance">Novo Saldo:</label>
+                        <div class="input-container">
+                            <input type="number" id="newBalance" step="0.01" placeholder="0,00" required>
+                        </div>
+                        <small class="input-help">Digite o novo valor do saldo atual</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelEditBalance">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="editBalanceForm" class="btn-save" id="saveEditBalance">
+                    <i class="fas fa-save"></i>
+                    Salvar Alteração
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/toast-modal.js"></script>
+    <script src="/js/sports-bet-detail.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/user-dropdown.js"></script>
+</body>
+</html> 

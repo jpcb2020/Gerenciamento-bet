@@ -318,27 +318,45 @@ class ConfirmModal {
     }
 }
 
-// Global instances
-const toast = new ToastManager();
-const confirmModal = new ConfirmModal();
+// Global instances - only create if not already exists
+if (!window.toast) {
+    window.toast = new ToastManager();
+}
+if (!window.confirmModal) {
+    window.confirmModal = new ConfirmModal();
+}
 
-// Global functions for backward compatibility
-window.showToast = (message, type = 'info', options = {}) => {
-    return toast.show(message, type, options);
-};
+// Make accessible without window prefix
+const toast = window.toast;
+const confirmModal = window.confirmModal;
 
-window.showConfirm = (message, options = {}) => {
-    return confirmModal.confirm(message, options);
-};
+// Global functions for backward compatibility - only set if not already exists
+if (!window.showToast) {
+    window.showToast = (message, type = 'info', options = {}) => {
+        return window.toast.show(message, type, options);
+    };
+}
 
-// Replace native alert and confirm
-window.alert = (message) => {
-    toast.info(message, { duration: 0, persistent: true });
-};
+if (!window.showConfirm) {
+    window.showConfirm = (message, options = {}) => {
+        return window.confirmModal.confirm(message, options);
+    };
+}
 
-window.confirm = (message) => {
-    return confirmModal.confirm(message);
-};
+// Replace native alert and confirm - preserve originals
+if (!window._originalAlert) {
+    window._originalAlert = window.alert;
+    window.alert = (message) => {
+        return window.toast.info(message, { duration: 0, persistent: true });
+    };
+}
+
+if (!window._originalConfirm) {
+    window._originalConfirm = window.confirm;
+    window.confirm = (message) => {
+        return window.confirmModal.confirm(message);
+    };
+}
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {

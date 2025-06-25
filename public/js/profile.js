@@ -240,28 +240,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Toast notification function (if not already available)
+    // Toast notification function - use global toast system
     function showToast(message, type = 'info') {
-        // Check if toast-modal.js is loaded and use it, otherwise create simple toast
-        if (typeof window.showToast === 'function') {
+        // Use the global toast instance from toast-modal.js
+        if (typeof toast !== 'undefined' && toast.show) {
+            toast.show(message, type);
+        } else if (typeof window.showToast === 'function') {
             window.showToast(message, type);
         } else {
-            // Simple fallback toast
-            const toast = document.createElement('div');
-            toast.className = `toast toast--${type} toast--visible`;
-            toast.textContent = message;
-            
-            const container = document.getElementById('toast-container') || document.body;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('toast--hiding');
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 300);
-            }, 3000);
+            // Fallback for when toast system is not loaded
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
     }
 

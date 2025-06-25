@@ -197,10 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 await fetchTransactions(); // Refresh list
                 
-                showToast('Transação excluída com sucesso!', 'success');
+                toast.success('Transação excluída com sucesso!');
             } catch (error) {
                 console.error('Erro ao excluir transação:', error);
-                showToast(`Erro ao excluir: ${error.message}`, 'error');
+                toast.error(`Erro ao excluir: ${error.message}`);
             }
         }
     }
@@ -222,10 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 await fetchTransactions(); // Refresh list
                 // É importante também atualizar os painéis do dashboard, pois os saldos podem mudar drasticamente.
                 await updateDashboardPanels(); 
-                showToast('Todas as transações foram excluídas com sucesso!', 'success');
+                toast.success('Todas as transações foram excluídas com sucesso!');
             } catch (error) {
                 console.error('Erro ao excluir todas as transações:', error);
-                showToast(`Erro ao excluir todas as transações: ${error.message}`, 'error');
+                toast.error(`Erro ao excluir todas as transações: ${error.message}`);
             }
         }
     }

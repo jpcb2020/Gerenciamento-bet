@@ -14,6 +14,7 @@ const transacoesRoutes = require('./src/routes/transacoesRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const bankrollRoutes = require('./src/routes/bankrollRoutes');
 const surebetRoutes = require('./src/routes/surebetRoutes');
+const sportsBetRoutes = require('./src/routes/sportsBetRoutes');
 const authRoutes = require('./src/routes/auth');
 
 // Import middleware
@@ -57,6 +58,7 @@ app.use('/api/transacoes', requireAuth, transacoesRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/bankrolls', requireAuth, bankrollRoutes);
 app.use('/api/surebet', requireAuth, surebetRoutes);
+app.use('/api/sports-bet', requireAuth, sportsBetRoutes);
 
 // Rota principal para renderizar o dashboard.ejs da pasta views (protegida)
 app.get('/', requireAuth, (req, res) => {
@@ -161,6 +163,47 @@ app.get('/surebet-detail', requireAuth, async (req, res) => { // Transformar em 
       bankroll: bankroll, // Passa o objeto bankroll inteiro
       user: req.user,
       userBonus: bonusResult.rows // Passa os dados de bônus
+    });
+  } catch (error) {
+    console.error('Erro ao buscar dados do bankroll:', error);
+    res.status(500).send('Erro ao carregar detalhes do bankroll');
+  }
+});
+
+// Rota para a página de detalhes de apostas esportivas
+app.get('/sports-bet-detail', requireAuth, async (req, res) => {
+  const bankrollId = req.query.id;
+  if (!bankrollId) {
+    return res.status(400).send('ID do Bankroll não fornecido');
+  }
+
+  try {
+    // Buscar diretamente no banco de dados
+    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1 AND user_id = $2', [bankrollId, req.user.id]);
+    
+    if (result.rows.length === 0) {
+      return res.redirect('/bankrolls?error=not_found');
+    }
+    
+    const bankroll = result.rows[0];
+    
+    if (bankroll.categoria !== 'Apostas esportivas') {
+      // Redirecionar ou mostrar erro se não for Apostas esportivas
+      return res.redirect('/bankrolls?error=not_sports_bet');
+    }
+
+    // Buscar bônus do usuário
+    const bonusResult = await pool.query(
+      'SELECT * FROM user_bonus WHERE user_id = $1 ORDER BY data_criacao DESC',
+      [req.user.id]
+    );
+
+    // Passar os dados do bankroll e bônus para o template
+    res.render('sports-bet-detail', { 
+      title: `Apostas Esportivas: ${bankroll.nome}`,
+      bankroll: bankroll,
+      user: req.user,
+      userBonus: bonusResult.rows
     });
   } catch (error) {
     console.error('Erro ao buscar dados do bankroll:', error);

@@ -693,36 +693,51 @@ input[id*="betOdds"][style*="background"]::before {
 }
 
 .status-dropdown option[value="pendente"] {
-    color: #b8860b;
-    background-color: #fff3cd;
+    background-color: #e3f2fd;
+    color: #1976d2;
 }
 
-.status-dropdown option[value="resolvido"] {
-    color: #155724;
-    background-color: #d4edda;
+.status-dropdown option[value="ganha"] {
+    background-color: #e8f5e8;
+    color: #2e7d32;
 }
 
-/* Cores do dropdown baseadas no valor selecionado */
+.status-dropdown option[value="perdida"] {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
 .status-dropdown[data-current-status="pendente"] {
-    background-color: #fff3cd;
-    border-color: #ffeaa7;
-    color: #b8860b;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    border-color: #64b5f6;
 }
 
-.status-dropdown[data-current-status="resolvido"] {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+.status-dropdown[data-current-status="ganha"] {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border-color: #66bb6a;
+}
+
+.status-dropdown[data-current-status="perdida"] {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #d32f2f;
+    border-color: #ef5350;
 }
 
 .status-dropdown[data-current-status="pendente"]:hover {
-    background-color: #ffeaa7;
-    border-color: #b8860b;
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+    border-color: #42a5f5;
 }
 
-.status-dropdown[data-current-status="resolvido"]:hover {
-    background-color: #c3e6cb;
-    border-color: #155724;
+.status-dropdown[data-current-status="ganha"]:hover {
+    background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+    border-color: #4caf50;
+}
+
+.status-dropdown[data-current-status="perdida"]:hover {
+    background: linear-gradient(135deg, #ffcdd2 0%, #f8bbd9 100%);
+    border-color: #f44336;
 }
 
 /* Estilo para o texto de ajuda do formulário */
@@ -2213,21 +2228,29 @@ input[id*="betOdds"][style*="background"]::before {
 }
 
 .status-badge.pendente {
-    background: #fef5e7;
-    color: #d69e2e;
-    border: 1px solid #ed8936;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1976d2;
+    border: 1px solid #64b5f6;
 }
 
-.status-badge.resolvido {
-    background: #f0fff4;
-    color: #38a169;
-    border: 1px solid #68d391;
+.status-badge.ganha {
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    color: #2e7d32;
+    border: 1px solid #66bb6a;
 }
+
+.status-badge.perdida {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    color: #d32f2f;
+    border: 1px solid #ef5350;
+}
+
+
 
 .status-badge.cancelado {
-    background: #fed7e2;
-    color: #e53e3e;
-    border: 1px solid #fc8181;
+    background: #fed7d7;
+    color: #c53030;
+    border: 1px solid #f56565;
 }
 
 /* Resumo financeiro */
@@ -2603,4 +2626,28 @@ input[id*="betOdds"][style*="background"]::before {
     .details-footer {
         padding: 16px;
     }
+}
+
+/* Classes dinâmicas para status */
+.status-dropdown.status-pendente {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    border-color: #64b5f6;
+}
+
+.status-dropdown.status-ganha {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border-color: #66bb6a;
+}
+
+.status-dropdown.status-perdida {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #d32f2f;
+    border-color: #ef5350;
+}
+
+.status-dropdown[data-current-status="perdida"]:hover {
+    background: linear-gradient(135deg, #ffcdd2 0%, #f8bbd9 100%);
+    border-color: #f44336;
 }

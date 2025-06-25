@@ -60,49 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelWithdrawBtn = document.getElementById('cancelWithdraw');
 
     // --- Toast Notification Function ---
-    function showToast(message, type = 'info', duration = 3000) {
-        const toast = document.createElement('div');
-        toast.className = `toast toast--${type}`;
-        
-        const messageSpan = document.createElement('span');
-        messageSpan.textContent = message;
-        toast.appendChild(messageSpan);
-
-        const closeButton = document.createElement('button');
-        closeButton.innerHTML = '&times;';
-        closeButton.className = 'toast-close-btn';
-        closeButton.onclick = () => {
-            toast.classList.remove('toast--visible');
-            toast.classList.add('toast--hiding');
-            // Clear timeout if closed manually to prevent issues
-            if (toast.timerId) clearTimeout(toast.timerId);
-            if (toast.removeTimerId) clearTimeout(toast.removeTimerId);
-            setTimeout(() => toast.remove(), 300); // Animation duration for hiding
-        };
-        toast.appendChild(closeButton);
-
-        // Timer bar
-        const timerBar = document.createElement('div');
-        timerBar.className = 'toast-timer-bar';
-        timerBar.style.animationDuration = `${duration}ms`;
-        toast.appendChild(timerBar);
-
-        toastContainer.appendChild(toast);
-
-        // Trigger reflow to enable animation
-        toast.offsetHeight;
-        toast.classList.add('toast--visible');
-
-        // Store timer ID on the toast element to clear it if closed manually
-        toast.timerId = setTimeout(() => {
-            toast.classList.remove('toast--visible');
-            toast.classList.add('toast--hiding');
-            toast.removeTimerId = setTimeout(() => toast.remove(), 300); // Animation duration for hiding
-        }, duration);
-    }
-
-    // Make showToast available globally
-    window.showToast = showToast;
+    // Toast notifications are handled by toast-modal.js
+    // Removed duplicate implementation to prevent conflicts
 
     // --- Confirmation Modal Function ---
     function showConfirmModal(message, title = 'Confirmação') {

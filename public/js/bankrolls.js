@@ -140,9 +140,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const card = document.createElement('div');
         card.className = 'bankroll-card';
         
-        // Adicionar classe específica para cards de surebet
+        // Adicionar classe específica para cards de surebet e apostas esportivas
         if (bankroll.categoria === 'Surebet') {
             card.classList.add('bankroll-card-surebet');
+            card.style.cursor = 'pointer';
+            
+            // Adicionar classe especial se o saldo for negativo
+            if (bankroll.saldo_atual < 0) {
+                card.classList.add('negative-balance');
+            }
+        } else if (bankroll.categoria === 'Apostas esportivas') {
+            card.classList.add('bankroll-card-sports');
             card.style.cursor = 'pointer';
             
             // Adicionar classe especial se o saldo for negativo
@@ -179,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         
-        // Adicionar evento de clique para Surebets
+        // Adicionar evento de clique para Surebets e Apostas esportivas
         if (bankroll.categoria === 'Surebet') {
             card.addEventListener('click', function(e) {
                 // Não navegar se clicar nos botões de ação
@@ -187,6 +195,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
                 window.location.href = `/surebet-detail?id=${bankroll.id}`;
+            });
+        } else if (bankroll.categoria === 'Apostas esportivas') {
+            card.addEventListener('click', function(e) {
+                // Não navegar se clicar nos botões de ação
+                if (e.target.closest('.btn-icon')) {
+                    return;
+                }
+                window.location.href = `/sports-bet-detail?id=${bankroll.id}`;
             });
         }
         
