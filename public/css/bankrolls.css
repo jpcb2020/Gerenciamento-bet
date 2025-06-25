@@ -91,6 +91,40 @@
         0 8px 30px rgba(239, 68, 68, 0.1);
 }
 
+.bankroll-card-general {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    border: 1px solid rgba(100, 116, 139, 0.1);
+    position: relative;
+}
+
+.bankroll-card-general::before {
+    background: linear-gradient(90deg, #64748b 0%, #475569 50%, #334155 100%);
+}
+
+.bankroll-card-general:hover {
+    background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    box-shadow: 
+        0 20px 60px rgba(100, 116, 139, 0.15),
+        0 8px 30px rgba(100, 116, 139, 0.1);
+}
+
+/* Card especial para Geral com saldo negativo */
+.bankroll-card-general.negative-balance {
+    background: linear-gradient(145deg, #ffffff 0%, #fef2f2 50%, #fee2e2 100%);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.bankroll-card-general.negative-balance::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+}
+
+.bankroll-card-general.negative-balance:hover {
+    background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 50%, #fecaca 100%);
+    box-shadow: 
+        0 20px 60px rgba(239, 68, 68, 0.15),
+        0 8px 30px rgba(239, 68, 68, 0.1);
+}
+
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -154,6 +188,12 @@
 
 .tag-longo-prazo {
     background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tag-geral {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }

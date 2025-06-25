@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes Geral - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/general-detail.css">
+    <link rel="stylesheet" href="/css/toast-modal.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="#relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                    <li class="logout-item">
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-title">
+                    <h2><a href="/bankrolls" class="back-link"><i class="fas fa-arrow-left"></i></a> <span id="bankrollName"><%= bankroll.nome %></span></h2>
+                    <div class="action-buttons">
+                        <button id="addGeneralEntryBtn" class="btn-primary"><i class="fas fa-plus"></i> Nova Entrada</button>
+                        <button id="exportPdfBtn" class="btn-outline"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+                    </div>
+                </div>
+
+                <!-- Área do cabeçalho do Bankroll Geral -->
+                <div class="general-header">
+                    <div class="general-info">
+                        <div class="tag tag-general">Geral</div>
+                        <div class="general-balance">
+                            <span class="balance-label">Saldo Atual:</span>
+                            <div class="balance-container">
+                                <h3 id="currentBalance"<% if (parseFloat(bankroll.saldo_atual) < 0) { %> class="negative"<% } %>><%= parseFloat(bankroll.saldo_atual).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3>
+                                <button id="editBalanceBtn" class="edit-balance-btn" title="Editar Saldo">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="general-stats">
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-chart-line"></i> ROI:</span>
+                                <span class="stat-value" id="roiValue"><%= bankroll.roi || '0' %>%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-calendar-alt"></i> Período:</span>
+                                <span class="stat-value" id="periodValue">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="general-chart">
+                        <div class="chart-placeholder">
+                            <div class="chart-label">Evolução do Bankroll</div>
+                            <div class="chart-area" id="balanceChart">
+                                <!-- Canvas para o gráfico será inserido via JavaScript -->
+                                <div class="no-data-message">
+                                    <i class="fas fa-chart-area"></i>
+                                    <p>Gráfico de evolução será exibido aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área das Entradas -->
+                <div class="general-content">
+                    <div class="entries-header">
+                        <h3>Entradas de Lucro</h3>
+                        <div class="entries-filters">
+                            <div class="filter-group">
+                                <label for="dateFilterEntries">Período:</label>
+                                <select id="dateFilterEntries" class="filter-control">
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30" selected>Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                    <option value="all">Todo período</option>
+                                </select>
+                            </div>
+                            <div class="search-entries">
+                                <input type="text" id="searchEntries" placeholder="Buscar entradas...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="entries-table-container">
+                        <table class="entries-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-clock"></i> Data de Criação</th>
+                                    <th><i class="fas fa-comment"></i> Descrição do Lucro</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Quantia do Lucro</th>
+                                    <th><i class="fas fa-cogs"></i> Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entriesTableBody">
+                                <!-- Conteúdo da tabela será preenchido via JavaScript -->
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-state-content">
+                                            <i class="fas fa-list"></i>
+                                            <h3>Nenhuma entrada encontrada</h3>
+                                            <p>Adicione uma nova entrada usando o botão "Nova Entrada".</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Container de Paginação -->
+                    <div id="paginationContainer" class="pagination-wrapper">
+                        <!-- Controles de paginação serão inseridos aqui via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Adicionar Nova Entrada -->
+    <div id="newEntryModal" class="modal">
+        <div class="modal-content modern-modal">
+            <div class="modal-header modern-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3>Nova Entrada de Lucro</h3>
+                        <p>Adicione um novo registro de lucro/prejuízo</p>
+                    </div>
+                </div>
+                <button class="close-modal modern-close" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body-scrollable modern-body">
+                <form id="newEntryForm">
+                    <!-- Seção de Informações da Entrada -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h4>Informações da Entrada</h4>
+                        </div>
+                        
+
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryDescription">
+                                <i class="fas fa-comment"></i>
+                                Descrição do Lucro
+                            </label>
+                            <textarea id="entryDescription" required placeholder="Ex: Lucro com apostas esportivas, Ganho em promoção, etc." rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryAmount">
+                                <i class="fas fa-dollar-sign"></i>
+                                Quantia do Lucro (R$)
+                            </label>
+                            <input type="number" id="entryAmount" required step="0.01" placeholder="100.00">
+                            <small class="form-help">Use valores negativos para prejuízos (ex: -50.00)</small>
+                        </div>
+                        
+                        <div class="form-group modern-input">
+                            <label for="entryNotes">
+                                <i class="fas fa-sticky-note"></i>
+                                Observações (Opcional)
+                            </label>
+                            <textarea id="entryNotes" placeholder="Informações adicionais sobre esta entrada..." rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer modern-footer">
+                        <button type="button" class="btn-cancel">Cancelar</button>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i>
+                            Salvar Entrada
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Saldo -->
+    <div id="editBalanceModal" class="edit-balance-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Saldo do Bankroll</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editBalanceForm">
+                    <div class="form-group">
+                        <label>Saldo Atual:</label>
+                        <div class="current-balance-display" id="currentBalanceDisplay">
+                            R$ 0,00
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newBalance">Novo Saldo (R$):</label>
+                        <div class="input-container">
+                            <input type="number" id="newBalance" step="0.01" placeholder="0.00" required>
+                        </div>
+                        <small class="input-help">Digite o novo saldo total do bankroll</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="balanceReason">Motivo da Alteração:</label>
+                        <select id="balanceReason" required>
+                            <option value="">Selecione o motivo</option>
+                            <option value="correção">Correção de valor</option>
+                            <option value="ajuste">Ajuste manual</option>
+                            <option value="depósito">Depósito adicional</option>
+                            <option value="retirada">Retirada de fundos</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="balanceNotes">Observações:</label>
+                        <textarea id="balanceNotes" placeholder="Descreva o motivo da alteração..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelBalanceEdit">Cancelar</button>
+                <button type="submit" class="btn-save" form="editBalanceForm">
+                    <i class="fas fa-save"></i>
+                    Salvar Alteração
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/toast-modal.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/general-detail.js"></script>
+    <script src="/js/user-dropdown.js"></script>
+</body>
+</html> 

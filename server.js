@@ -15,6 +15,7 @@ const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const bankrollRoutes = require('./src/routes/bankrollRoutes');
 const surebetRoutes = require('./src/routes/surebetRoutes');
 const sportsBetRoutes = require('./src/routes/sportsBetRoutes');
+const generalRoutes = require('./src/routes/generalRoutes');
 const authRoutes = require('./src/routes/auth');
 
 // Import middleware
@@ -59,6 +60,7 @@ app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/bankrolls', requireAuth, bankrollRoutes);
 app.use('/api/surebet', requireAuth, surebetRoutes);
 app.use('/api/sports-bet', requireAuth, sportsBetRoutes);
+app.use('/api/general', requireAuth, generalRoutes);
 
 // Rota principal para renderizar o dashboard.ejs da pasta views (protegida)
 app.get('/', requireAuth, (req, res) => {
@@ -251,6 +253,40 @@ app.delete('/api/user/bonus/:bonusId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Erro ao deletar bônus:', error);
     res.status(500).json({ error: 'Erro ao deletar aposta grátis' });
+  }
+});
+
+// Rota para a página de detalhes de categoria geral
+app.get('/general-detail', requireAuth, async (req, res) => {
+  const bankrollId = req.query.id;
+  if (!bankrollId) {
+    return res.status(400).send('ID do Bankroll não fornecido');
+  }
+
+  try {
+    // Buscar diretamente no banco de dados
+    const result = await pool.query('SELECT * FROM bankrolls WHERE id = $1 AND user_id = $2', [bankrollId, req.user.id]);
+    
+    if (result.rows.length === 0) {
+      return res.redirect('/bankrolls?error=not_found');
+    }
+    
+    const bankroll = result.rows[0];
+    
+    if (bankroll.categoria !== 'Geral') {
+      // Redirecionar ou mostrar erro se não for categoria Geral
+      return res.redirect('/bankrolls?error=not_general');
+    }
+
+    // Passar os dados do bankroll para o template
+    res.render('general-detail', { 
+      title: `Categoria Geral: ${bankroll.nome}`,
+      bankroll: bankroll,
+      user: req.user
+    });
+  } catch (error) {
+    console.error('Erro ao buscar dados do bankroll:', error);
+    res.status(500).send('Erro ao carregar detalhes do bankroll');
   }
 });
 

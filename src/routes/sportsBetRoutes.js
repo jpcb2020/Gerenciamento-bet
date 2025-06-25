@@ -206,6 +206,17 @@ router.post('/entries', async (req, res) => {
         let valorApostado = parseFloat(betStake);
         let retornoPotencial;
 
+        // Validações adicionais para prevenir overflow
+        if (isNaN(odds) || odds <= 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ msg: 'Odd deve ser um número válido maior que zero.' });
+        }
+
+        if (isNaN(valorApostado) || valorApostado <= 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ msg: 'Valor apostado deve ser um número válido maior que zero.' });
+        }
+
         // Calcular retorno baseado no tipo de aposta
         if (isExchange && betType === 'lay') {
             // Para apostas Lay, o valor apostado considerado é a liability
@@ -222,7 +233,23 @@ router.post('/entries', async (req, res) => {
             retornoPotencial = valorApostado * odds;
         }
 
+        // Validar se os valores calculados não excedem os limites do banco
+        if (retornoPotencial > 9999999999999.99) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+                msg: `O retorno potencial (${formatCurrency(retornoPotencial)}) é muito alto. Por favor, reduza a odd ou o valor apostado.` 
+            });
+        }
+
         const lucroTotal = retornoPotencial - valorApostado;
+        
+        if (Math.abs(lucroTotal) > 9999999999999.99) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+                msg: `O lucro calculado (${formatCurrency(lucroTotal)}) é muito alto. Por favor, reduza a odd ou o valor apostado.` 
+            });
+        }
+
         const roiPercentual = valorApostado > 0 ? (lucroTotal / valorApostado) * 100 : 0;
 
         // Inserir a entrada
@@ -362,20 +389,50 @@ router.put('/entries/:entryId', async (req, res) => {
         let valorApostado = parseFloat(betStake);
         let retornoPotencial;
 
+        // Validações adicionais para prevenir overflow
+        if (isNaN(odds) || odds <= 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ msg: 'Odd deve ser um número válido maior que zero.' });
+        }
+
+        if (isNaN(valorApostado) || valorApostado <= 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ msg: 'Valor apostado deve ser um número válido maior que zero.' });
+        }
+
         // Calcular retorno baseado no tipo de aposta
         if (isExchange && betType === 'lay') {
+            // Para apostas Lay, o valor apostado considerado é a liability
             valorApostado = parseFloat(liability) || 0;
             const stake = parseFloat(betStake);
             retornoPotencial = valorApostado + stake;
         } else if (isExchange && betType === 'back') {
+            // Para apostas Back em exchange, considerar comissão
             const lucroSemComissao = (odds - 1) * valorApostado;
             const comissaoValor = lucroSemComissao * (parseFloat(commission) / 100);
             retornoPotencial = valorApostado + lucroSemComissao - comissaoValor;
         } else {
+            // Aposta tradicional
             retornoPotencial = valorApostado * odds;
         }
 
+        // Validar se os valores calculados não excedem os limites do banco
+        if (retornoPotencial > 9999999999999.99) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+                msg: `O retorno potencial (${formatCurrency(retornoPotencial)}) é muito alto. Por favor, reduza a odd ou o valor apostado.` 
+            });
+        }
+
         const lucroTotal = retornoPotencial - valorApostado;
+        
+        if (Math.abs(lucroTotal) > 9999999999999.99) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+                msg: `O lucro calculado (${formatCurrency(lucroTotal)}) é muito alto. Por favor, reduza a odd ou o valor apostado.` 
+            });
+        }
+
         const roiPercentual = valorApostado > 0 ? (lucroTotal / valorApostado) * 100 : 0;
 
         // Atualizar a entrada

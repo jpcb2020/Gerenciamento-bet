@@ -566,6 +566,41 @@ document.addEventListener('DOMContentLoaded', function() {
         window.sportsBetSaving = true;
         
         try {
+            // Validação adicional para odds e valores
+            const betOdds = parseFloat(document.getElementById('betOdds').value);
+            const betStake = parseFloat(document.getElementById('betStake').value);
+            
+            // Validar se os valores são válidos
+            if (isNaN(betOdds) || betOdds <= 0) {
+                throw new Error('Odd deve ser um número válido maior que zero');
+            }
+            
+            if (isNaN(betStake) || betStake <= 0) {
+                throw new Error('Valor apostado deve ser um número válido maior que zero');
+            }
+            
+            // Validar se o retorno potencial não excederá o limite
+            const retornoPotencial = betStake * betOdds;
+            if (retornoPotencial > 999999999.99) {
+                throw new Error('O retorno potencial (R$ ' + formatCurrency(retornoPotencial) + ') é muito alto. Por favor, reduza a odd ou o valor apostado.');
+            }
+            
+            // Validar odds extremamente altas
+            if (betOdds > 10000) {
+                const confirmed = await confirmModal.confirm(
+                    `Você está inserindo uma odd muito alta (${betOdds}). Tem certeza que está correto?`,
+                    {
+                        title: 'Odd muito alta detectada',
+                        confirmText: 'Sim, continuar',
+                        cancelText: 'Cancelar'
+                    }
+                );
+                
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
             const formData = {
                 bankrollId: bankrollId,
                 entryEvent: document.getElementById('entryEvent').value,
@@ -575,8 +610,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 entryTime: document.getElementById('entryTime').value,
                 betHouse: document.getElementById('betHouse').value,
                 betMarket: document.getElementById('betMarket').value,
-                betOdds: document.getElementById('betOdds').value,
-                betStake: document.getElementById('betStake').value,
+                betOdds: betOdds,
+                betStake: betStake,
                 isExchange: document.getElementById('isExchange').checked,
                 betType: document.getElementById('betType').value,
                 commission: document.getElementById('commission').value,
