@@ -1,4 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Prevenir múltiplas inicializações
+    if (window.sportsBetDetailInitialized) {
+        return;
+    }
+    window.sportsBetDetailInitialized = true;
+    
+    // Sistema global de throttling para toasts
+    if (!window.toastThrottle) {
+        window.toastThrottle = new Map();
+    }
+    
+    // Função helper para toasts com throttling
+    const throttledToast = {
+        success: (message) => {
+            const key = `success-${message}`;
+            const now = Date.now();
+            if (window.toastThrottle.has(key) && now - window.toastThrottle.get(key) < 3000) {
+                return;
+            }
+            window.toastThrottle.set(key, now);
+            toast.success(message);
+        },
+        error: (message) => {
+            const key = `error-${message}`;
+            const now = Date.now();
+            if (window.toastThrottle.has(key) && now - window.toastThrottle.get(key) < 3000) {
+                return;
+            }
+            window.toastThrottle.set(key, now);
+            toast.error(message);
+        },
+        info: (message) => {
+            const key = `info-${message}`;
+            const now = Date.now();
+            if (window.toastThrottle.has(key) && now - window.toastThrottle.get(key) < 3000) {
+                return;
+            }
+            window.toastThrottle.set(key, now);
+            toast.info(message);
+        }
+    };
+    
     const bankrollId = new URLSearchParams(window.location.search).get('id');
 
     // Formatação de moeda e data
@@ -385,31 +427,37 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', debounce(applyFilters, 500));
     }
 
-    // Event delegation para ações da tabela
-    document.addEventListener('click', async (e) => {
+    // Event delegation para ações da tabela (prevenir duplicatas)
+    if (!window.sportsBetTableClickHandlerAdded) {
+        window.sportsBetTableClickHandlerAdded = true;
+        document.addEventListener('click', async (e) => {
         if (e.target.closest('.action-btn.edit')) {
             e.preventDefault();
-            const entryId = e.target.closest('.action-btn.edit').dataset.entryId;
+            const entryId = e.target.closest('.action-btn.edit').getAttribute('data-entry-id');
             await loadSportsBetForEdit(entryId);
         } else if (e.target.closest('.action-btn.delete')) {
             e.preventDefault();
-            const entryId = e.target.closest('.action-btn.delete').dataset.entryId;
+            const entryId = e.target.closest('.action-btn.delete').getAttribute('data-entry-id');
             await deleteSportsBetEntry(entryId);
         } else if (e.target.closest('.action-btn') && !e.target.closest('.action-btn.edit') && !e.target.closest('.action-btn.delete')) {
             e.preventDefault();
-            const entryId = e.target.closest('.action-btn').dataset.entryId;
+            const entryId = e.target.closest('.action-btn').getAttribute('data-entry-id');
             await showSportsBetDetails(entryId);
         }
-    });
+        });
+    }
 
-    // Event delegation para dropdowns de status
-    document.addEventListener('change', async (e) => {
-        if (e.target.classList.contains('status-dropdown')) {
-            const entryId = e.target.dataset.entryId;
-            const newStatus = e.target.value;
-            await updateEntryStatus(entryId, newStatus, e.target);
-        }
-    });
+    // Event delegation para dropdowns de status (prevenir duplicatas)
+    if (!window.sportsBetChangeHandlerAdded) {
+        window.sportsBetChangeHandlerAdded = true;
+        document.addEventListener('change', async (e) => {
+            if (e.target.classList.contains('status-dropdown')) {
+                const entryId = e.target.getAttribute('data-entry-id');
+                const newStatus = e.target.value;
+                await updateEntryStatus(entryId, newStatus, e.target);
+            }
+        });
+    }
 
     // Função para limpar o modal
     function clearModal() {
@@ -511,6 +559,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para salvar aposta esportiva
     async function saveSportsBetEntry() {
+        // Prevenir múltiplas chamadas simultâneas
+        if (window.sportsBetSaving) {
+            return;
+        }
+        window.sportsBetSaving = true;
+        
         try {
             const formData = {
                 bankrollId: bankrollId,
@@ -573,17 +627,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Erro ao salvar aposta:', error);
-            toast.error('Erro ao salvar aposta: ' + error.message);
+            throttledToast.error('Erro ao salvar aposta: ' + error.message);
+        } finally {
+            // Limpar flag de salvamento
+            window.sportsBetSaving = false;
         }
     }
 
     // Função para deletar entrada
     async function deleteSportsBetEntry(entryId) {
-        if (!confirm('Tem certeza que deseja excluir esta aposta?')) {
-            return;
-        }
-        
         try {
+            // Usar o modal de confirmação customizado
+            const confirmed = await confirmModal.delete(
+                'Esta ação não pode ser desfeita. Tem certeza que deseja excluir esta aposta?',
+                {
+                    title: 'Confirmar Exclusão',
+                    subtitle: 'Atenção: Esta ação é irreversível'
+                }
+            );
+            
+            if (!confirmed) {
+                return;
+            }
             const response = await fetch(`/api/sports-bet/entries/${bankrollId}/${entryId}`, {
                 method: 'DELETE',
             });
@@ -594,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const result = await response.json();
-            toast.success(result.msg);
+            throttledToast.success(result.msg);
             
             // Recarregar dados
             fetchSportsBetEntries();
@@ -608,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Erro ao excluir aposta:', error);
-            toast.error('Erro ao excluir aposta: ' + error.message);
+            throttledToast.error('Erro ao excluir aposta: ' + error.message);
         }
     }
 
@@ -620,6 +685,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para atualizar status da entrada
     async function updateEntryStatus(entryId, newStatus, selectElement) {
+        // Prevenir múltiplas chamadas simultâneas para o mesmo entry
+        const updateKey = `status-${entryId}`;
+        if (window.statusUpdating && window.statusUpdating[updateKey]) {
+            return;
+        }
+        if (!window.statusUpdating) window.statusUpdating = {};
+        window.statusUpdating[updateKey] = true;
+        
         const originalStatus = selectElement.dataset.currentStatus;
         
         try {
@@ -639,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             selectElement.dataset.currentStatus = newStatus;
             updateStatusDropdownColor(selectElement, newStatus);
-            toast.success(result.msg);
+            throttledToast.success(result.msg);
             
             // Atualizar saldo se necessário
             updateBalanceDisplay();
@@ -652,11 +725,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Erro ao atualizar status:', error);
-            toast.error('Erro ao atualizar status: ' + error.message);
+            throttledToast.error('Erro ao atualizar status: ' + error.message);
             
             // Reverter mudança no select
             selectElement.value = originalStatus;
             updateStatusDropdownColor(selectElement, originalStatus);
+        } finally {
+            // Limpar flag de atualização
+            const updateKey = `status-${entryId}`;
+            if (window.statusUpdating) {
+                delete window.statusUpdating[updateKey];
+            }
         }
     }
 
@@ -1025,8 +1104,353 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para mostrar detalhes da aposta
     async function showSportsBetDetails(entryId) {
-        // Implementar modal de detalhes se necessário
-        console.log('Mostrar detalhes da aposta:', entryId);
+        try {
+            const response = await fetch(`/api/sports-bet/entries/single/${entryId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados da entrada');
+            }
+            
+            const entry = await response.json();
+            
+            // Criar modal de detalhes se não existir
+            let detailsModal = document.getElementById('sportsBetDetailsModal');
+            if (!detailsModal) {
+                createSportsBetDetailsModal();
+                detailsModal = document.getElementById('sportsBetDetailsModal');
+            }
+            
+            // Preencher dados no modal
+            populateSportsBetDetailsModal(entry);
+            
+            // Abrir modal
+            detailsModal.classList.add('active');
+            
+        } catch (error) {
+            console.error('Erro ao carregar detalhes da entrada:', error);
+            toast.error('Erro ao carregar detalhes da entrada');
+        }
+    }
+
+    // Função para criar o modal de detalhes
+    function createSportsBetDetailsModal() {
+        const modalHTML = `
+            <div id="sportsBetDetailsModal" class="modal">
+                <div class="modal-content details-modal-content">
+                    <div class="modal-header details-header">
+                        <div class="header-content">
+                            <div class="header-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="header-text">
+                                <h3>Detalhes da Aposta Esportiva</h3>
+                                <p>Informações completas da aposta</p>
+                            </div>
+                        </div>
+                        <button class="close-modal details-close" type="button">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body-scrollable details-body">
+                        <!-- Informações Gerais -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-info-circle"></i>
+                                <h4>Informações Gerais</h4>
+                            </div>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Evento:</label>
+                                    <span id="detailsEvento">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Competição:</label>
+                                    <span id="detailsCompeticao">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Data do Evento:</label>
+                                    <span id="detailsDataEvento">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Status:</label>
+                                    <span id="detailsStatus" class="status-badge">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Data de Criação:</label>
+                                    <span id="detailsDataCriacao">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo Financeiro -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-calculator"></i>
+                                <h4>Resumo Financeiro</h4>
+                            </div>
+                            <div class="financial-summary">
+                                <div class="summary-card">
+                                    <div class="summary-label">Valor Apostado</div>
+                                    <div class="summary-value" id="detailsValorApostado">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="summary-label">Retorno Potencial</div>
+                                    <div class="summary-value" id="detailsRetornoPotencial">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card profit-card">
+                                    <div class="summary-label">Lucro/Prejuízo</div>
+                                    <div class="summary-value" id="detailsLucroTotal">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="summary-label">ROI</div>
+                                    <div class="summary-value" id="detailsROI">0%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalhes da Aposta -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-futbol"></i>
+                                <h4>Detalhes da Aposta</h4>
+                            </div>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Casa de Apostas:</label>
+                                    <span id="detailsCasaApostas">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Mercado:</label>
+                                    <span id="detailsMercado">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Odds:</label>
+                                    <span id="detailsOdds">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Tipo:</label>
+                                    <span id="detailsTipoAposta">Tradicional</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exchange Info (se aplicável) -->
+                        <div class="details-section" id="exchangeSection" style="display: none;">
+                            <div class="section-header">
+                                <i class="fas fa-exchange-alt"></i>
+                                <h4>Informações de Exchange</h4>
+                            </div>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Tipo de Aposta:</label>
+                                    <span id="detailsBetType">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Comissão:</label>
+                                    <span id="detailsCommission">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Responsabilidade:</label>
+                                    <span id="detailsLiability">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informações de Bônus -->
+                        <div class="details-section" id="bonusSection" style="display: none;">
+                            <div class="section-header">
+                                <i class="fas fa-gift"></i>
+                                <h4>Informações de Bônus</h4>
+                            </div>
+                            <div id="bonusDetailsContainer">
+                                <!-- Informações de bônus serão inseridas aqui -->
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="details-section" id="notesSection" style="display: none;">
+                            <div class="section-header">
+                                <i class="fas fa-sticky-note"></i>
+                                <h4>Observações</h4>
+                            </div>
+                            <div class="notes-content">
+                                <p id="detailsNotes">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer details-footer">
+                        <button type="button" class="btn-close-details">
+                            <i class="fas fa-times"></i>
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Adicionar event listeners
+        const modal = document.getElementById('sportsBetDetailsModal');
+        const closeBtn = modal.querySelector('.details-close');
+        const footerCloseBtn = modal.querySelector('.btn-close-details');
+        
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+        footerCloseBtn.addEventListener('click', () => modal.classList.remove('active'));
+        
+        // Fechar ao clicar fora do modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+        
+        // Fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                modal.classList.remove('active');
+            }
+        });
+    }
+
+    // Função para preencher dados no modal de detalhes
+    function populateSportsBetDetailsModal(entry) {
+        // Informações gerais
+        document.getElementById('detailsEvento').textContent = entry.evento || '-';
+        document.getElementById('detailsCompeticao').textContent = entry.competicao || '-';
+        
+        // Data do evento
+        if (entry.data_evento) {
+            const eventDate = new Date(entry.data_evento);
+            document.getElementById('detailsDataEvento').textContent = eventDate.toLocaleString('pt-BR');
+        } else {
+            document.getElementById('detailsDataEvento').textContent = '-';
+        }
+        
+        // Status
+        const statusElement = document.getElementById('detailsStatus');
+        const formattedStatus = formatStatus(entry.status);
+        statusElement.textContent = formattedStatus;
+        statusElement.className = `status-badge ${entry.status ? entry.status.toLowerCase() : 'pendente'}`;
+        
+        // Data de criação
+        if (entry.data_criacao) {
+            const creationDate = new Date(entry.data_criacao);
+            document.getElementById('detailsDataCriacao').textContent = creationDate.toLocaleString('pt-BR');
+        } else {
+            document.getElementById('detailsDataCriacao').textContent = '-';
+        }
+        
+        // Resumo financeiro
+        document.getElementById('detailsValorApostado').textContent = formatCurrency(entry.valor_apostado || 0);
+        document.getElementById('detailsRetornoPotencial').textContent = formatCurrency(entry.retorno_potencial || 0);
+        
+        const lucroTotal = parseFloat(entry.lucro_total || 0);
+        const lucroElement = document.getElementById('detailsLucroTotal');
+        lucroElement.textContent = formatCurrency(lucroTotal);
+        lucroElement.className = `summary-value ${lucroTotal > 0 ? 'profit-positive' : lucroTotal < 0 ? 'profit-negative' : 'profit-zero'}`;
+        
+        // ROI
+        const valorApostado = parseFloat(entry.valor_apostado || 0);
+        const roi = valorApostado > 0 ? ((lucroTotal / valorApostado) * 100) : 0;
+        document.getElementById('detailsROI').textContent = `${roi.toFixed(2)}%`;
+        
+        // Detalhes da aposta
+        document.getElementById('detailsCasaApostas').textContent = entry.casa_apostas || '-';
+        document.getElementById('detailsMercado').textContent = entry.mercado || '-';
+        document.getElementById('detailsOdds').textContent = entry.odds ? parseFloat(entry.odds).toFixed(2) : '-';
+        
+        // Tipo de aposta
+        let tipoAposta = 'Tradicional';
+        if (entry.is_exchange) {
+            tipoAposta = 'Exchange';
+        }
+        if (entry.is_freebet) {
+            tipoAposta += ' (Freebet)';
+        }
+        document.getElementById('detailsTipoAposta').textContent = tipoAposta;
+        
+        // Exchange info
+        const exchangeSection = document.getElementById('exchangeSection');
+        if (entry.is_exchange) {
+            exchangeSection.style.display = 'block';
+            document.getElementById('detailsBetType').textContent = entry.bet_type === 'lay' ? 'Lay (Contra)' : 'Back (A Favor)';
+            document.getElementById('detailsCommission').textContent = entry.commission ? `${entry.commission}%` : '-';
+            document.getElementById('detailsLiability').textContent = entry.liability ? formatCurrency(entry.liability) : '-';
+        } else {
+            exchangeSection.style.display = 'none';
+        }
+        
+        // Informações de bônus
+        const bonusSection = document.getElementById('bonusSection');
+        const bonusContainer = document.getElementById('bonusDetailsContainer');
+        
+        if (entry.bonus || entry.used_bonus_value) {
+            bonusSection.style.display = 'block';
+            let bonusHTML = '';
+            
+            if (entry.used_bonus_value) {
+                bonusHTML += `
+                    <div class="bonus-detail-card used">
+                        <div class="bonus-detail-header">
+                            <i class="fas fa-arrow-down"></i>
+                            <h5>Bônus Utilizado</h5>
+                        </div>
+                        <div class="bonus-detail-content">
+                            <div class="detail-item">
+                                <label>Casa:</label>
+                                <span>${entry.used_bonus_house || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Valor:</label>
+                                <span>${formatCurrency(entry.used_bonus_value)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (entry.bonus && entry.bonus_value) {
+                bonusHTML += `
+                    <div class="bonus-detail-card generated">
+                        <div class="bonus-detail-header">
+                            <i class="fas fa-arrow-up"></i>
+                            <h5>Bônus Gerado</h5>
+                        </div>
+                        <div class="bonus-detail-content">
+                            <div class="detail-item">
+                                <label>Casa:</label>
+                                <span>${entry.bonus_house || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Valor:</label>
+                                <span>${formatCurrency(entry.bonus_value)}</span>
+                            </div>
+                            ${entry.bonus_expiry_date ? `
+                                <div class="detail-item">
+                                    <label>Expira em:</label>
+                                    <span>${new Date(entry.bonus_expiry_date).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            bonusContainer.innerHTML = bonusHTML;
+        } else {
+            bonusSection.style.display = 'none';
+        }
+        
+        // Observações
+        const notesSection = document.getElementById('notesSection');
+        if (entry.observacoes && entry.observacoes.trim()) {
+            notesSection.style.display = 'block';
+            document.getElementById('detailsNotes').textContent = entry.observacoes;
+        } else {
+            notesSection.style.display = 'none';
+        }
     }
 
     // Funções auxiliares do formulário
@@ -1958,4 +2382,207 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
     }
+
+    // Funcionalidade do Modal de Edição de Saldo
+    class EditBalanceModal {
+        constructor() {
+            this.modal = document.getElementById('editBalanceModal');
+            this.form = document.getElementById('editBalanceForm');
+            this.currentBalanceDisplay = document.getElementById('currentBalanceDisplay');
+            this.newBalanceInput = document.getElementById('newBalance');
+            this.bankrollId = null;
+            this.currentBalance = 0;
+            
+            this.init();
+        }
+        
+        init() {
+            // Usar uma função para tentar inicializar após o DOM estar pronto
+            const tryInit = () => {
+                const editBtn = document.getElementById('editBalanceBtn');
+                const closeBtn = document.getElementById('closeEditBalanceModal');
+                const cancelBtn = document.getElementById('cancelEditBalance');
+                const overlay = this.modal?.querySelector('.modal-overlay');
+                
+                if (!editBtn) {
+                    console.log('Botão de editar saldo não encontrado, tentando novamente...');
+                    setTimeout(tryInit, 100);
+                    return;
+                }
+                
+                // Event listeners para abrir modal
+                editBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.open();
+                });
+                
+                // Event listeners para fechar modal
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => this.close());
+                }
+                
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => this.close());
+                }
+                
+                if (overlay) {
+                    overlay.addEventListener('click', () => this.close());
+                }
+                
+                console.log('EditBalanceModal inicializado com sucesso');
+            };
+            
+                         tryInit();
+            
+            // Event listener para o formulário
+            if (this.form) {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+            
+            // Event listener para ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.modal?.classList.contains('active')) {
+                    this.close();
+                }
+            });
+            
+            // Obter ID do bankroll da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            this.bankrollId = urlParams.get('id');
+        }
+        
+        async open() {
+            if (!this.modal) {
+                console.error('Modal element not found');
+                return;
+            }
+            
+            try {
+                // Buscar dados atuais do bankroll
+                const response = await fetch(`/api/bankrolls/${this.bankrollId}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar dados do bankroll');
+                }
+                
+                const bankrollData = await response.json();
+                this.currentBalance = parseFloat(bankrollData.saldo_atual);
+                
+                // Atualizar display do saldo atual
+                const formattedBalance = formatCurrency(this.currentBalance);
+                if (this.currentBalanceDisplay) {
+                    this.currentBalanceDisplay.textContent = formattedBalance;
+                }
+                
+                // Limpar formulário
+                this.form?.reset();
+                if (this.newBalanceInput) {
+                    this.newBalanceInput.value = '';
+                }
+                
+                // Mostrar modal
+                this.modal.classList.add('active');
+                
+                // Focar no input do novo saldo
+                setTimeout(() => {
+                    this.newBalanceInput?.focus();
+                }, 300);
+                
+            } catch (error) {
+                console.error('Erro ao abrir modal:', error);
+                toast.error('Erro ao carregar dados do saldo');
+            }
+        }
+        
+        close() {
+            if (this.modal) {
+                this.modal.classList.remove('active');
+            }
+        }
+        
+        async handleSubmit(e) {
+            e.preventDefault();
+            
+            const newBalance = parseFloat(this.newBalanceInput?.value);
+            
+            // Validações
+            if (isNaN(newBalance)) {
+                toast.error('Por favor, insira um valor válido para o saldo');
+                return;
+            }
+            
+            // Confirmar alteração se for uma mudança significativa
+            const difference = Math.abs(newBalance - this.currentBalance);
+            if (difference > 1000) {
+                const confirmed = await confirmModal.confirm(
+                    `Você está alterando o saldo de ${formatCurrency(this.currentBalance)} para ${formatCurrency(newBalance)}. Esta é uma alteração significativa. Deseja continuar?`,
+                    {
+                        title: 'Confirmar Alteração Significativa',
+                        subtitle: 'Mudança de valor elevada detectada'
+                    }
+                );
+                
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            try {
+                // Desabilitar botão de salvar
+                const saveBtn = document.getElementById('saveEditBalance');
+                const originalText = saveBtn?.innerHTML;
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                }
+                
+                // Enviar requisição para atualizar saldo
+                const response = await fetch(`/api/bankrolls/${this.bankrollId}/saldo`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        saldo_atual: newBalance
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.msg || 'Erro ao atualizar saldo');
+                }
+                
+                // Atualizar interface
+                await updateBalanceDisplay();
+                
+                // Recarregar gráfico de evolução
+                if (window.reloadEvolutionChart) {
+                    window.reloadEvolutionChart();
+                }
+                
+                // Fechar modal
+                this.close();
+                
+                // Mostrar toast de sucesso
+                const changeText = newBalance > this.currentBalance ? 'aumentado' : 'reduzido';
+                toast.success(`Saldo ${changeText} com sucesso! Novo saldo: ${formatCurrency(newBalance)}`);
+                
+                // Recarregar entradas para refletir mudanças
+                fetchSportsBetEntries();
+                
+            } catch (error) {
+                console.error('Erro ao atualizar saldo:', error);
+                toast.error(`Erro ao atualizar saldo: ${error.message}`);
+            } finally {
+                // Reabilitar botão de salvar
+                const saveBtn = document.getElementById('saveEditBalance');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alteração';
+                }
+            }
+        }
+    }
+
+    // Inicializar modal de edição de saldo
+    new EditBalanceModal();
 }); 

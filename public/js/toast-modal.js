@@ -3,17 +3,19 @@ class ToastManager {
     constructor() {
         this.container = null;
         this.toasts = new Map();
+        this.recentMessages = new Map(); // Track recent messages to avoid duplicates
+        this.messageQueue = new Set(); // Track messages being processed
+        this.maxToasts = 3; // Reduced maximum number of toasts shown simultaneously
         this.init();
     }
 
     init() {
-        // Create toast container if it doesn't exist
-        if (!document.querySelector('.toast-container')) {
+        // Always use existing container or create one
+        this.container = document.querySelector('.toast-container');
+        if (!this.container) {
             this.container = document.createElement('div');
             this.container.className = 'toast-container';
             document.body.appendChild(this.container);
-        } else {
-            this.container = document.querySelector('.toast-container');
         }
     }
 
@@ -25,6 +27,42 @@ class ToastManager {
             persistent = false
         } = options;
 
+        // Create a unique message identifier
+        const messageKey = `${type}-${title}-${message}`;
+        const now = Date.now();
+        
+        // Check if this exact message is currently being processed
+        if (this.messageQueue.has(messageKey)) {
+            console.log('Toast already being processed:', messageKey);
+            return null;
+        }
+        
+        // Check for duplicate messages in the last 5 seconds (increased from 3)
+        if (this.recentMessages.has(messageKey)) {
+            const lastShown = this.recentMessages.get(messageKey);
+            if (now - lastShown < 5000) { // 5 seconds cooldown
+                console.log('Toast blocked as duplicate:', messageKey);
+                return null; // Don't show duplicate
+            }
+        }
+
+        // Add to processing queue
+        this.messageQueue.add(messageKey);
+        this.recentMessages.set(messageKey, now);
+
+        // Clean old recent messages (older than 15 seconds)
+        for (const [key, time] of this.recentMessages.entries()) {
+            if (now - time > 15000) {
+                this.recentMessages.delete(key);
+            }
+        }
+
+        // Remove oldest toasts if we've reached the limit
+        while (this.toasts.size >= this.maxToasts) {
+            const oldestToastId = this.toasts.keys().next().value;
+            this.hide(oldestToastId);
+        }
+
         const toastId = Date.now() + Math.random();
         const toast = this.createToast(toastId, title, message, type, closable);
         
@@ -34,6 +72,10 @@ class ToastManager {
         // Trigger animation
         requestAnimationFrame(() => {
             toast.classList.add('show');
+            // Remove from processing queue after animation starts
+            setTimeout(() => {
+                this.messageQueue.delete(messageKey);
+            }, 100);
         });
 
         // Auto remove if not persistent
@@ -94,6 +136,9 @@ class ToastManager {
         this.toasts.forEach((toast, id) => {
             this.hide(id);
         });
+        // Clear all caches when hiding all
+        this.recentMessages.clear();
+        this.messageQueue.clear();
     }
 
     getIcon(type) {
@@ -263,8 +308,6 @@ class ConfirmModal {
             this.currentResolve = resolve;
         });
     }
-
-
 
     hide(result) {
         this.overlay.classList.remove('active');

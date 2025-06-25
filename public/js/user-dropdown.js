@@ -38,38 +38,45 @@ document.addEventListener('DOMContentLoaded', function() {
         logoutBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
-            // Show confirmation dialog
-            if (confirm('Tem certeza que deseja sair?')) {
-                try {
-                    const response = await fetch('/api/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        // Limpar TODOS os dados salvos localmente
-                        localStorage.removeItem('rememberedEmail');
-                        localStorage.removeItem('rememberedPassword');
-                        localStorage.removeItem('rememberLogin');
-                        localStorage.removeItem('rememberTimestamp');
-                        
-                        // Limpar qualquer cache de sessão
-                        sessionStorage.clear();
-                        
-                        // Marcar que o usuário acabou de fazer logout
-                        sessionStorage.setItem('justLoggedOut', 'true');
-                        
-                        // Redirecionar para a página de login
-                        window.location.href = '/login';
-                    } else {
-                        alert('Erro ao fazer logout. Tente novamente.');
-                    }
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro de conexão. Tente novamente.');
+            try {
+                // Show confirmation dialog
+                const confirmed = await confirmModal.confirm('Tem certeza que deseja sair?', {
+                    title: 'Confirmar Logout',
+                    subtitle: 'Você será desconectado do sistema'
+                });
+                
+                if (!confirmed) {
+                    return;
                 }
+                
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Limpar TODOS os dados salvos localmente
+                    localStorage.removeItem('rememberedEmail');
+                    localStorage.removeItem('rememberedPassword');
+                    localStorage.removeItem('rememberLogin');
+                    localStorage.removeItem('rememberTimestamp');
+                    
+                    // Limpar qualquer cache de sessão
+                    sessionStorage.clear();
+                    
+                    // Marcar que o usuário acabou de fazer logout
+                    sessionStorage.setItem('justLoggedOut', 'true');
+                    
+                    // Redirecionar para a página de login
+                    window.location.href = '/login';
+                } else {
+                    alert('Erro ao fazer logout. Tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão. Tente novamente.');
             }
         });
     }

@@ -291,11 +291,18 @@ document.addEventListener('DOMContentLoaded', function () {
      * @param {number} id - ID do bankroll
      */
     async function deleteBankroll(id) {
-        if (!confirm('Tem certeza que deseja excluir este bankroll?')) {
-            return;
-        }
-        
         try {
+            const confirmed = await confirmModal.delete(
+                'Esta ação não pode ser desfeita. Tem certeza que deseja excluir este bankroll?',
+                {
+                    title: 'Confirmar Exclusão',
+                    subtitle: 'Atenção: Esta ação é irreversível'
+                }
+            );
+            
+            if (!confirmed) {
+                return;
+            }
             const response = await fetch(`/api/bankrolls/${id}`, {
                 method: 'DELETE',
             });
