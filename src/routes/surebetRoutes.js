@@ -39,8 +39,14 @@ router.get('/entries/:bankrollId', async (req, res) => {
 
         // Aplicar filtros (exemplos simples, podem ser expandidos)
         if (status && status !== 'all') {
+            // Mapear valores do frontend para o banco de dados
+            const statusMap = {
+                'pendente': 'Pendente',
+                'resolvido': 'Resolvido'
+            };
+            const dbStatus = statusMap[status.toLowerCase()] || status;
             query += ` AND se.status = $${paramIndex++}`;
-            queryParams.push(status);
+            queryParams.push(dbStatus);
         }
         if (period && period !== 'all') {
             if (period === 'custom' && startDate && endDate) {
@@ -81,8 +87,14 @@ router.get('/entries/:bankrollId', async (req, res) => {
         
         // Aplicar os mesmos filtros na consulta de contagem
         if (status && status !== 'all') {
+            // Mapear valores do frontend para o banco de dados
+            const statusMap = {
+                'pendente': 'Pendente',
+                'resolvido': 'Resolvido'
+            };
+            const dbStatus = statusMap[status.toLowerCase()] || status;
             countQuery += ` AND se.status = $${countParamIndex++}`;
-            countParams.push(status);
+            countParams.push(dbStatus);
         }
         if (period && period !== 'all') {
             if (period === 'custom' && startDate && endDate) {
@@ -826,6 +838,103 @@ router.get('/bonus/:bankrollId', async (req, res) => {
     } catch (err) {
         console.error('Erro ao buscar bônus:', err.message);
         res.status(500).json({ msg: 'Erro no servidor ao buscar bônus.', error: err.message });
+    }
+});
+
+// GET header statistics (ROI and period) for a specific bankroll
+router.get('/header-stats/:bankrollId', async (req, res) => {
+    const { bankrollId } = req.params;
+
+    try {
+        // Buscar todas as entradas resolvidas para calcular ROI
+        const entriesQuery = `
+            SELECT 
+                se.lucro_total,
+                se.data_criacao,
+                COALESCE(
+                    (SELECT SUM(seb.valor_apostado) 
+                     FROM surebet_entry_bets seb 
+                     WHERE seb.surebet_entry_id = se.id), 0
+                ) as total_apostado
+            FROM surebet_entries se
+            WHERE se.bankroll_id = $1 AND se.user_id = $2 AND se.status = 'Resolvido'
+            ORDER BY se.data_criacao ASC
+        `;
+
+        const entriesResult = await pool.query(entriesQuery, [bankrollId, req.user.id]);
+        
+        let roi = 0;
+        let period = 'Sem entradas';
+        
+        if (entriesResult.rows.length > 0) {
+            // Calcular ROI total
+            const totalLucro = entriesResult.rows.reduce((sum, entry) => sum + parseFloat(entry.lucro_total || 0), 0);
+            const totalApostado = entriesResult.rows.reduce((sum, entry) => sum + parseFloat(entry.total_apostado || 0), 0);
+            
+            if (totalApostado > 0) {
+                roi = (totalLucro / totalApostado) * 100;
+            }
+            
+            // Calcular período (da primeira à última entrada)
+            const firstEntry = new Date(entriesResult.rows[0].data_criacao);
+            const lastEntry = new Date(entriesResult.rows[entriesResult.rows.length - 1].data_criacao);
+            
+            // Calcular diferença em dias
+            const diffTime = Math.abs(lastEntry - firstEntry);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                period = '1 dia';
+            } else if (diffDays < 30) {
+                period = `${diffDays + 1} dias`;
+            } else if (diffDays < 365) {
+                const months = Math.round(diffDays / 30);
+                period = months === 1 ? '1 mês' : `${months} meses`;
+            } else {
+                const years = Math.round(diffDays / 365);
+                period = years === 1 ? '1 ano' : `${years} anos`;
+            }
+        }
+        
+        // Se não há entradas resolvidas, verificar se há entradas pendentes
+        if (entriesResult.rows.length === 0) {
+            const pendingEntriesQuery = `
+                SELECT COUNT(*) as count, MIN(data_criacao) as first_entry
+                FROM surebet_entries 
+                WHERE bankroll_id = $1 AND user_id = $2
+            `;
+            
+            const pendingResult = await pool.query(pendingEntriesQuery, [bankrollId, req.user.id]);
+            
+            if (pendingResult.rows[0].count > 0) {
+                const firstEntry = new Date(pendingResult.rows[0].first_entry);
+                const now = new Date();
+                const diffTime = Math.abs(now - firstEntry);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    period = 'Hoje';
+                } else if (diffDays < 30) {
+                    period = `${diffDays} dias (pendente)`;
+                } else if (diffDays < 365) {
+                    const months = Math.round(diffDays / 30);
+                    period = months === 1 ? '1 mês (pendente)' : `${months} meses (pendente)`;
+                } else {
+                    const years = Math.round(diffDays / 365);
+                    period = years === 1 ? '1 ano (pendente)' : `${years} anos (pendente)`;
+                }
+            }
+        }
+
+        res.json({
+            roi: roi,
+            period: period,
+            totalEntries: entriesResult.rows.length
+        });
+
+    } catch (err) {
+        console.error(`Erro na rota GET /api/surebet/header-stats/${bankrollId}:`, err.message, err.stack);
+        res.status(500).json({ msg: 'Erro no servidor ao buscar estatísticas do cabeçalho.', error: err.message });
     }
 });
 

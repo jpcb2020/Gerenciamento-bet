@@ -286,6 +286,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadSurebetForEdit(entryId);
             }
         }
+        
+        // Botão de ver detalhes
+        if (e.target.closest('.action-btn') && !e.target.closest('.action-btn.edit') && !e.target.closest('.action-btn.delete')) {
+            e.preventDefault();
+            const entryId = e.target.closest('.action-btn').getAttribute('data-entry-id');
+            if (entryId) {
+                showSurebetDetails(entryId);
+            }
+        }
     });
 
     // Função para carregar dados da surebet para edição
@@ -822,6 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Atualizar interface
                 fetchSurebetEntries(); // Atualizar a tabela após salvar
+                loadHeaderStatistics(); // Atualizar estatísticas do cabeçalho
                 if (window.reloadEvolutionChart) {
                     window.reloadEvolutionChart(); // Atualizar gráfico
                 }
@@ -842,8 +852,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carregar gráfico de evolução do bankroll
     loadEvolutionChart();
     
+    // Carregar estatísticas do cabeçalho
+    loadHeaderStatistics();
+    
     // Armazenar referência para poder recarregar
     window.reloadEvolutionChart = loadEvolutionChart;
+
+    // Função para carregar estatísticas do cabeçalho (ROI e Período)
+    async function loadHeaderStatistics() {
+        if (!bankrollId) return;
+
+        try {
+            const response = await fetch(`/api/surebet/header-stats/${bankrollId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar estatísticas do cabeçalho');
+            }
+
+            const stats = await response.json();
+            
+            // Atualizar ROI
+            const roiElement = document.getElementById('roiValue');
+            if (roiElement) {
+                const roi = parseFloat(stats.roi || 0);
+                roiElement.textContent = `${roi.toFixed(2)}%`;
+                
+                // Adicionar classe baseada no ROI
+                roiElement.classList.remove('positive', 'negative', 'neutral');
+                if (roi > 0) {
+                    roiElement.classList.add('positive');
+                } else if (roi < 0) {
+                    roiElement.classList.add('negative');
+                } else {
+                    roiElement.classList.add('neutral');
+                }
+            }
+            
+            // Atualizar período
+            const periodElement = document.getElementById('periodValue');
+            if (periodElement) {
+                periodElement.textContent = stats.period || 'Sem entradas';
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar estatísticas do cabeçalho:', error);
+            // Manter valores padrão em caso de erro
+        }
+    }
 
     // Event listener para navegação entre abas
     document.addEventListener('click', function(e) {
@@ -2203,6 +2257,352 @@ document.addEventListener('DOMContentLoaded', function() {
                 closePdfConfigModal();
             }
         });
+    }
+
+    // Função para exibir detalhes da surebet
+    async function showSurebetDetails(entryId) {
+        try {
+            const response = await fetch(`/api/surebet/entries/single/${entryId}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dados da entrada');
+            }
+            
+            const entry = await response.json();
+            
+            // Criar modal de detalhes se não existir
+            let detailsModal = document.getElementById('surebetDetailsModal');
+            if (!detailsModal) {
+                createDetailsModal();
+                detailsModal = document.getElementById('surebetDetailsModal');
+            }
+            
+            // Preencher dados no modal
+            populateDetailsModal(entry);
+            
+            // Abrir modal
+            detailsModal.classList.add('active');
+            
+        } catch (error) {
+            console.error('Erro ao carregar detalhes da entrada:', error);
+            showToast('Erro ao carregar detalhes da entrada', 'error');
+        }
+    }
+
+    // Função para criar o modal de detalhes
+    function createDetailsModal() {
+        const modalHTML = `
+            <div id="surebetDetailsModal" class="modal">
+                <div class="modal-content details-modal-content">
+                    <div class="modal-header details-header">
+                        <div class="header-content">
+                            <div class="header-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="header-text">
+                                <h3>Detalhes da Surebet</h3>
+                                <p>Informações completas da oportunidade de arbitragem</p>
+                            </div>
+                        </div>
+                        <button class="close-modal details-close" type="button">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body-scrollable details-body">
+                        <!-- Informações Gerais -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-info-circle"></i>
+                                <h4>Informações Gerais</h4>
+                            </div>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Evento:</label>
+                                    <span id="detailsEvento">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Competição:</label>
+                                    <span id="detailsCompeticao">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Data do Evento:</label>
+                                    <span id="detailsDataEvento">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Status:</label>
+                                    <span id="detailsStatus" class="status-badge">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Data de Criação:</label>
+                                    <span id="detailsDataCriacao">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo Financeiro -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-calculator"></i>
+                                <h4>Resumo Financeiro</h4>
+                            </div>
+                            <div class="financial-summary">
+                                <div class="summary-card">
+                                    <div class="summary-label">Valor Total Apostado</div>
+                                    <div class="summary-value" id="detailsValorApostado">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="summary-label">Retorno Total</div>
+                                    <div class="summary-value" id="detailsRetornoTotal">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card profit-card">
+                                    <div class="summary-label">Lucro/Prejuízo</div>
+                                    <div class="summary-value" id="detailsLucroTotal">R$ 0,00</div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="summary-label">ROI</div>
+                                    <div class="summary-value" id="detailsROI">0%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Apostas Detalhadas -->
+                        <div class="details-section">
+                            <div class="section-header">
+                                <i class="fas fa-list-alt"></i>
+                                <h4>Apostas Detalhadas</h4>
+                            </div>
+                            <div id="detailsBetsContainer" class="bets-container">
+                                <!-- Apostas serão inseridas aqui -->
+                            </div>
+                        </div>
+
+                        <!-- Informações de Bônus -->
+                        <div class="details-section" id="bonusSection" style="display: none;">
+                            <div class="section-header">
+                                <i class="fas fa-gift"></i>
+                                <h4>Informações de Bônus</h4>
+                            </div>
+                            <div id="bonusDetailsContainer">
+                                <!-- Informações de bônus serão inseridas aqui -->
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="details-section" id="notesSection" style="display: none;">
+                            <div class="section-header">
+                                <i class="fas fa-sticky-note"></i>
+                                <h4>Observações</h4>
+                            </div>
+                            <div class="notes-content">
+                                <p id="detailsNotes">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer details-footer">
+                        <button type="button" class="btn-close-details">
+                            <i class="fas fa-times"></i>
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Adicionar event listeners
+        const modal = document.getElementById('surebetDetailsModal');
+        const closeBtn = modal.querySelector('.details-close');
+        const footerCloseBtn = modal.querySelector('.btn-close-details');
+        
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+        footerCloseBtn.addEventListener('click', () => modal.classList.remove('active'));
+        
+        // Fechar ao clicar fora do modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+        
+        // Fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                modal.classList.remove('active');
+            }
+        });
+    }
+
+    // Função para preencher dados no modal de detalhes
+    function populateDetailsModal(entry) {
+        // Informações gerais
+        document.getElementById('detailsEvento').textContent = entry.evento || '-';
+        document.getElementById('detailsCompeticao').textContent = entry.competicao || '-';
+        
+        // Data do evento
+        if (entry.data_evento) {
+            const eventDate = new Date(entry.data_evento);
+            document.getElementById('detailsDataEvento').textContent = eventDate.toLocaleString('pt-BR');
+        } else {
+            document.getElementById('detailsDataEvento').textContent = '-';
+        }
+        
+        // Status
+        const statusElement = document.getElementById('detailsStatus');
+        statusElement.textContent = entry.status || 'Pendente';
+        statusElement.className = `status-badge ${entry.status ? entry.status.toLowerCase() : 'pendente'}`;
+        
+        // Data de criação
+        if (entry.data_criacao) {
+            const creationDate = new Date(entry.data_criacao);
+            document.getElementById('detailsDataCriacao').textContent = creationDate.toLocaleString('pt-BR');
+        } else {
+            document.getElementById('detailsDataCriacao').textContent = '-';
+        }
+        
+        // Resumo financeiro
+        const valorTotalApostado = entry.bets ? entry.bets.reduce((sum, bet) => sum + parseFloat(bet.valor_apostado || 0), 0) : 0;
+        document.getElementById('detailsValorApostado').textContent = formatCurrency(valorTotalApostado);
+        document.getElementById('detailsRetornoTotal').textContent = formatCurrency(entry.retorno_total || 0);
+        
+        const lucroTotal = parseFloat(entry.lucro_total || 0);
+        const lucroElement = document.getElementById('detailsLucroTotal');
+        lucroElement.textContent = formatCurrency(lucroTotal);
+        lucroElement.className = `summary-value ${lucroTotal > 0 ? 'profit-positive' : lucroTotal < 0 ? 'profit-negative' : 'profit-zero'}`;
+        
+        const roi = parseFloat(entry.roi_percentual || 0);
+        const roiElement = document.getElementById('detailsROI');
+        roiElement.textContent = `${roi.toFixed(2)}%`;
+        roiElement.className = `summary-value ${roi > 0 ? 'profit-positive' : roi < 0 ? 'profit-negative' : 'profit-zero'}`;
+        
+        // Apostas detalhadas
+        const betsContainer = document.getElementById('detailsBetsContainer');
+        betsContainer.innerHTML = '';
+        
+        if (entry.bets && entry.bets.length > 0) {
+            entry.bets.forEach((bet, index) => {
+                const betCard = document.createElement('div');
+                betCard.className = 'bet-detail-card';
+                
+                const logoPath = getLogoPath(bet.casa_apostas);
+                
+                betCard.innerHTML = `
+                    <div class="bet-card-header">
+                        <div class="bet-number">Aposta ${index + 1}</div>
+                        <div class="bet-house-info">
+                            <img src="${logoPath}" alt="${bet.casa_apostas}" class="house-logo">
+                            <span class="house-name">${bet.casa_apostas}</span>
+                        </div>
+                    </div>
+                    <div class="bet-card-body">
+                        <div class="bet-info-grid">
+                            <div class="bet-info-item">
+                                <label>Mercado:</label>
+                                <span>${bet.mercado || '-'}</span>
+                            </div>
+                            <div class="bet-info-item">
+                                <label>Odds:</label>
+                                <span class="odds-value">${parseFloat(bet.odds || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="bet-info-item">
+                                <label>Valor Apostado:</label>
+                                <span class="stake-value">${formatCurrency(bet.valor_apostado || 0)}</span>
+                            </div>
+                            <div class="bet-info-item">
+                                <label>Retorno Potencial:</label>
+                                <span class="return-value">${formatCurrency(bet.retorno_potencial || 0)}</span>
+                            </div>
+                        </div>
+                        ${bet.is_exchange ? `
+                            <div class="exchange-info">
+                                <span class="exchange-badge">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    Exchange - ${bet.bet_type === 'lay' ? 'Lay' : 'Back'}
+                                    ${bet.commission ? ` (${bet.commission}% comissão)` : ''}
+                                </span>
+                                ${bet.bet_type === 'lay' && bet.liability ? `
+                                    <div class="liability-info">
+                                        <label>Responsabilidade:</label>
+                                        <span>${formatCurrency(bet.liability)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                betsContainer.appendChild(betCard);
+            });
+        } else {
+            betsContainer.innerHTML = '<p class="no-data">Nenhuma aposta encontrada.</p>';
+        }
+        
+        // Informações de bônus
+        const bonusSection = document.getElementById('bonusSection');
+        const bonusContainer = document.getElementById('bonusDetailsContainer');
+        
+        if ((entry.bonus && entry.bonus_value) || (entry.used_bonus_value)) {
+            bonusSection.style.display = 'block';
+            bonusContainer.innerHTML = '';
+            
+            // Bônus usado
+            if (entry.used_bonus_value) {
+                const usedBonusCard = document.createElement('div');
+                usedBonusCard.className = 'bonus-detail-card used';
+                usedBonusCard.innerHTML = `
+                    <div class="bonus-card-header">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Aposta Grátis Utilizada</span>
+                    </div>
+                    <div class="bonus-card-body">
+                        <div class="bonus-info">
+                            <span class="bonus-house">${entry.used_bonus_house}</span>
+                            <span class="bonus-value">${formatCurrency(entry.used_bonus_value)}</span>
+                        </div>
+                    </div>
+                `;
+                bonusContainer.appendChild(usedBonusCard);
+            }
+            
+            // Bônus gerado
+            if (entry.bonus && entry.bonus_value) {
+                const generatedBonusCard = document.createElement('div');
+                generatedBonusCard.className = 'bonus-detail-card generated';
+                generatedBonusCard.innerHTML = `
+                    <div class="bonus-card-header">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Aposta Grátis Gerada</span>
+                    </div>
+                    <div class="bonus-card-body">
+                        <div class="bonus-info">
+                            <span class="bonus-house">${entry.bonus_house}</span>
+                            <span class="bonus-value">${formatCurrency(entry.bonus_value)}</span>
+                        </div>
+                        ${entry.bonus_expiry_date ? `
+                            <div class="bonus-expiry">
+                                <i class="fas fa-calendar-times"></i>
+                                <span>Expira em: ${new Date(entry.bonus_expiry_date).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                bonusContainer.appendChild(generatedBonusCard);
+            }
+        } else {
+            bonusSection.style.display = 'none';
+        }
+        
+        // Observações
+        const notesSection = document.getElementById('notesSection');
+        const notesElement = document.getElementById('detailsNotes');
+        
+        if (entry.observacoes && entry.observacoes.trim()) {
+            notesSection.style.display = 'block';
+            notesElement.textContent = entry.observacoes;
+        } else {
+            notesSection.style.display = 'none';
+        }
     }
 });
 
