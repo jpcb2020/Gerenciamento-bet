@@ -1,6 +1,23 @@
 document.addEventListener('DOMContentLoaded', function() {
     const bankrollId = new URLSearchParams(window.location.search).get('id');
 
+    // Sistema de throttling para toasts (evita spam)
+    if (!window.toastThrottle) {
+        window.toastThrottle = new Map();
+    }
+
+    const throttledShowToast = (message, type, key = null) => {
+        const throttleKey = key || `${type}_${message.substring(0, 50)}`;
+        const now = Date.now();
+        
+        if (window.toastThrottle.has(throttleKey) && now - window.toastThrottle.get(throttleKey) < 3000) {
+            return; // Bloquear toast duplicado dentro de 3 segundos
+        }
+        
+        window.toastThrottle.set(throttleKey, now);
+        showToast(message, type);
+    };
+
     // Formatação de moeda e data
     const formatCurrency = (value) => {
         return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -217,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const targetPage = parseInt(pageInput.value);
         if (isNaN(targetPage) || targetPage < 1) {
-            toast.warning('Por favor, digite um número de página válido.');
+            showToast('Por favor, digite um número de página válido.', 'warning');
             return;
         }
         
@@ -400,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erro ao carregar dados para edição:', error);
-            showToast('Erro ao carregar dados da entrada', 'error');
+                            throttledShowToast('Erro ao carregar dados da entrada', 'error', 'load_entry_error');
         }
     }
 
@@ -930,7 +947,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erro ao buscar dados de bônus:', error);
-            showToast('Erro ao atualizar dados de bônus', 'error');
+                            throttledShowToast('Erro ao atualizar dados de bônus', 'error', 'update_bonus_error');
         }
     }
 
@@ -1174,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                toast.success(data.msg || 'Entrada de surebet excluída com sucesso!');
+                showToast(data.msg || 'Entrada de surebet excluída com sucesso!', 'success');
                 fetchSurebetEntries();
                 // Atualizar o saldo na interface
                 await updateBalanceDisplay();
@@ -1183,11 +1200,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.reloadEvolutionChart();
                 }
             } else {
-                toast.error('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'));
+                showToast('Erro ao excluir entrada: ' + (data.msg || 'Erro desconhecido'), 'error');
             }
         } catch (error) {
             console.error('Erro ao excluir entrada de surebet:', error);
-            toast.error('Erro ao excluir entrada de surebet');
+            showToast('Erro ao excluir entrada de surebet', 'error');
         }
     }
 
@@ -1209,15 +1226,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                toast.success(data.msg || 'Aposta grátis excluída com sucesso!');
+                showToast(data.msg || 'Aposta grátis excluída com sucesso!', 'success');
                 // Atualizar a exibição dos bônus
                 fetchBonusData();
-            } else {
-                toast.error('Erro ao excluir aposta grátis: ' + (data.error || 'Erro desconhecido'));
-            }
-        } catch (error) {
-              console.error('Erro ao excluir aposta grátis:', error);
-              toast.error('Erro ao excluir aposta grátis. Tente novamente.');
+                    } else {
+            showToast('Erro ao excluir aposta grátis: ' + (data.error || 'Erro desconhecido'), 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao excluir aposta grátis:', error);
+        showToast('Erro ao excluir aposta grátis. Tente novamente.', 'error');
           }
       }
 
@@ -1425,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
-            showToast('Erro ao carregar estatísticas', 'error');
+            throttledShowToast('Erro ao carregar estatísticas', 'error', 'load_stats_error');
         }
     }
 
@@ -2284,7 +2301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erro ao carregar detalhes da entrada:', error);
-            showToast('Erro ao carregar detalhes da entrada', 'error');
+            throttledShowToast('Erro ao carregar detalhes da entrada', 'error', 'load_details_error');
         }
     }
 

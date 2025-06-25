@@ -53,7 +53,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    z-index: 10000;
+    z-index: 9999;
     pointer-events: none;
     white-space: normal;
     width: max-content;
@@ -707,6 +707,11 @@ input[id*="betOdds"][style*="background"]::before {
     color: #d32f2f;
 }
 
+.status-dropdown option[value="resolvido"] {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
 .status-dropdown[data-current-status="pendente"] {
     background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
     color: #1976d2;
@@ -738,6 +743,17 @@ input[id*="betOdds"][style*="background"]::before {
 .status-dropdown[data-current-status="perdida"]:hover {
     background: linear-gradient(135deg, #ffcdd2 0%, #f8bbd9 100%);
     border-color: #f44336;
+}
+
+.status-dropdown[data-current-status="resolvido"] {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border-color: #66bb6a;
+}
+
+.status-dropdown[data-current-status="resolvido"]:hover {
+    background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+    border-color: #4caf50;
 }
 
 /* Estilo para o texto de ajuda do formulário */
@@ -883,7 +899,7 @@ input[id*="betOdds"][style*="background"]::before {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 10000;
+    z-index: 9998;
 }
 
 .edit-balance-modal.active {
@@ -2251,6 +2267,12 @@ input[id*="betOdds"][style*="background"]::before {
     background: #fed7d7;
     color: #c53030;
     border: 1px solid #f56565;
+}
+
+.status-badge.resolvido {
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    color: #2e7d32;
+    border: 1px solid #66bb6a;
 }
 
 /* Resumo financeiro */
