@@ -418,11 +418,11 @@ class RoletaManager {
 
     getCasaUrl(casa) {
         const urls = {
-            '7games': 'https://7games.bet/',
-            'betao': 'https://betao.bet.br/',
-            'r7': 'https://r7.bet.br/',
-            'betano': 'https://www.betano.bet.br/',
-            'superbet': 'https://superbet.bet.br/',
+            '7games': 'https://7games.bet.br/pb/wonderwheel',
+            'betao': 'https://betao.bet.br/pb/wonderwheel',
+            'r7': 'https://r7.bet.br/pb/wonderwheel',
+            'betano': 'https://www.betano.bet.br/casino/wheel/',
+            'superbet': 'https://superbet.bet.br/jogos-gratis/super-spin',
             'novibet': 'https://www.novibet.bet.br/cassino/giftwheel',
             // Adicionar outras casas aqui no futuro
         };
