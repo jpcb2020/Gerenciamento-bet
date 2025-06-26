@@ -40,13 +40,114 @@
     margin: 0;
 }
 
-/* Roletas Grid */
-.roletas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 300px));
-    gap: 1.5rem;
+/* Roletas Carousel Container */
+.roletas-carousel-container {
+    position: relative;
     margin-bottom: 3rem;
-    justify-content: start;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.05), rgba(162, 155, 254, 0.05));
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-width: calc(5 * 290px + 4 * 1rem + 3rem); /* Container otimizado para 5 cards */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.roletas-grid {
+    display: flex;
+    gap: 1rem;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.5rem;
+    width: calc(5 * 290px + 4 * 1rem); /* Exato para 5 cards */
+}
+
+/* Animação suave para reorganização de cards */
+.roletas-grid.reorganizing .roleta-card {
+    transition: all 0.5s ease;
+}
+
+.roleta-card {
+    transition: all 0.3s ease;
+}
+
+/* Navigation Arrows */
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.9), rgba(162, 155, 254, 0.9));
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 4px 15px rgba(108, 92, 231, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-nav:hover {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 1), rgba(162, 155, 254, 1));
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 
+        0 6px 20px rgba(108, 92, 231, 0.4),
+        0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-nav:active {
+    transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: translateY(-50%) scale(0.9);
+}
+
+.carousel-nav.prev {
+    left: 10px;
+}
+
+.carousel-nav.next {
+    right: 10px;
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.5rem;
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(108, 92, 231, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.carousel-indicator.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.4);
+}
+
+.carousel-indicator:hover:not(.active) {
+    background: rgba(108, 92, 231, 0.5);
+    transform: scale(1.1);
 }
 
 /* Roleta Card */
@@ -61,6 +162,32 @@
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
     position: relative;
+    flex: 0 0 290px; /* Fixed width for carousel - optimized for 5 cards */
+    min-width: 290px;
+    max-width: 290px;
+}
+
+/* Cards disponíveis têm destaque visual */
+.roleta-card[data-disponivel="true"] {
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(76, 175, 80, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(76, 175, 80, 0.1);
+}
+
+.roleta-card[data-disponivel="true"]::before {
+    background: linear-gradient(90deg, #4CAF50, #66BB6A, #4CAF50);
+}
+
+/* Cards usados têm visual mais discreto */
+.roleta-card[data-disponivel="false"] {
+    opacity: 0.8;
+    border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.roleta-card[data-disponivel="false"]::before {
+    background: linear-gradient(90deg, #f44336, #ef5350, #f44336);
 }
 
 .roleta-card::before {
@@ -112,8 +239,8 @@
 }
 
 .casa-logo {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 12px;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.95);
@@ -170,6 +297,8 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin-top: 1.5rem;
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 .status-dot {
@@ -206,6 +335,13 @@
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
     }
+}
+
+.status-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 
 /* Card Body */
@@ -559,10 +695,39 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1400px) {
+    .roletas-carousel-container {
+        max-width: 100%;
+    }
+    
     .roletas-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+        width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .roleta-card {
+        flex: 0 0 250px;
+        min-width: 250px;
+        max-width: 250px;
+    }
+    
+    .roletas-carousel-container {
+        padding: 1rem;
+    }
+    
+    .carousel-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .carousel-nav.prev {
+        left: 5px;
+    }
+    
+    .carousel-nav.next {
+        right: 5px;
     }
     
     .card-header {
@@ -570,6 +735,7 @@
         flex-direction: column;
         text-align: center;
         gap: 0.5rem;
+        min-height: fit-content;
     }
     
     .casa-logo {
@@ -579,6 +745,9 @@
     
     .status-indicator {
         justify-content: center;
+        white-space: nowrap;
+        min-width: fit-content;
+        font-size: 0.75rem;
     }
     
     .roleta-image-wrapper {
@@ -601,6 +770,22 @@
 }
 
 @media (max-width: 480px) {
+    .roleta-card {
+        flex: 0 0 220px;
+        min-width: 220px;
+        max-width: 220px;
+    }
+    
+    .roletas-carousel-container {
+        padding: 0.8rem;
+    }
+    
+    .carousel-nav {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
     .roleta-image-wrapper {
         width: 120px;
         height: 120px;
@@ -617,6 +802,12 @@
     
     .casa-info p {
         font-size: 0.8rem;
+    }
+    
+    .status-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

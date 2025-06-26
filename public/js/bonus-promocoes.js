@@ -2,6 +2,9 @@
 
 class RoletaManager {
     constructor() {
+        this.currentSlide = 0;
+        this.cardsPerSlide = this.getCardsPerSlide();
+        this.totalCards = 0;
         this.init();
     }
 
@@ -9,6 +12,7 @@ class RoletaManager {
         this.loadRoletaStatus();
         this.bindEvents();
         this.startCountdownTimers();
+        this.initCarousel();
     }
 
     async loadRoletaStatus() {
@@ -40,6 +44,9 @@ class RoletaManager {
             const btnText = cardElement.querySelector('.btn-text');
             const spinner = cardElement.querySelector('.fa-spinner');
 
+            // Armazenar status no data attribute para ordenação
+            cardElement.dataset.disponivel = casa.pode_girar ? 'true' : 'false';
+
             // Ocultar spinner de carregamento
             if (spinner) spinner.style.display = 'none';
 
@@ -49,7 +56,7 @@ class RoletaManager {
                 statusText.textContent = 'Disponível';
                 btnGirar.disabled = false;
                 btnGirar.classList.remove('btn-disabled');
-                if (casa.casa === '7games' || casa.casa === 'betao' || casa.casa === 'r7' || casa.casa === 'betano') {
+                if (casa.casa === '7games' || casa.casa === 'betao' || casa.casa === 'r7' || casa.casa === 'betano' || casa.casa === 'superbet' || casa.casa === 'novibet') {
                     btnText.textContent = 'Girar Agora!';
                 } else {
                     btnText.textContent = 'Acessar Agora!';
@@ -67,6 +74,49 @@ class RoletaManager {
                 this.showCountdown(casa.casa, casa.tempo_para_reset);
             }
         });
+        
+        // Reorganizar roletas após atualizar status
+        this.reorganizeCards();
+    }
+
+    reorganizeCards() {
+        const grid = document.getElementById('roletas-grid');
+        const cards = Array.from(grid.querySelectorAll('.roleta-card'));
+        
+        // Verificar se realmente precisamos reorganizar
+        const currentOrder = cards.map(card => card.dataset.casa);
+        
+        // Ordenar cards: disponíveis primeiro, depois usados
+        const sortedCards = [...cards].sort((a, b) => {
+            const aDisponivel = a.dataset.disponivel === 'true';
+            const bDisponivel = b.dataset.disponivel === 'true';
+            
+            if (aDisponivel && !bDisponivel) return -1;
+            if (!aDisponivel && bDisponivel) return 1;
+            
+            // Se ambos têm o mesmo status, manter ordem original baseada no data-casa
+            const order = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+            const aIndex = order.indexOf(a.dataset.casa);
+            const bIndex = order.indexOf(b.dataset.casa);
+            return aIndex - bIndex;
+        });
+        
+        const newOrder = sortedCards.map(card => card.dataset.casa);
+        
+        // Se a ordem não mudou, não fazer nada
+        if (JSON.stringify(currentOrder) === JSON.stringify(newOrder)) {
+            return;
+        }
+        
+        // Reorganizar de forma fluida
+        cards.forEach(card => card.remove());
+        sortedCards.forEach(card => grid.appendChild(card));
+        
+        // Atualizar contador de cards e recalcular carrossel
+        this.totalCards = sortedCards.length;
+        this.currentSlide = 0; // Reset para o primeiro slide para mostrar as disponíveis
+        this.updateCarousel();
+        this.createIndicators();
     }
 
     showCountdown(casa, tempoParaReset) {
@@ -77,15 +127,31 @@ class RoletaManager {
 
         countdownContainer.style.display = 'block';
         
-        // Calcular tempo até meia-noite
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
+        // Definir horário de reset para cada casa
+        const resetHours = {
+            'superbet': 18, // 18:00
+            'default': 0    // 00:00 para todas as outras
+        };
+        
+        const resetHour = resetHours[casa] || resetHours['default'];
+        
+        const calculateNextReset = () => {
+            const now = new Date();
+            const nextReset = new Date(now);
+            nextReset.setHours(resetHour, 0, 0, 0);
+            
+            // Se já passou do horário de reset hoje, ir para amanhã
+            if (now >= nextReset) {
+                nextReset.setDate(nextReset.getDate() + 1);
+            }
+            
+            return nextReset;
+        };
         
         const updateTimer = () => {
             const now = new Date();
-            const timeLeft = tomorrow - now;
+            const nextReset = calculateNextReset();
+            const timeLeft = nextReset - now;
             
             if (timeLeft <= 0) {
                 // Reset passou, recarregar status
@@ -102,6 +168,155 @@ class RoletaManager {
         
         updateTimer();
         setInterval(updateTimer, 1000);
+    }
+
+    getCardsPerSlide() {
+        // Sempre retorna 5 cards por página para uma melhor experiência
+        return 5;
+    }
+
+    initCarousel() {
+        // Inicializar data attributes se não existirem
+        document.querySelectorAll('.roleta-card').forEach(card => {
+            if (!card.dataset.disponivel) {
+                card.dataset.disponivel = 'true'; // Padrão é disponível
+            }
+        });
+        
+        this.totalCards = document.querySelectorAll('.roleta-card').length;
+        this.cardsPerSlide = this.getCardsPerSlide();
+        this.updateCarousel();
+        this.createIndicators();
+        this.bindCarouselEvents();
+        
+        // Update on window resize for responsive card widths
+        window.addEventListener('resize', () => {
+            this.updateCarousel();
+        });
+    }
+
+    bindCarouselEvents() {
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        
+        prevBtn.addEventListener('click', () => this.previousSlide());
+        nextBtn.addEventListener('click', () => this.nextSlide());
+        
+        // Touch/swipe support
+        let startX = 0;
+        let isDragging = false;
+        const grid = document.getElementById('roletas-grid');
+        
+        grid.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+        
+        grid.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+        });
+        
+        grid.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (diff > 0) {
+                    this.nextSlide();
+                } else {
+                    this.previousSlide();
+                }
+            }
+        });
+    }
+
+    getMaxSlides() {
+        // Com 6 cards totais (incluindo Novibet), teremos 2 páginas de 5 cards
+        return Math.max(1, Math.ceil(this.totalCards / this.cardsPerSlide));
+    }
+
+    updateCarousel() {
+        const grid = document.getElementById('roletas-grid');
+        
+        // Responsive card width calculation
+        let cardWidth = 290; // default card width (increased for better logo visibility)
+        const gap = 16; // 1rem gap
+        
+        // Adjust card width based on screen size
+        if (window.innerWidth <= 480) {
+            cardWidth = 220;
+        } else if (window.innerWidth <= 768) {
+            cardWidth = 250;
+        }
+        
+        const slideWidth = (cardWidth + gap) * this.cardsPerSlide;
+        const translateX = -this.currentSlide * slideWidth;
+        
+        grid.style.transform = `translateX(${translateX}px)`;
+        
+        // Update navigation buttons
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        
+        prevBtn.disabled = this.currentSlide === 0;
+        nextBtn.disabled = this.currentSlide >= this.getMaxSlides() - 1;
+        
+        // Update indicators
+        this.updateIndicators();
+    }
+
+    createIndicators() {
+        const indicatorsContainer = document.getElementById('carousel-indicators');
+        indicatorsContainer.innerHTML = '';
+        
+        const maxSlides = this.getMaxSlides();
+        
+        // Only show indicators if there are multiple slides
+        if (maxSlides <= 1) {
+            indicatorsContainer.style.display = 'none';
+            return;
+        }
+        
+        indicatorsContainer.style.display = 'flex';
+        
+        for (let i = 0; i < maxSlides; i++) {
+            const indicator = document.createElement('button');
+            indicator.className = 'carousel-indicator';
+            indicator.addEventListener('click', () => this.goToSlide(i));
+            indicatorsContainer.appendChild(indicator);
+        }
+        
+        this.updateIndicators();
+    }
+
+    updateIndicators() {
+        const indicators = document.querySelectorAll('.carousel-indicator');
+        indicators.forEach((indicator, index) => {
+            indicator.classList.toggle('active', index === this.currentSlide);
+        });
+    }
+
+    previousSlide() {
+        if (this.currentSlide > 0) {
+            this.currentSlide--;
+            this.updateCarousel();
+        }
+    }
+
+    nextSlide() {
+        if (this.currentSlide < this.getMaxSlides() - 1) {
+            this.currentSlide++;
+            this.updateCarousel();
+        }
+    }
+
+    goToSlide(slideIndex) {
+        this.currentSlide = slideIndex;
+        this.updateCarousel();
     }
 
     bindEvents() {
@@ -181,6 +396,9 @@ class RoletaManager {
         const countdownContainer = cardElement.querySelector('.countdown-container');
         const btnText = cardElement.querySelector('.btn-text');
 
+        // Atualizar status no data attribute
+        cardElement.dataset.disponivel = podeGirar ? 'true' : 'false';
+
         if (!podeGirar) {
             statusDot.className = 'status-dot usado';
             statusText.textContent = 'Usado hoje';
@@ -190,6 +408,11 @@ class RoletaManager {
             
             // Mostrar countdown
             this.showCountdown(casa);
+            
+            // Reorganizar cards após uso de forma fluida
+            setTimeout(() => {
+                this.reorganizeCards();
+            }, 300);
         }
     }
 
@@ -199,6 +422,8 @@ class RoletaManager {
             'betao': 'https://betao.bet.br/',
             'r7': 'https://r7.bet.br/',
             'betano': 'https://www.betano.bet.br/',
+            'superbet': 'https://superbet.bet.br/',
+            'novibet': 'https://www.novibet.bet.br/cassino/giftwheel',
             // Adicionar outras casas aqui no futuro
         };
         

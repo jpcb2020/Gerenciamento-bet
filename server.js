@@ -274,16 +274,33 @@ app.delete('/api/user/bonus/:bonusId', requireAuth, async (req, res) => {
 app.get('/api/roletas/status', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0]; // Data atual no formato YYYY-MM-DD
     
     // Definir casas de apostas disponíveis
-    const casasDisponiveis = ['7games', 'betao', 'r7', 'betano'];
+    const casasDisponiveis = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+    
+    // Definir horários de reset para cada casa
+    const resetHours = {
+      'superbet': 18, // 18:00
+      'default': 0    // 00:00 para todas as outras
+    };
     
     const statusPromises = casasDisponiveis.map(async (casa) => {
-      // Verificar se o usuário já clicou hoje nesta casa
+      const resetHour = resetHours[casa] || resetHours['default'];
+      
+      // Calcular a data/hora do último reset
+      const now = new Date();
+      const lastReset = new Date(now);
+      lastReset.setHours(resetHour, 0, 0, 0);
+      
+      // Se ainda não passou do horário de reset hoje, considerar o reset de ontem
+      if (now < lastReset) {
+        lastReset.setDate(lastReset.getDate() - 1);
+      }
+      
+      // Verificar se o usuário já clicou desde o último reset
       const clickResult = await pool.query(
-        'SELECT id FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND data_click = $3',
-        [userId, casa, today]
+        'SELECT id, created_at FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND created_at > $3 ORDER BY created_at DESC LIMIT 1',
+        [userId, casa, lastReset]
       );
       
       const podeGirar = clickResult.rows.length === 0;
@@ -291,7 +308,8 @@ app.get('/api/roletas/status', requireAuth, async (req, res) => {
       return {
         casa: casa,
         pode_girar: podeGirar,
-        data_ultimo_click: podeGirar ? null : today
+        data_ultimo_click: podeGirar ? null : (clickResult.rows[0] ? clickResult.rows[0].created_at : null),
+        reset_hour: resetHour
       };
     });
     
@@ -316,20 +334,38 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     }
     
     // Verificar se é uma casa válida
-    const casasValidas = ['7games', 'betao', 'r7', 'betano'];
+    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
     if (!casasValidas.includes(casa)) {
       return res.status(400).json({ error: 'Casa de aposta inválida' });
     }
     
-    // Verificar se o usuário já clicou hoje
+    // Definir horários de reset para cada casa
+    const resetHours = {
+      'superbet': 18, // 18:00
+      'default': 0    // 00:00 para todas as outras
+    };
+    
+    const resetHour = resetHours[casa] || resetHours['default'];
+    
+    // Calcular a data/hora do último reset
+    const now = new Date();
+    const lastReset = new Date(now);
+    lastReset.setHours(resetHour, 0, 0, 0);
+    
+    // Se ainda não passou do horário de reset hoje, considerar o reset de ontem
+    if (now < lastReset) {
+      lastReset.setDate(lastReset.getDate() - 1);
+    }
+    
+    // Verificar se o usuário já clicou desde o último reset
     const existingClick = await pool.query(
-      'SELECT id FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND data_click = $3',
-      [userId, casa, today]
+      'SELECT id FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND created_at > $3',
+      [userId, casa, lastReset]
     );
     
     if (existingClick.rows.length > 0) {
-      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano')
-        ? 'Você já girou esta roleta hoje. Tente novamente amanhã!' 
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet')
+        ? `Você já girou esta roleta hoje. ${casa === 'superbet' ? 'Próximo reset às 18:00' : 'Tente novamente amanhã'}!` 
         : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
       return res.status(400).json({ error: errorMessage });
     }
@@ -337,14 +373,16 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     // Registrar o clique
     await pool.query(
       'INSERT INTO roleta_clicks (user_id, casa_aposta, data_click) VALUES ($1, $2, $3)',
-      [userId, casa, today]
+      [userId, casa, now.toISOString().split('T')[0]]
     );
     
     const redirectUrls = {
       '7games': 'https://7games.bet/',
       'betao': 'https://betao.bet.br/',
       'r7': 'https://r7.bet.br/',
-      'betano': 'https://www.betano.bet.br/'
+      'betano': 'https://www.betano.bet.br/',
+      'superbet': 'https://superbet.bet.br/',
+      'novibet': 'https://www.novibet.bet.br/cassino/giftwheel'
     };
 
     res.json({ 
@@ -359,8 +397,8 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     
     // Verificar se é erro de constraint única (já acessou hoje)
     if (error.code === '23505') {
-      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano')
-        ? 'Você já girou esta roleta hoje. Tente novamente amanhã!' 
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet')
+        ? `Você já girou esta roleta hoje. ${casa === 'superbet' ? 'Próximo reset às 18:00' : 'Tente novamente amanhã'}!` 
         : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
       return res.status(400).json({ error: errorMessage });
     }
@@ -381,7 +419,7 @@ app.post('/api/roletas/force-reset', requireAuth, async (req, res) => {
     }
     
     // Verificar se é uma casa válida
-    const casasValidas = ['7games', 'betao', 'r7', 'betano'];
+    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
     if (!casasValidas.includes(casa)) {
       return res.status(400).json({ error: 'Casa de aposta inválida' });
     }
@@ -396,7 +434,9 @@ app.post('/api/roletas/force-reset', requireAuth, async (req, res) => {
       'betao': 'BETÃO',
       'r7': 'R7',
       '7games': '7GAMES',
-      'betano': 'BETANO'
+      'betano': 'BETANO',
+      'superbet': 'SUPERBET',
+      'novibet': 'NOVIBET'
     };
     const casaName = casaNames[casa] || casa.toUpperCase();
     

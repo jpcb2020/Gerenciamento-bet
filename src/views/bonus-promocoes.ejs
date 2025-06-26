@@ -127,7 +127,15 @@
                         <p class="section-subtitle">Aproveite as promoções exclusivas das casas de apostas!</p>
                     </div>
                     
-                    <div class="roletas-grid">
+                    <div class="roletas-carousel-container">
+                        <button class="carousel-nav prev" id="carousel-prev" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-nav next" id="carousel-next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        
+                        <div class="roletas-grid" id="roletas-grid">
                         <!-- 7Games Roleta Card -->
                         <div class="roleta-card" data-casa="7games">
                             <div class="card-header">
@@ -311,6 +319,102 @@
                                 </button>
                             </div>
                         </div>
+                        
+                        <!-- Superbet Roleta Card -->
+                        <div class="roleta-card" data-casa="superbet">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/Superbet.png" alt="Superbet" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>Superbet</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-superbet">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('superbet')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/Superbet.png', 'Superbet')">
+                                        <img src="images/roletas/Superbet.png" alt="Roleta Superbet" class="roleta-image" id="roleta-superbet" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da Superbet e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-superbet" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-superbet">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-superbet" data-casa="superbet" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Novibet Roleta Card -->
+                        <div class="roleta-card" data-casa="novibet">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/NOVIBET.png" alt="Novibet" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>Novibet</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-novibet">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('novibet')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/Novibet.png', 'Novibet')">
+                                        <img src="images/roletas/Novibet.png" alt="Roleta Novibet" class="roleta-image" id="roleta-novibet" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da Novibet e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-novibet" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-novibet">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-novibet" data-casa="novibet" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <!-- Carousel Indicators -->
+                        <div class="carousel-indicators" id="carousel-indicators"></div>
                     </div>
                 </div>
 
