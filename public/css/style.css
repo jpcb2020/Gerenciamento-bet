@@ -200,6 +200,33 @@ button {
 .header-user {
     display: flex;
     align-items: center;
+    gap: 1rem;
+}
+
+.btn-planos-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #333;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+}
+
+.btn-planos-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    color: #333;
+    text-decoration: none;
+}
+
+.btn-planos-link i {
+    font-size: 1rem;
 }
 
 .notifications {

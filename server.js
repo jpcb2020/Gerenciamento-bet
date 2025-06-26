@@ -137,6 +137,13 @@ app.get('/profile', requireAuth, (req, res) => {
   });
 });
 
+// Rota para a página de planos (independente, não precisa de autenticação)
+app.get('/planos', (req, res) => {
+  res.render('planos', { 
+    title: 'Planos - BetManager'
+  });
+});
+
 // Rota API para alterar senha
 app.post('/api/change-password', requireAuth, async (req, res) => {
   const { changePassword } = require('./src/controllers/authController');
