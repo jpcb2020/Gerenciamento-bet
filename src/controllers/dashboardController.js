@@ -55,5 +55,102 @@ const getDashboardData = async (req, res) => {
 };
 
 module.exports = {
-  getDashboardSummary: getDashboardData
+  getDashboardSummary: getDashboardData,
+  getRelatorioBankrolls: async (req, res) => {
+    try {
+      // Verificar se o usuário está autenticado
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      console.log('Buscando relatórios para usuário:', req.user.id);
+
+      // Buscar todos os bankrolls do usuário com informações detalhadas
+      const bankrollsResult = await pool.query(`
+        SELECT 
+          id, 
+          nome, 
+          categoria, 
+          saldo_inicial, 
+          saldo_atual,
+          (saldo_atual - saldo_inicial) as lucro_prejuizo,
+          CASE 
+            WHEN saldo_inicial > 0 THEN ((saldo_atual - saldo_inicial) / saldo_inicial) * 100 
+            ELSE 0 
+          END as percentual_retorno,
+          data_criacao as created_at
+        FROM bankrolls 
+        WHERE user_id = $1 
+        ORDER BY data_criacao DESC
+      `, [req.user.id]);
+
+      console.log('Bankrolls encontrados:', bankrollsResult.rows.length);
+
+      // Buscar estatísticas gerais
+      const estatisticasResult = await pool.query(`
+        SELECT 
+          COUNT(*) as total_bankrolls,
+          COALESCE(SUM(saldo_inicial), 0) as total_investido,
+          COALESCE(SUM(saldo_atual), 0) as total_atual,
+          COALESCE(SUM(saldo_atual - saldo_inicial), 0) as lucro_total
+        FROM bankrolls 
+        WHERE user_id = $1
+      `, [req.user.id]);
+
+      // Buscar dados para o gráfico de evolução (últimos 30 dias)
+      let evolucaoResult;
+      try {
+        evolucaoResult = await pool.query(`
+          SELECT 
+            DATE(data) as data,
+            SUM(CASE WHEN tipo IN ('deposito', 'ganho') THEN valor ELSE -valor END) as variacao_diaria
+          FROM transacoes 
+          WHERE user_id = $1 
+            AND data >= NOW() - INTERVAL '30 days'
+          GROUP BY DATE(data)
+          ORDER BY data
+        `, [req.user.id]);
+      } catch (evolucaoError) {
+        console.log('Erro na query de evolução, usando dados vazios:', evolucaoError.message);
+        evolucaoResult = { rows: [] };
+      }
+
+      // Buscar top bankrolls por categoria
+      const categoriaResult = await pool.query(`
+        SELECT 
+          categoria,
+          COUNT(*) as quantidade,
+          COALESCE(SUM(saldo_atual), 0) as total_saldo,
+          COALESCE(SUM(saldo_atual - saldo_inicial), 0) as total_lucro
+        FROM bankrolls 
+        WHERE user_id = $1 
+        GROUP BY categoria
+        ORDER BY total_saldo DESC
+      `, [req.user.id]);
+
+      const result = {
+        bankrolls: bankrollsResult.rows,
+        estatisticas: estatisticasResult.rows[0] || {
+          total_bankrolls: 0,
+          total_investido: 0,
+          total_atual: 0,
+          lucro_total: 0
+        },
+        evolucao: evolucaoResult.rows,
+        categorias: categoriaResult.rows
+      };
+
+      console.log('Dados de relatório preparados:', {
+        bankrolls: result.bankrolls.length,
+        estatisticas: result.estatisticas,
+        evolucao: result.evolucao.length,
+        categorias: result.categorias.length
+      });
+
+      res.json(result);
+    } catch (err) {
+      console.error('Erro ao buscar relatórios:', err);
+      res.status(500).json({ error: err.message });
+    }
+  }
 };

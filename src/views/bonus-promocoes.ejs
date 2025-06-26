@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bônus e Promoções - BetManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/bonus-promocoes.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li> 
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li> 
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li class="active">
+                        <a href="/bonus-promocoes"><i class="fas fa-gift"></i> Bônus e Promoções</a>
+                    </li>
+                    <li>
+                        <a href="/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                    <li class="logout-item">
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <h2>Bônus e Promoções</h2>
+                </div>
+
+                <!-- Roletas Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-gift"></i> Promoções e Roletas</h3>
+                        <p class="section-subtitle">Aproveite as promoções exclusivas das casas de apostas!</p>
+                    </div>
+                    
+                    <div class="roletas-grid">
+                        <!-- 7Games Roleta Card -->
+                        <div class="roleta-card" data-casa="7games">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/7GAMES.jpg" alt="7Games" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>7Games</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-7games">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('7games')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/7games.png', '7Games')">
+                                        <img src="images/roletas/7games.png" alt="Roleta 7Games" class="roleta-image" id="roleta-7games" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da 7Games e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-7games" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-7games">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-7games" data-casa="7games" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- BETAO Roleta Card -->
+                        <div class="roleta-card" data-casa="betao">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/BETAO.png" alt="BETAO" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>BETÃO</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-betao">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('betao')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/Betão.png', 'BETÃO')">
+                                        <img src="images/roletas/Betão.png" alt="Roleta BETÃO" class="roleta-image" id="roleta-betao" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da BETÃO e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-betao" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-betao">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-betao" data-casa="betao" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- R7 Roleta Card -->
+                        <div class="roleta-card" data-casa="r7">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/R7.jpg" alt="R7" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>R7</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-r7">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('r7')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/R7.png', 'R7')">
+                                        <img src="images/roletas/R7.png" alt="Roleta R7" class="roleta-image" id="roleta-r7" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da R7 e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-r7" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-r7">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-r7" data-casa="r7" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Betano Roleta Card -->
+                        <div class="roleta-card" data-casa="betano">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/Betano.png" alt="Betano" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>Betano</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-betano">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('betano')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/Betano.png', 'Betano')">
+                                        <img src="images/roletas/Betano.png" alt="Roleta Betano" class="roleta-image" id="roleta-betano" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da Betano e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-betano" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-betano">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-betano" data-casa="betano" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="section">
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Uso limitado</h4>
+                                <p>Cada promoção tem suas próprias regras de tempo e frequência</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Reset automático</h4>
+                                <p>Cada promoção reseta conforme as regras da casa de apostas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="info-content">
+                                <h4>Promoções exclusivas</h4>
+                                <p>Acesse bônus e ofertas especiais de cada casa de apostas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal da Roleta -->
+    <div id="roletaModal" class="roleta-modal">
+        <div class="roleta-modal-content">
+            <span class="close-roleta-modal">&times;</span>
+            <div class="roleta-modal-header">
+                <h3 id="roletaModalTitle">Roleta</h3>
+            </div>
+            <div class="roleta-modal-body">
+                <img id="roletaModalImage" src="" alt="Roleta" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação Reset -->
+    <div id="resetConfirmModal" class="reset-confirm-modal">
+        <div class="reset-confirm-content">
+            <div class="confirm-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Confirmar Reset do Temporizador</h3>
+            </div>
+            <div class="confirm-body">
+                <p>Tem certeza que deseja forçar o reset do temporizador?</p>
+                <p><small><strong>Atenção:</strong> Esta ação irá permitir que você acesse a promoção novamente, mesmo que já tenha usado hoje.</small></p>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn-cancel" onclick="closeResetConfirmation()">Cancelar</button>
+                <button class="btn-confirm" id="confirmResetBtn" onclick="confirmReset()">Confirmar Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/user-dropdown.js"></script>
+    <script src="js/logout.js"></script>
+    <script src="js/bonus-promocoes.js"></script>
+</body>
+</html> 

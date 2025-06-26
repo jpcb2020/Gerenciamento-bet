@@ -101,6 +101,20 @@ app.get('/bankrolls', requireAuth, (req, res) => {
   });
 });
 
+app.get('/relatorios', requireAuth, (req, res) => {
+  res.render('relatorios', { 
+    title: 'Relatórios - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/bonus-promocoes', requireAuth, (req, res) => {
+  res.render('bonus-promocoes', { 
+    title: 'Bônus e Promoções - BetManager',
+    user: req.user
+  });
+});
+
 app.get('/casas-regulamentadas', requireAuth, (req, res) => {
   res.render('casas-regulamentadas', { 
     title: 'Casas Regulamentadas - BetManager',
@@ -253,6 +267,148 @@ app.delete('/api/user/bonus/:bonusId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Erro ao deletar bônus:', error);
     res.status(500).json({ error: 'Erro ao deletar aposta grátis' });
+  }
+});
+
+// API para verificar status das roletas
+app.get('/api/roletas/status', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date().toISOString().split('T')[0]; // Data atual no formato YYYY-MM-DD
+    
+    // Definir casas de apostas disponíveis
+    const casasDisponiveis = ['7games', 'betao', 'r7', 'betano'];
+    
+    const statusPromises = casasDisponiveis.map(async (casa) => {
+      // Verificar se o usuário já clicou hoje nesta casa
+      const clickResult = await pool.query(
+        'SELECT id FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND data_click = $3',
+        [userId, casa, today]
+      );
+      
+      const podeGirar = clickResult.rows.length === 0;
+      
+      return {
+        casa: casa,
+        pode_girar: podeGirar,
+        data_ultimo_click: podeGirar ? null : today
+      };
+    });
+    
+    const statusData = await Promise.all(statusPromises);
+    res.json(statusData);
+    
+  } catch (error) {
+    console.error('Erro ao verificar status das roletas:', error);
+    res.status(500).json({ error: 'Erro ao verificar status das roletas' });
+  }
+});
+
+// API para registrar clique da roleta
+app.post('/api/roletas/girar', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { casa } = req.body;
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!casa) {
+      return res.status(400).json({ error: 'Casa de aposta não especificada' });
+    }
+    
+    // Verificar se é uma casa válida
+    const casasValidas = ['7games', 'betao', 'r7', 'betano'];
+    if (!casasValidas.includes(casa)) {
+      return res.status(400).json({ error: 'Casa de aposta inválida' });
+    }
+    
+    // Verificar se o usuário já clicou hoje
+    const existingClick = await pool.query(
+      'SELECT id FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND data_click = $3',
+      [userId, casa, today]
+    );
+    
+    if (existingClick.rows.length > 0) {
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano')
+        ? 'Você já girou esta roleta hoje. Tente novamente amanhã!' 
+        : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
+      return res.status(400).json({ error: errorMessage });
+    }
+    
+    // Registrar o clique
+    await pool.query(
+      'INSERT INTO roleta_clicks (user_id, casa_aposta, data_click) VALUES ($1, $2, $3)',
+      [userId, casa, today]
+    );
+    
+    const redirectUrls = {
+      '7games': 'https://7games.bet/',
+      'betao': 'https://betao.bet.br/',
+      'r7': 'https://r7.bet.br/',
+      'betano': 'https://www.betano.bet.br/'
+    };
+
+    res.json({ 
+      success: true, 
+      message: 'Clique registrado com sucesso!',
+      casa: casa,
+      redirect_url: redirectUrls[casa] || '#'
+    });
+    
+  } catch (error) {
+    console.error('Erro ao registrar clique da roleta:', error);
+    
+    // Verificar se é erro de constraint única (já acessou hoje)
+    if (error.code === '23505') {
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano')
+        ? 'Você já girou esta roleta hoje. Tente novamente amanhã!' 
+        : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
+      return res.status(400).json({ error: errorMessage });
+    }
+    
+    res.status(500).json({ error: 'Erro ao processar solicitação' });
+  }
+});
+
+// API para forçar reset do timer (desenvolvimento)
+app.post('/api/roletas/force-reset', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { casa } = req.body;
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!casa) {
+      return res.status(400).json({ error: 'Casa de aposta não especificada' });
+    }
+    
+    // Verificar se é uma casa válida
+    const casasValidas = ['7games', 'betao', 'r7', 'betano'];
+    if (!casasValidas.includes(casa)) {
+      return res.status(400).json({ error: 'Casa de aposta inválida' });
+    }
+    
+    // Deletar o registro de clique de hoje (se existir)
+    const deleteResult = await pool.query(
+      'DELETE FROM roleta_clicks WHERE user_id = $1 AND casa_aposta = $2 AND data_click = $3',
+      [userId, casa, today]
+    );
+    
+    const casaNames = {
+      'betao': 'BETÃO',
+      'r7': 'R7',
+      '7games': '7GAMES',
+      'betano': 'BETANO'
+    };
+    const casaName = casaNames[casa] || casa.toUpperCase();
+    
+    res.json({ 
+      success: true, 
+      message: `Timer da ${casaName} resetado com sucesso!`,
+      rows_deleted: deleteResult.rowCount
+    });
+    
+  } catch (error) {
+    console.error('Erro ao forçar reset do timer:', error);
+    res.status(500).json({ error: 'Erro ao resetar timer' });
   }
 });
 

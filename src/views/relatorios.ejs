@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/relatorios.css">
+    <link rel="stylesheet" href="/css/toast-modal.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>BetManager</h1>
+                <button id="menu-toggle" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
+                    </li>
+                    <li>
+                        <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
+                    </li>
+                    <li>
+                        <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
+                    </li>
+                    <li>
+                        <a href="/bankrolls"><i class="fas fa-wallet"></i> Bankrolls</a>
+                    </li>
+                    <li>
+                        <a href="/bonus-promocoes"><i class="fas fa-gift"></i> Bônus e Promoções</a>
+                    </li>
+                    <li class="active">
+                        <a href="/relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+                    </li>
+                    <li>
+                        <a href="#configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+                    </li>
+                    <li class="logout-item">
+                        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© 2025 BetManager</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Pesquisar...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="header-user">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span><%= user.nome || 'Usuário' %></span>
+                        <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8rem; color: var(--text-light);"></i>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <div class="user-avatar-placeholder" style="margin: 0 auto 10px; width: 50px; height: 50px;">
+                                    <i class="fas fa-user" style="font-size: 22px;"></i>
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <h4><%= user.nome %> <%= user.sobrenome || '' %></h4>
+                                    <p><%= user.email %></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="/profile" class="dropdown-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    Meu Perfil
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </a>
+                                <a href="/relatorios" class="dropdown-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Relatórios
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    Ajuda
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <h2>Relatórios de Bankrolls</h2>
+                    <div class="report-filters">
+                        <select id="periodoFilter">
+                            <option value="30">Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="180">Últimos 6 meses</option>
+                            <option value="365">Último ano</option>
+                            <option value="all">Todo período</option>
+                        </select>
+                        <button id="exportBtn" class="btn-outline">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>Carregando relatórios...</p>
+                </div>
+
+                <!-- Statistics Overview -->
+                <div id="statisticsOverview" class="statistics-section" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Investido</h3>
+                                <p class="stat-value" id="totalInvestido">R$ 0,00</p>
+                                <span class="stat-label">Capital inicial</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Valor Atual</h3>
+                                <p class="stat-value" id="valorAtual">R$ 0,00</p>
+                                <span class="stat-label">Saldo total</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Lucro/Prejuízo</h3>
+                                <p class="stat-value" id="lucroTotal">R$ 0,00</p>
+                                <span class="stat-label" id="percentualRetorno">0%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Bankrolls Ativos</h3>
+                                <p class="stat-value" id="totalBankrolls">0</p>
+                                <span class="stat-label">Total gerenciados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div id="chartsSection" class="charts-section" style="display: none;">
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-chart-area"></i> Evolução do Patrimônio</h3>
+                                <p>Acompanhe o crescimento dos seus bankrolls ao longo do tempo</p>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="evolucaoChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3><i class="fas fa-chart-pie"></i> Distribuição por Categoria</h3>
+                                <p>Visualize como seus investimentos estão distribuídos</p>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="categoriasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bankrolls Table -->
+                <div id="bankrollsTable" class="section" style="display: none;">
+                    <div class="section-header">
+                        <h3><i class="fas fa-table"></i> Detalhamento por Bankroll</h3>
+                        <div class="table-actions">
+                            <input type="text" id="searchBankroll" placeholder="Pesquisar bankroll..." class="filter-control">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="bankrolls-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="nome">Nome <i class="fas fa-sort"></i></th>
+                                    <th data-sort="categoria">Categoria <i class="fas fa-sort"></i></th>
+                                    <th data-sort="saldo_inicial">Investimento <i class="fas fa-sort"></i></th>
+                                    <th data-sort="saldo_atual">Valor Atual <i class="fas fa-sort"></i></th>
+                                    <th data-sort="lucro_prejuizo">Lucro/Prejuízo <i class="fas fa-sort"></i></th>
+                                    <th data-sort="percentual_retorno">Retorno % <i class="fas fa-sort"></i></th>
+                                    <th data-sort="created_at">Criado em <i class="fas fa-sort"></i></th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankrollsTableBody">
+                                <!-- Table content will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state-container" style="display: none;">
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>Nenhum bankroll encontrado</h3>
+                        <p>Crie seu primeiro bankroll para acompanhar seus lucros e relatórios.</p>
+                        <a href="/bankrolls" class="btn-primary">
+                            <i class="fas fa-plus"></i> Criar Bankroll
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="/js/main.js"></script>
+    <script src="/js/user-dropdown.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/relatorios.js"></script>
+</body>
+</html> 

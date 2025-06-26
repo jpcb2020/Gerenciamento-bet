@@ -6,4 +6,7 @@ const dashboardController = require('../controllers/dashboardController');
 // GET /api/dashboard - Retorna um resumo dos dados para o dashboard.
 router.get('/', dashboardController.getDashboardSummary);
 
+// GET /api/dashboard/relatorios - Retorna dados detalhados para relatórios de bankrolls
+router.get('/relatorios', dashboardController.getRelatorioBankrolls);
+
 module.exports = router; 
