@@ -283,7 +283,7 @@ app.get('/api/roletas/status', requireAuth, async (req, res) => {
     const userId = req.user.id;
     
     // Definir casas de apostas disponíveis
-    const casasDisponiveis = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+    const casasDisponiveis = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet', 'papigames'];
     
     // Definir horários de reset para cada casa
     const resetHours = {
@@ -341,7 +341,7 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     }
     
     // Verificar se é uma casa válida
-    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet', 'papigames'];
     if (!casasValidas.includes(casa)) {
       return res.status(400).json({ error: 'Casa de aposta inválida' });
     }
@@ -371,7 +371,7 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     );
     
     if (existingClick.rows.length > 0) {
-      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet')
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet' || casa === 'papigames')
         ? `Você já girou esta roleta hoje. ${casa === 'superbet' ? 'Próximo reset às 18:00' : 'Tente novamente amanhã'}!` 
         : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
       return res.status(400).json({ error: errorMessage });
@@ -389,7 +389,8 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
       'r7': 'https://r7.bet.br/',
       'betano': 'https://www.betano.bet.br/',
       'superbet': 'https://superbet.bet.br/',
-      'novibet': 'https://www.novibet.bet.br/cassino/giftwheel'
+      'novibet': 'https://www.novibet.bet.br/cassino/giftwheel',
+      'papigames': 'https://papigames.bet.br/'
     };
 
     res.json({ 
@@ -404,7 +405,7 @@ app.post('/api/roletas/girar', requireAuth, async (req, res) => {
     
     // Verificar se é erro de constraint única (já acessou hoje)
     if (error.code === '23505') {
-      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet')
+      const errorMessage = (casa === '7games' || casa === 'betao' || casa === 'r7' || casa === 'betano' || casa === 'superbet' || casa === 'novibet' || casa === 'papigames')
         ? `Você já girou esta roleta hoje. ${casa === 'superbet' ? 'Próximo reset às 18:00' : 'Tente novamente amanhã'}!` 
         : 'Você já acessou esta promoção hoje. Tente novamente amanhã!';
       return res.status(400).json({ error: errorMessage });
@@ -426,7 +427,7 @@ app.post('/api/roletas/force-reset', requireAuth, async (req, res) => {
     }
     
     // Verificar se é uma casa válida
-    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+    const casasValidas = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet', 'papigames'];
     if (!casasValidas.includes(casa)) {
       return res.status(400).json({ error: 'Casa de aposta inválida' });
     }
@@ -443,7 +444,8 @@ app.post('/api/roletas/force-reset', requireAuth, async (req, res) => {
       '7games': '7GAMES',
       'betano': 'BETANO',
       'superbet': 'SUPERBET',
-      'novibet': 'NOVIBET'
+      'novibet': 'NOVIBET',
+      'papigames': 'PAPIGAMES'
     };
     const casaName = casaNames[casa] || casa.toUpperCase();
     

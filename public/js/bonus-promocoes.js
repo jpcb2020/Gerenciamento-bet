@@ -56,7 +56,7 @@ class RoletaManager {
                 statusText.textContent = 'Disponível';
                 btnGirar.disabled = false;
                 btnGirar.classList.remove('btn-disabled');
-                if (casa.casa === '7games' || casa.casa === 'betao' || casa.casa === 'r7' || casa.casa === 'betano' || casa.casa === 'superbet' || casa.casa === 'novibet') {
+                if (casa.casa === '7games' || casa.casa === 'betao' || casa.casa === 'r7' || casa.casa === 'betano' || casa.casa === 'superbet' || casa.casa === 'novibet' || casa.casa === 'papigames') {
                     btnText.textContent = 'Girar Agora!';
                 } else {
                     btnText.textContent = 'Acessar Agora!';
@@ -95,7 +95,7 @@ class RoletaManager {
             if (!aDisponivel && bDisponivel) return 1;
             
             // Se ambos têm o mesmo status, manter ordem original baseada no data-casa
-            const order = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet'];
+            const order = ['7games', 'betao', 'r7', 'betano', 'superbet', 'novibet', 'papigames'];
             const aIndex = order.indexOf(a.dataset.casa);
             const bIndex = order.indexOf(b.dataset.casa);
             return aIndex - bIndex;
@@ -235,7 +235,7 @@ class RoletaManager {
     }
 
     getMaxSlides() {
-        // Com 6 cards totais (incluindo Novibet), teremos 2 páginas de 5 cards
+        // Com 7 cards totais (incluindo PapiGames), teremos 2 páginas de 5 cards
         return Math.max(1, Math.ceil(this.totalCards / this.cardsPerSlide));
     }
 
@@ -424,6 +424,7 @@ class RoletaManager {
             'betano': 'https://www.betano.bet.br/casino/wheel/',
             'superbet': 'https://superbet.bet.br/jogos-gratis/super-spin',
             'novibet': 'https://www.novibet.bet.br/cassino/giftwheel',
+            'papigames': 'https://papigames.bet.br/',
             // Adicionar outras casas aqui no futuro
         };
         

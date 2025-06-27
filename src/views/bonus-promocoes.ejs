@@ -411,6 +411,52 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- PapiGames Roleta Card -->
+                        <div class="roleta-card" data-casa="papigames">
+                            <div class="card-header">
+                                <div class="casa-logo">
+                                    <img src="images/logos/PAPIGAMES.png" alt="PapiGames" />
+                                </div>
+                                <div class="casa-info">
+                                    <h4>PapiGames</h4>
+                                    <p>Roleta Diária</p>
+                                </div>
+                                <div class="status-indicator" id="status-papigames">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Carregando...</span>
+                                </div>
+                                <button class="btn-reset-timer" onclick="showResetConfirmation('papigames')" title="Forçar Reset (Desenvolvimento)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="roleta-container">
+                                    <div class="roleta-image-wrapper" onclick="openRoletaModal('images/roletas/PapiGames.png', 'PapiGames')">
+                                        <img src="images/roletas/PapiGames.png" alt="Roleta PapiGames" class="roleta-image" id="roleta-papigames" />
+                                        <div class="zoom-hint">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-description">
+                                    <p>Gire a roleta diária da PapiGames e ganhe bônus exclusivos!</p>
+                                    <div class="countdown-container" id="countdown-papigames" style="display: none;">
+                                        <p><i class="fas fa-clock"></i> Próxima rodada em:</p>
+                                        <div class="countdown-timer" id="timer-papigames">00:00:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <button class="btn-girar" id="btn-girar-papigames" data-casa="papigames" disabled>
+                                    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                                    <span class="btn-text">Carregando...</span>
+                                </button>
+                            </div>
+                        </div>
                         </div>
                         
                         <!-- Carousel Indicators -->
