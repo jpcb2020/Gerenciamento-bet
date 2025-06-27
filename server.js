@@ -16,6 +16,7 @@ const bankrollRoutes = require('./src/routes/bankrollRoutes');
 const surebetRoutes = require('./src/routes/surebetRoutes');
 const sportsBetRoutes = require('./src/routes/sportsBetRoutes');
 const generalRoutes = require('./src/routes/generalRoutes');
+const notasRoutes = require('./src/routes/notasRoutes');
 const authRoutes = require('./src/routes/auth');
 
 // Import middleware
@@ -61,6 +62,7 @@ app.use('/api/bankrolls', requireAuth, bankrollRoutes);
 app.use('/api/surebet', requireAuth, surebetRoutes);
 app.use('/api/sports-bet', requireAuth, sportsBetRoutes);
 app.use('/api/general', requireAuth, generalRoutes);
+app.use('/api/notas', requireAuth, notasRoutes);
 
 // Rota principal para renderizar o dashboard.ejs da pasta views (protegida)
 app.get('/', requireAuth, (req, res) => {
@@ -118,6 +120,13 @@ app.get('/bonus-promocoes', requireAuth, (req, res) => {
 app.get('/casas-regulamentadas', requireAuth, (req, res) => {
   res.render('casas-regulamentadas', { 
     title: 'Casas Regulamentadas - BetManager',
+    user: req.user
+  });
+});
+
+app.get('/notas', requireAuth, (req, res) => {
+  res.render('notas', { 
+    title: 'Notas e Lembretes - BetManager',
     user: req.user
   });
 });

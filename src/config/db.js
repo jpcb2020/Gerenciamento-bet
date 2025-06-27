@@ -54,6 +54,22 @@ const initDb = async () => {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notas (
+        id SERIAL PRIMARY KEY,
+        titulo VARCHAR(255) NOT NULL,
+        conteudo TEXT NOT NULL,
+        tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('nota', 'lembrete')),
+        prioridade VARCHAR(10) DEFAULT 'media' CHECK (prioridade IN ('baixa', 'media', 'alta')),
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        data_lembrete TIMESTAMP NULL,
+        concluido BOOLEAN DEFAULT FALSE,
+        cor VARCHAR(7) DEFAULT '#6c5ce7',
+        user_id INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
     
     console.log('Tabelas verificadas/criadas com sucesso.');
     client.release();

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casas Regulamentadas - BetManager</title>
+    <title>Notas e Lembretes - BetManager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/casas-regulamentadas.css">
+    <link rel="stylesheet" href="/css/notas.css">
 </head>
 <body>
     <div class="container">
@@ -23,13 +23,13 @@
                     <li>
                         <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                     </li>
-                    <li>
+                    <li> 
                         <a href="/casas-de-apostas"><i class="fas fa-home"></i> Casas de Apostas</a>
                     </li>
-                    <li class="active"> 
+                    <li> 
                         <a href="/casas-regulamentadas"><i class="fas fa-check-circle"></i> Casas Regulamentadas</a>
                     </li>
-                    <li> 
+                    <li>
                         <a href="/transacoes"><i class="fas fa-exchange-alt"></i> Transações</a>
                     </li>
                     <li>
@@ -38,7 +38,7 @@
                     <li>
                         <a href="/bonus-promocoes"><i class="fas fa-gift"></i> Bônus e Promoções</a>
                     </li>
-                    <li>
+                    <li class="active">
                         <a href="/notas"><i class="fas fa-sticky-note"></i> Notas e Lembretes</a>
                     </li>
                     <li>
@@ -61,7 +61,7 @@
         <main class="main-content">
             <header class="main-header">
                 <div class="header-search">
-                    <input type="text" id="searchCasas" placeholder="Pesquisar casas...">
+                    <input type="text" id="searchNotas" placeholder="Pesquisar notas e lembretes...">
                     <i class="fas fa-search"></i>
                 </div>
                 <div class="header-user">
@@ -119,69 +119,123 @@
             <div class="content-wrapper">
                 <!-- Page Title -->
                 <div class="page-title">
-                    <h2>Casas de Apostas Regulamentadas no Brasil</h2>
-                    <div class="filter-container">
-                        <button class="btn-outline filter-btn" id="sortByName"><i class="fas fa-sort-alpha-down"></i> Ordenar por Nome</button>
-                        <button class="btn-outline filter-btn" id="sortByCompany"><i class="fas fa-building"></i> Ordenar por Empresa</button>
-                        <button class="btn-outline filter-btn exchange-filter" id="filterExchange"><i class="fas fa-exchange-alt"></i> Mostrar Exchange</button>
+                    <h2>Notas e Lembretes</h2>
+                    <button class="btn-primary" id="addNotaBtn">
+                        <i class="fas fa-plus"></i> Nova Nota/Lembrete
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="notas-filters">
+                    <div class="filter-group">
+                        <label for="filterTipo">Tipo:</label>
+                        <select id="filterTipo" class="filter-control">
+                            <option value="">Todos</option>
+                            <option value="nota">Notas</option>
+                            <option value="lembrete">Lembretes</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterPrioridade">Prioridade:</label>
+                        <select id="filterPrioridade" class="filter-control">
+                            <option value="">Todas</option>
+                            <option value="alta">Alta</option>
+                            <option value="media">Média</option>
+                            <option value="baixa">Baixa</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterStatus">Status:</label>
+                        <select id="filterStatus" class="filter-control">
+                            <option value="">Todos</option>
+                            <option value="false">Pendentes</option>
+                            <option value="true">Concluídos</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="page-description">
-                    <p>Lista oficial de casas de apostas autorizadas pelo Ministério da Fazenda (SPA/MF) para operação no Brasil a partir de 1º de janeiro de 2025, de acordo com as Leis nº 13.756 e 14.790.</p>
-                </div>
-                
-                <!-- Filtro de Empresas -->
-                <div class="company-filter">
-                    <label for="companySelect">Filtrar por empresa:</label>
-                    <select id="companySelect">
-                        <option value="todas">Todas as empresas</option>
-                        <!-- Opções serão adicionadas dinamicamente pelo JavaScript -->
-                    </select>
+                <!-- Notas Grid -->
+                <div id="notasGrid" class="notas-grid">
+                    <!-- Notas serão carregadas dinamicamente -->
                 </div>
 
-                <!-- Container para mostrar as casas de apostas regulamentadas -->
-                <div id="regCasasContainer" class="reg-casas-container">
-                    <!-- O conteúdo será dinamicamente inserido pelo JavaScript -->
+                <!-- Empty State -->
+                <div class="empty-state" id="notasEmptyState" style="display: none;">
+                    <i class="fas fa-sticky-note"></i>
+                    <h3>Nenhuma nota encontrada</h3>
+                    <p>Clique no botão "Nova Nota/Lembrete" para começar</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal para detalhes da casa -->
-    <div id="casaDetailModal" class="modal">
+    <!-- Modal para Adicionar/Editar Nota -->
+    <div id="notaModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalCasaName">Detalhes da Casa</h2>
-                <span class="close-modal" data-modal-id="casaDetailModal">&times;</span>
+                <h2 id="modalTitle">Nova Nota/Lembrete</h2>
+                <span class="close-modal" id="closeNotaModal">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="casa-details">
-                    <div class="casa-header">
-                        <div class="casa-logo">
-                            <img id="modalCasaLogo" src="" alt="Logo da casa">
+                <form id="notaForm">
+                    <input type="hidden" id="notaId">
+                    
+                    <div class="form-group">
+                        <label for="notaTitulo">Título <span class="required">*</span></label>
+                        <input type="text" id="notaTitulo" name="titulo" required maxlength="255">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notaTipo">Tipo <span class="required">*</span></label>
+                        <select id="notaTipo" name="tipo" required>
+                            <option value="">Selecione...</option>
+                            <option value="nota">📝 Nota</option>
+                            <option value="lembrete">⏰ Lembrete</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="notaPrioridade">Prioridade</label>
+                            <select id="notaPrioridade" name="prioridade">
+                                <option value="baixa">🟢 Baixa</option>
+                                <option value="media" selected>🟡 Média</option>
+                                <option value="alta">🔴 Alta</option>
+                            </select>
                         </div>
-                        <div class="casa-info">
-                            <h3 id="modalCasaNome"></h3>
-                            <p><strong>Empresa:</strong> <span id="modalCasaEmpresa"></span></p>
-                            <p><strong>CNPJ:</strong> <span id="modalCasaCNPJ"></span></p>
-                            <p><strong>Site:</strong> <a id="modalCasaSite" href="#" target="_blank"></a></p>
-                            <p><strong>Portaria de Autorização:</strong> <span id="modalCasaPortaria"></span></p>
+                        <div class="form-group">
+                            <label for="notaCor">Cor</label>
+                            <input type="color" id="notaCor" name="cor" value="#6c5ce7">
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a id="modalCasaLink" href="#" class="btn-primary" target="_blank">Visitar Site Oficial</a>
-                <button class="btn-outline" data-modal-id="casaDetailModal">Fechar</button>
+
+                    <div class="form-group" id="dataLembreteGroup" style="display: none;">
+                        <label for="dataLembrete">Data/Hora do Lembrete</label>
+                        <input type="datetime-local" id="dataLembrete" name="data_lembrete">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notaConteudo">Conteúdo <span class="required">*</span></label>
+                        <textarea id="notaConteudo" name="conteudo" rows="5" required></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline" id="cancelNotaBtn">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <script src="/js/toast-modal.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="/js/casas-regulamentadas.js"></script>
-    <script src="/js/logout.js"></script>
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
     <script src="/js/user-dropdown.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/notas.js"></script>
 </body>
-</html>
+</html> 
